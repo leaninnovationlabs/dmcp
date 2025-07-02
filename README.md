@@ -18,12 +18,87 @@ A Python backend server built with FastAPI that can connect to various databases
 uv sync
 ```
 
-2. Run the development server:
+2. Initialize the database:
+```bash
+python manage_db.py init
+```
+
+3. Run the development server:
 ```bash
 uv run uvicorn app.main:app --reload
 ```
 
-3. Access the API documentation at: http://localhost:8000/docs
+4. Access the API documentation at: http://localhost:8000/docs
+
+## Database Management
+
+This project uses **Alembic** for database schema management. All database changes are handled through migrations to ensure version control and safe schema evolution.
+
+### Quick Start
+
+```bash
+# Initialize database (creates tables)
+python manage_db.py init
+
+# Check migration status
+python manage_db.py status
+
+# Apply pending migrations
+python manage_db.py upgrade
+```
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `python manage_db.py init` | Initialize database with initial schema |
+| `python manage_db.py upgrade` | Apply all pending migrations |
+| `python manage_db.py downgrade <revision>` | Downgrade to specific revision |
+| `python manage_db.py revision -m "message"` | Create new migration |
+| `python manage_db.py status` | Show current migration status |
+| `python manage_db.py history` | Show migration history |
+| `python manage_db.py reset` | Reset database (⚠️ deletes all data) |
+
+### Creating New Migrations
+
+When you modify the database models in `app/models/database.py`, create a new migration:
+
+```bash
+# Create migration for model changes
+python manage_db.py revision -m "Add new column to users table"
+
+# Review the generated migration file in alembic/versions/
+# Then apply the migration
+python manage_db.py upgrade
+```
+
+### Manual Alembic Commands
+
+You can also use Alembic commands directly:
+
+```bash
+# Create migration
+alembic revision --autogenerate -m "Description of changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Downgrade
+alembic downgrade -1
+
+# Check status
+alembic current
+alembic history
+```
+
+### Database Schema
+
+The current schema includes:
+
+- **datasources** table: Stores database connection configurations
+- **queries** table: Stores named queries with parameters
+
+See `app/models/database.py` for the complete model definitions.
 
 ## API Endpoints
 

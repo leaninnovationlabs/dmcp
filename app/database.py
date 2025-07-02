@@ -27,8 +27,10 @@ AsyncSessionLocal = async_sessionmaker(
 
 async def init_db():
     """Initialize the database and create tables."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Note: Database schema is now managed by Alembic
+    # Run 'alembic upgrade head' to apply migrations
+    # This function is kept for backward compatibility but doesn't create tables
+    pass
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
