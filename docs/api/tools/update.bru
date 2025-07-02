@@ -5,16 +5,16 @@ meta {
 }
 
 put {
-  url: {{server}}/tools/4
+  url: {{server}}/tools/1
   body: json
   auth: none
 }
 
 body:json {
   {
-      "name": "get_credits",
-      "description": "All Credit Transactions",
-      "sql": "SELECT * FROM transactions WHERE 1=1  {% if class is defined %} and classification = {{class | sql_quote}}  {% endif %}",
+      "name": "get_trans",
+      "description": "Get all the transactions",
+      "sql": "SELECT * FROM transactions ",
       "datasource_id": 2,
       "parameters": [
         {

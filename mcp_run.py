@@ -10,7 +10,6 @@ from app.mcp_server import MCPServer
 
 def main():
     """Main function to start the MCP server."""
-    print("Starting MCP Server...")
     server = MCPServer()
     server.run()
 
