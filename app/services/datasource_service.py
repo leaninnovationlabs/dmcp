@@ -161,7 +161,7 @@ class DatasourceService:
         except DatasourceNotFoundError:
             raise
         except Exception as e:
-            print(f"Failed to connect to database: {str(e)}")
+            # Debug logging - removed print statement to avoid stdout pollution
             connection_time = (time.time() - start_time) * 1000
             return {
                 "success": False,

@@ -20,7 +20,7 @@ uv sync
 
 2. Initialize the database:
 ```bash
-python manage_db.py init
+python dbmigrate.py init
 ```
 
 3. Run the development server:
@@ -29,6 +29,45 @@ uv run uvicorn app.main:app --reload
 ```
 
 4. Access the API documentation at: http://localhost:8000/docs
+
+## MCP Server Setup
+
+This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants.
+
+### Starting the MCP Server
+
+```bash
+# Start the MCP server
+python run_mcp_server.py
+```
+
+### Using with MCP Clients
+
+1. **Claude Desktop**: Add the following to your `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "dbmcp": {
+      "command": "python",
+      "args": ["run_mcp_server.py"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
+```
+
+2. **Other MCP Clients**: Use the `mcp_config.json` file provided in this project.
+
+### Available MCP Tools
+
+- **create_datasource**: Create a new database datasource with connection information
+- **list_datasources**: List all available datasources
+- **create_query**: Create a new named query with parameter support
+- **list_queries**: List all available named queries
+- **execute_query**: Execute a named query with parameters and pagination
+- **execute_raw_query**: Execute a raw SQL query with parameters and pagination
 
 ## Database Management
 

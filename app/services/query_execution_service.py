@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Any
 import time
+import re
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..repositories.query_repository import QueryRepository
@@ -16,6 +17,7 @@ from ..core.exceptions import (
     DatabaseConnectionError,
 )
 from ..database_connections import DatabaseConnectionManager
+from .jinja_template_service import JinjaTemplateService
 
 
 class QueryExecutionService:
@@ -25,6 +27,7 @@ class QueryExecutionService:
         self.query_repository = QueryRepository(db)
         self.datasource_repository = DatasourceRepository(db)
         self.connection_manager = DatabaseConnectionManager()
+        self.template_service = JinjaTemplateService()
     
     async def execute_named_query(
         self,
@@ -85,18 +88,21 @@ class QueryExecutionService:
         start_time = time.time()
         
         try:
+            # Pre-process SQL with Jinja templates if needed
+            processed_sql = self._preprocess_sql_template(sql, parameters)
+            
             # Get connection to the target database
             connection = await self.connection_manager.get_connection(datasource)
             
             # Apply pagination if requested
             if pagination:
-                sql = self._apply_pagination(sql, pagination)
+                processed_sql = self._apply_pagination(processed_sql, pagination)
 
-            print(f"Executing query: {sql}")
-            print(f"Parameters: {parameters}")
+            # print(f"Executing query: {processed_sql}")
+            # print(f"Parameters: {parameters}")
             
             # Execute the query
-            result = await connection.execute(sql, parameters)
+            result = await connection.execute(processed_sql, parameters)
             
             # Process results
             data = []
@@ -118,14 +124,14 @@ class QueryExecutionService:
             # Calculate pagination info
             pagination_response = None
             if pagination:
-                # Get total count for pagination - use original SQL without LIMIT
-                original_sql = sql
-                if "LIMIT" in sql.upper():
+                # Get total count for pagination - use processed SQL without LIMIT
+                original_processed_sql = processed_sql
+                if "LIMIT" in processed_sql.upper():
                     # Remove LIMIT clause for count query
-                    limit_index = sql.upper().find("LIMIT")
-                    original_sql = sql[:limit_index].strip()
+                    limit_index = processed_sql.upper().find("LIMIT")
+                    original_processed_sql = processed_sql[:limit_index].strip()
                 
-                count_sql = f"SELECT COUNT(*) as total FROM ({original_sql}) as count_query"
+                count_sql = f"SELECT COUNT(*) as total FROM ({original_processed_sql}) as count_query"
                 count_result = await connection.execute(count_sql, parameters)
                 count_row = await count_result.fetchone()
                 total_items = count_row[0] if count_row else 0
@@ -169,4 +175,52 @@ class QueryExecutionService:
         # Add new LIMIT clause
         sql += f" LIMIT {pagination.page_size} OFFSET {offset}"
         
-        return sql 
+        return sql
+    
+    def _preprocess_sql_template(self, sql: str, parameters: Dict[str, Any]) -> str:
+        """
+        Pre-process SQL with Jinja templates if template syntax is detected.
+        
+        Args:
+            sql: The SQL query string
+            parameters: Parameters for template substitution
+            
+        Returns:
+            Processed SQL string
+        """
+        # Check if the SQL contains Jinja template syntax
+        if self._contains_jinja_syntax(sql):
+            try:
+                # Validate template variables
+                missing_vars = self.template_service.validate_template_variables(sql, parameters)
+                if missing_vars:
+                    missing_var_names = list(missing_vars.keys())
+                    raise QueryExecutionError(
+                        None, 
+                        f"Missing required template variables: {', '.join(missing_var_names)}"
+                    )
+                
+                # Render the template
+                return self.template_service.render_template(sql, parameters)
+                
+            except Exception as e:
+                if isinstance(e, QueryExecutionError):
+                    raise
+                raise QueryExecutionError(None, f"Template processing failed: {str(e)}")
+        
+        # If no template syntax, return the original SQL
+        return sql
+    
+    def _contains_jinja_syntax(self, sql: str) -> bool:
+        """Check if SQL contains Jinja template syntax."""
+        jinja_patterns = [
+            r'{{\s*[^}]+}}',  # {{ variable }}
+            r'{%\s*[^%]+%}',  # {% control structures %}
+            r'{#\s*[^#]+#}',  # {# comments #}
+        ]
+        
+        for pattern in jinja_patterns:
+            if re.search(pattern, sql):
+                return True
+        
+        return False 
