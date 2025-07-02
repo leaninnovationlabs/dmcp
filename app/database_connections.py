@@ -213,8 +213,6 @@ class DatabaseConnectionManager:
                 'password': datasource.decrypted_password,
             }
 
-            print(connection_params)
-                        
             # Add SSL mode if specified
             if datasource.ssl_mode:
                 connection_params['ssl'] = datasource.ssl_mode

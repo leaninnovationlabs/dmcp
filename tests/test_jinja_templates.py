@@ -241,3 +241,21 @@ if __name__ == "__main__":
     params4 = {"pattern": "John%"}
     result4 = template_service.render_template(sql4, params4)
     print(f"Example 4: {result4}") 
+
+    # Example 5: Pagination
+    sql5 = "SELECT * FROM users LIMIT {{ limit }} OFFSET {{ offset }}"
+    params5 = {"limit": 10, "offset": 0}
+    result5 = template_service.render_template(sql5, params5)
+    print(f"Example 5: {result5}") 
+
+    # Example 6: String interpolation
+    sql6 = "SELECT * FROM users WHERE name = {{ name | sql_string }}"
+    params6 = {"name": "John"}
+    result6 = template_service.render_template(sql6, params6)
+    print(f"Example 6: {result6}") 
+
+    # Example 7: String interpolation with Jinja2
+    sql7 = "SELECT * FROM users WHERE 1=1 {% if class is defined %} and classification = {{class | sql_quote}}  {% endif %}"
+    params7 = {"class": "John"}
+    result7 = template_service.render_template(sql7, params7)
+    print(f"Example 7: {result7}") 

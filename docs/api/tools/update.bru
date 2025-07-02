@@ -5,29 +5,23 @@ meta {
 }
 
 put {
-  url: {{server}}/tools/1
+  url: {{server}}/tools/4
   body: json
   auth: none
 }
 
 body:json {
   {
-      "name": "search_trans_updated",
-      "description": "Updated Search Transactions",
-      "sql": "SELECT * FROM transactions WHERE amount >= :amt and description like :desc",
-      "datasource_id": 1,
+      "name": "get_credits",
+      "description": "All Credit Transactions",
+      "sql": "SELECT * FROM transactions WHERE 1=1  {% if class is defined %} and classification = {{class | sql_quote}}  {% endif %}",
+      "datasource_id": 2,
       "parameters": [
         {
-          "name": "amt",
-          "type": "integer",
-          "description": "Amount threshold",
-          "required": true
-        },
-        {
-          "name": "desc",
+          "name": "class",
           "type": "string",
-          "description": "Description pattern",
-          "required": true
+          "description": "Classification",
+          "required": false
         }
       ]
     }

@@ -1,3 +1,4 @@
+import traceback
 from typing import Optional, Dict, Any
 import time
 import re
@@ -53,6 +54,7 @@ class ToolExecutionService:
         except (ToolNotFoundError, DatasourceNotFoundError):
             raise
         except Exception as e:
+            print(e)
             raise ToolExecutionError(tool_id, str(e))
     
     async def execute_raw_query(
@@ -88,8 +90,12 @@ class ToolExecutionService:
         start_time = time.time()
         
         try:
+            print(sql)
             # Process SQL with Jinja templates if needed
             processed_sql = self.template_service.process_sql_template(sql, parameters)
+
+            print('processed_sql', processed_sql)
+            print('parameters', parameters)
             
             # Get database connection
             connection = await self.connection_manager.get_connection(datasource)
@@ -100,17 +106,21 @@ class ToolExecutionService:
                 offset = (pagination.page - 1) * pagination.page_size
                 limit = pagination.page_size
                 
+                processed_sql_with_pagination = processed_sql
+
                 # For PostgreSQL and MySQL, we can use LIMIT/OFFSET
                 if datasource.database_type in ['postgresql', 'mysql']:
-                    processed_sql += f" LIMIT {limit} OFFSET {offset}"
+                    processed_sql_with_pagination += f" LIMIT {limit} OFFSET {offset}"
                 
                 # Execute the paginated query
-                result_wrapper = await connection.execute(processed_sql, parameters)
+                result_wrapper = await connection.execute(processed_sql_with_pagination)
                 result_data = await result_wrapper.fetchall()
                 
                 # Get total count for pagination info
-                count_sql = f"SELECT COUNT(*) as total FROM ({sql}) as count_query"
-                count_result_wrapper = await connection.execute(count_sql, parameters)
+                count_sql = f"SELECT COUNT(*) as total FROM ({processed_sql}) as count_query"
+                print(count_sql)
+
+                count_result_wrapper = await connection.execute(count_sql)
                 count_result_data = await count_result_wrapper.fetchall()
                 total_items = count_result_data[0]['total'] if count_result_data else 0
                 
@@ -126,7 +136,7 @@ class ToolExecutionService:
                 )
             else:
                 # Execute without pagination
-                result_wrapper = await connection.execute(processed_sql, parameters)
+                result_wrapper = await connection.execute(processed_sql)
                 result_data = await result_wrapper.fetchall()
                 pagination_response = None
             
@@ -145,6 +155,8 @@ class ToolExecutionService:
             )
             
         except Exception as e:
+            print(e)
+            print(traceback.format_exc())
             execution_time = (time.time() - start_time) * 1000
             return ToolExecutionResponse(
                 success=False,
