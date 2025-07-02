@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 from datetime import datetime
 
@@ -26,6 +26,43 @@ class DatabaseType(str, Enum):
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
     SQLITE = "sqlite"
+
+
+class ParameterType(str, Enum):
+    STRING = "string"
+    INTEGER = "integer"
+    FLOAT = "float"
+    BOOLEAN = "boolean"
+    DATE = "date"
+    DATETIME = "datetime"
+    ARRAY = "array"
+    OBJECT = "object"
+
+
+class ParameterDefinition(BaseModel):
+    """Structured parameter definition for queries."""
+    name: str = Field(..., description="Parameter name")
+    type: ParameterType = Field(..., description="Parameter data type")
+    description: Optional[str] = Field(None, description="Parameter description")
+    required: bool = Field(False, description="Whether the parameter is required")
+    default_value: Optional[Union[str, int, float, bool, List, Dict]] = Field(
+        None, description="Default value for the parameter"
+    )
+    allowed_values: Optional[List[Union[str, int, float, bool]]] = Field(
+        None, description="List of allowed values for the parameter"
+    )
+    min_value: Optional[Union[int, float]] = Field(
+        None, description="Minimum value for numeric parameters"
+    )
+    max_value: Optional[Union[int, float]] = Field(
+        None, description="Maximum value for numeric parameters"
+    )
+    min_length: Optional[int] = Field(
+        None, description="Minimum length for string parameters"
+    )
+    max_length: Optional[int] = Field(
+        None, description="Maximum length for string parameters"
+    )
 
 
 class DatasourceCreate(BaseModel):
@@ -66,7 +103,7 @@ class QueryCreate(BaseModel):
     description: Optional[str] = Field(None, description="Query description")
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
-    parameters: Optional[List[Dict[str, Any]]] = Field(
+    parameters: Optional[List[ParameterDefinition]] = Field(
         default_factory=list, description="Parameter definitions"
     )
 
@@ -77,12 +114,30 @@ class QueryResponse(BaseModel):
     description: Optional[str]
     sql: str
     datasource_id: int
-    parameters: List[Dict[str, Any]]
+    parameters: List[ParameterDefinition]
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+    
+    @classmethod
+    def model_validate(cls, obj):
+        """Custom validation to convert parameter dictionaries to ParameterDefinition objects."""
+        if hasattr(obj, 'parameters') and isinstance(obj.parameters, list):
+            # Convert parameter dictionaries to ParameterDefinition objects
+            converted_params = []
+            for param_dict in obj.parameters:
+                if isinstance(param_dict, dict):
+                    converted_params.append(ParameterDefinition(**param_dict))
+                elif isinstance(param_dict, ParameterDefinition):
+                    converted_params.append(param_dict)
+                else:
+                    # Handle legacy format or invalid data
+                    continue
+            obj.parameters = converted_params
+        
+        return super().model_validate(obj)
 
 
 class PaginationRequest(BaseModel):

@@ -5,16 +5,16 @@ meta {
 }
 
 post {
-  url: {{server}}/execute/1
+  url: {{server}}/execute/2
   body: json
   auth: none
 }
 
 body:json {
   {
-      "parameters": {},
+      "parameters": { "amt": -10000, "desc": "%AMAZON%"},
       "pagination": {
-        "page": 1,
+        "page": 2,
         "page_size": 10
       }
   }

@@ -12,10 +12,23 @@ post {
 
 body:json {
   {
-    "name": "get_new_transactions",
-    "description": "Get transactions",
-    "sql": "select * from transactions limit 1-0",
-    "datasource_id": 1,
-    "parameters": [ ]
-  } 
+      "name": "search_trans1",
+      "description": "Search Transactions",
+      "sql": "SELECT * FROM transactions WHERE amount > :amt and description like :desc",
+      "datasource_id": 1,
+      "parameters": [
+        {
+          "name": "amt",
+          "type": "integer",
+          "description": "Trader",
+          "required": true
+        },
+        {
+          "name": "desc",
+          "type": "string",
+          "description": "Description",
+          "required": true
+        }
+      ]
+    }
 }

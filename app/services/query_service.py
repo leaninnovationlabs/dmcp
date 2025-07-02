@@ -22,12 +22,19 @@ class QueryService:
             if not datasource:
                 raise DatasourceNotFoundError(query.datasource_id)
             
+            # Convert ParameterDefinition objects to dictionaries for JSON storage
+            parameters_dict = []
+            if query.parameters:
+                for param in query.parameters:
+                    param_dict = param.model_dump()
+                    parameters_dict.append(param_dict)
+            
             db_query = await self.repository.create_query(
                 name=query.name,
                 description=query.description,
                 sql=query.sql,
                 datasource_id=query.datasource_id,
-                parameters=query.parameters or [],
+                parameters=parameters_dict,
             )
             return QueryResponse.model_validate(db_query)
         except (DatasourceNotFoundError, ValueError):
@@ -61,6 +68,14 @@ class QueryService:
                 datasource = await self.datasource_repository.get_by_id(kwargs['datasource_id'])
                 if not datasource:
                     raise DatasourceNotFoundError(kwargs['datasource_id'])
+            
+            # Convert ParameterDefinition objects to dictionaries if parameters are being updated
+            if 'parameters' in kwargs and kwargs['parameters']:
+                parameters_dict = []
+                for param in kwargs['parameters']:
+                    param_dict = param.model_dump()
+                    parameters_dict.append(param_dict)
+                kwargs['parameters'] = parameters_dict
             
             updated_query = await self.repository.update_query(query_id, **kwargs)
             return QueryResponse.model_validate(updated_query)

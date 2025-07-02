@@ -91,6 +91,9 @@ class QueryExecutionService:
             # Apply pagination if requested
             if pagination:
                 sql = self._apply_pagination(sql, pagination)
+
+            print(f"Executing query: {sql}")
+            print(f"Parameters: {parameters}")
             
             # Execute the query
             result = await connection.execute(sql, parameters)
