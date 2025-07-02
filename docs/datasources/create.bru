@@ -1,0 +1,27 @@
+meta {
+  name: create
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{server}}/datasources
+  body: json
+  auth: none
+}
+
+body:json {
+    {
+      "name": "p1smallbus_db",
+      "database_type": "postgresql",
+      "host": "localhost",
+      "port": "5432",
+      "database": "smallbus",
+      "username": "postgres",
+      "password": "password",
+      "connection_string": "",
+      "ssl_mode": null,
+      "additional_params": {}
+  }
+  
+}

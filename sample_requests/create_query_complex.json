@@ -1,0 +1,34 @@
+{
+  "name": "search_orders",
+  "description": "Search orders with multiple filters and date range",
+  "sql": "SELECT o.id, o.order_date, o.total_amount, c.name as customer_name, c.email FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.order_date BETWEEN :start_date AND :end_date AND o.total_amount >= :min_amount AND o.status = :status ORDER BY o.order_date DESC",
+  "datasource_id": 1,
+  "parameters": [
+    {
+      "name": "start_date",
+      "type": "date",
+      "description": "Start date for order search (YYYY-MM-DD)",
+      "required": true
+    },
+    {
+      "name": "end_date", 
+      "type": "date",
+      "description": "End date for order search (YYYY-MM-DD)",
+      "required": true
+    },
+    {
+      "name": "min_amount",
+      "type": "decimal",
+      "description": "Minimum order amount to include",
+      "required": false,
+      "default": 0.0
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "description": "Order status filter",
+      "required": false,
+      "default": "completed"
+    }
+  ]
+} 

@@ -1,0 +1,15 @@
+{
+  "name": "get_users_by_status",
+  "description": "Get users filtered by their status with pagination support",
+  "sql": "SELECT id, name, email, status, created_at FROM users WHERE status = :status ORDER BY created_at DESC",
+  "datasource_id": 1,
+  "parameters": [
+    {
+      "name": "status",
+      "type": "string",
+      "description": "User status to filter by (active, inactive, pending)",
+      "required": true,
+      "default": "active"
+    }
+  ]
+} 

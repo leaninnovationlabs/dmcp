@@ -1,0 +1,21 @@
+meta {
+  name: execute
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{server}}/execute/5
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "parameters": {},
+      "pagination": {
+        "page": 1,
+        "page_size": 10
+      }
+  }
+}

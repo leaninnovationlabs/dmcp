@@ -1,0 +1,6 @@
+{
+  "name": "get_all_users",
+  "description": "Simple query to get all users",
+  "sql": "SELECT * FROM users",
+  "datasource_id": 1
+} 
