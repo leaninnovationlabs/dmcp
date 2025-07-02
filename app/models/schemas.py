@@ -42,27 +42,11 @@ class ParameterType(str, Enum):
 class ParameterDefinition(BaseModel):
     """Structured parameter definition for queries."""
     name: str = Field(..., description="Parameter name")
-    type: ParameterType = Field(..., description="Parameter data type")
+    type: ParameterType = Field(..., description="Parameter type")
     description: Optional[str] = Field(None, description="Parameter description")
     required: bool = Field(False, description="Whether the parameter is required")
-    default_value: Optional[Union[str, int, float, bool, List, Dict]] = Field(
-        None, description="Default value for the parameter"
-    )
-    allowed_values: Optional[List[Union[str, int, float, bool]]] = Field(
-        None, description="List of allowed values for the parameter"
-    )
-    min_value: Optional[Union[int, float]] = Field(
-        None, description="Minimum value for numeric parameters"
-    )
-    max_value: Optional[Union[int, float]] = Field(
-        None, description="Maximum value for numeric parameters"
-    )
-    min_length: Optional[int] = Field(
-        None, description="Minimum length for string parameters"
-    )
-    max_length: Optional[int] = Field(
-        None, description="Maximum length for string parameters"
-    )
+    default: Optional[Any] = Field(None, description="Default value for the parameter")
+    validation: Optional[Dict[str, Any]] = Field(None, description="Validation rules")
 
 
 class DatasourceCreate(BaseModel):
@@ -77,6 +61,21 @@ class DatasourceCreate(BaseModel):
     ssl_mode: Optional[str] = Field(None, description="SSL mode for connection")
     additional_params: Optional[Dict[str, Any]] = Field(
         default_factory=dict, description="Additional connection parameters"
+    )
+
+
+class DatasourceUpdate(BaseModel):
+    name: Optional[str] = Field(None, description="Name of the datasource")
+    database_type: Optional[DatabaseType] = Field(None, description="Type of database")
+    host: Optional[str] = Field(None, description="Database host")
+    port: Optional[int] = Field(None, description="Database port")
+    database: Optional[str] = Field(None, description="Database name")
+    username: Optional[str] = Field(None, description="Database username")
+    password: Optional[str] = Field(None, description="Database password")
+    connection_string: Optional[str] = Field(None, description="Full connection string")
+    ssl_mode: Optional[str] = Field(None, description="SSL mode for connection")
+    additional_params: Optional[Dict[str, Any]] = Field(
+        None, description="Additional connection parameters"
     )
 
 
@@ -98,9 +97,9 @@ class DatasourceResponse(BaseModel):
         from_attributes = True
 
 
-class QueryCreate(BaseModel):
-    name: str = Field(..., description="Name of the query")
-    description: Optional[str] = Field(None, description="Query description")
+class ToolCreate(BaseModel):
+    name: str = Field(..., description="Name of the tool")
+    description: Optional[str] = Field(None, description="Tool description")
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(
@@ -108,7 +107,7 @@ class QueryCreate(BaseModel):
     )
 
 
-class QueryResponse(BaseModel):
+class ToolResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
@@ -141,22 +140,22 @@ class QueryResponse(BaseModel):
 
 
 class PaginationRequest(BaseModel):
-    page: int = Field(1, ge=1, description="Page number (1-based)")
-    page_size: int = Field(10, ge=1, le=1000, description="Number of items per page")
+    page: int = Field(1, description="Page number (1-based)")
+    page_size: int = Field(10, description="Number of items per page")
 
 
 class PaginationResponse(BaseModel):
     page: int
     page_size: int
-    total_items: int
     total_pages: int
+    total_items: int
     has_next: bool
-    has_previous: bool
+    has_prev: bool
 
 
-class QueryExecutionRequest(BaseModel):
+class ToolExecutionRequest(BaseModel):
     parameters: Optional[Dict[str, Any]] = Field(
-        default_factory=dict, description="Query parameters"
+        default_factory=dict, description="Tool parameters"
     )
     pagination: Optional[PaginationRequest] = Field(
         None, description="Pagination settings"
@@ -174,7 +173,7 @@ class RawQueryRequest(BaseModel):
     )
 
 
-class QueryExecutionResponse(BaseModel):
+class ToolExecutionResponse(BaseModel):
     success: bool
     data: List[Dict[str, Any]]
     columns: List[str]

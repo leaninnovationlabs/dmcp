@@ -1,9 +1,9 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Set, Optional
 from jinja2 import Environment, Template, TemplateError, StrictUndefined
-from jinja2.exceptions import SecurityError
+from jinja2.exceptions import SecurityError, UndefinedError
 import re
 
-from ..core.exceptions import QueryExecutionError
+from ..core.exceptions import ToolExecutionError
 
 
 class JinjaTemplateService:
@@ -53,7 +53,7 @@ class JinjaTemplateService:
         try:
             return self.env.from_string(template_string)
         except TemplateError as e:
-            raise QueryExecutionError(None, f"Template compilation error: {str(e)}")
+            raise ToolExecutionError(None, f"Template compilation error: {str(e)}")
     
     def render_template(
         self, 
@@ -88,10 +88,23 @@ class JinjaTemplateService:
             
             return rendered_sql
             
+        except UndefinedError as e:
+            # Handle undefined variables
+            missing_vars = self._extract_missing_variables(str(e))
+            if missing_vars:
+                missing_var_names = list(missing_vars.keys())
+                raise ToolExecutionError(
+                    None, 
+                    f"Missing required template variables: {', '.join(missing_var_names)}"
+                )
+            else:
+                raise ToolExecutionError(None, f"Template compilation error: {str(e)}")
+                
         except TemplateError as e:
-            raise QueryExecutionError(None, f"Template rendering error: {str(e)}")
+            raise ToolExecutionError(None, f"Template compilation error: {str(e)}")
+            
         except Exception as e:
-            raise QueryExecutionError(None, f"Template processing error: {str(e)}")
+            raise ToolExecutionError(None, f"Template processing error: {str(e)}")
     
     def _validate_template_security(self, template_string: str, parameters: Dict[str, Any]):
         """Validate template for security concerns."""
@@ -154,7 +167,7 @@ class JinjaTemplateService:
             return missing_vars
             
         except Exception as e:
-            raise QueryExecutionError(None, f"Template validation error: {str(e)}")
+            raise ToolExecutionError(None, f"Template validation error: {str(e)}")
     
     def get_template_variables(self, template_string: str) -> set:
         """Extract all variable names used in a template."""
@@ -162,4 +175,177 @@ class JinjaTemplateService:
             template = self.compile_template(template_string)
             return set(template.module.__code__.co_names)
         except Exception:
-            return set() 
+            return set()
+    
+    def process_sql_template(self, sql: str, parameters: Dict[str, Any]) -> str:
+        """
+        Process SQL template with Jinja2 and parameters.
+        
+        Args:
+            sql: SQL string that may contain Jinja2 template syntax
+            parameters: Dictionary of parameters to substitute
+            
+        Returns:
+            Processed SQL string with parameters substituted
+            
+        Raises:
+            ToolExecutionError: If template processing fails
+        """
+        try:
+            # Check if the SQL contains Jinja template syntax
+            if not self._has_template_syntax(sql):
+                return sql
+            
+            # Create template and render with parameters
+            template = self.env.from_string(sql)
+            rendered_sql = template.render(**parameters)
+            
+            return rendered_sql
+            
+        except UndefinedError as e:
+            # Handle undefined variables
+            missing_vars = self._extract_missing_variables(str(e))
+            if missing_vars:
+                missing_var_names = list(missing_vars.keys())
+                raise ToolExecutionError(
+                    None, 
+                    f"Missing required template variables: {', '.join(missing_var_names)}"
+                )
+            else:
+                raise ToolExecutionError(None, f"Template compilation error: {str(e)}")
+                
+        except TemplateError as e:
+            raise ToolExecutionError(None, f"Template compilation error: {str(e)}")
+            
+        except Exception as e:
+            raise ToolExecutionError(None, f"Template processing error: {str(e)}")
+    
+    def _has_template_syntax(self, sql: str) -> bool:
+        """Check if SQL contains Jinja template syntax."""
+        template_indicators = ['{{', '{%', '{#']
+        return any(indicator in sql for indicator in template_indicators)
+    
+    def _extract_missing_variables(self, error_message: str) -> Dict[str, Any]:
+        """
+        Extract missing variable names from Jinja2 error messages.
+        
+        Args:
+            error_message: Error message from Jinja2
+            
+        Returns:
+            Dictionary of missing variable names
+        """
+        missing_vars = {}
+        
+        # Common patterns in Jinja2 error messages
+        if "'" in error_message and "is undefined" in error_message:
+            # Extract variable name between quotes
+            start = error_message.find("'") + 1
+            end = error_message.find("'", start)
+            if start > 0 and end > start:
+                var_name = error_message[start:end]
+                missing_vars[var_name] = None
+        
+        return missing_vars
+    
+    def validate_template(self, sql: str, required_variables: Optional[Set[str]] = None) -> Dict[str, Any]:
+        """
+        Validate SQL template without executing it.
+        
+        Args:
+            sql: SQL string that may contain Jinja2 template syntax
+            required_variables: Set of required variable names
+            
+        Returns:
+            Dictionary with validation results
+            
+        Raises:
+            ToolExecutionError: If template validation fails
+        """
+        try:
+            if not self._has_template_syntax(sql):
+                return {
+                    "is_template": False,
+                    "variables": set(),
+                    "required_variables": required_variables or set(),
+                    "missing_variables": set()
+                }
+            
+            # Parse template to extract variables
+            template = self.env.from_string(sql)
+            template_variables = self._extract_template_variables(template)
+            
+            # Check for missing required variables
+            missing_vars = set()
+            if required_variables:
+                missing_vars = required_variables - template_variables
+            
+            return {
+                "is_template": True,
+                "variables": template_variables,
+                "required_variables": required_variables or set(),
+                "missing_variables": missing_vars
+            }
+            
+        except Exception as e:
+            raise ToolExecutionError(None, f"Template validation error: {str(e)}")
+    
+    def _extract_template_variables(self, template) -> Set[str]:
+        """
+        Extract variable names from a Jinja2 template.
+        
+        Args:
+            template: Jinja2 template object
+            
+        Returns:
+            Set of variable names used in the template
+        """
+        variables = set()
+        
+        try:
+            # Get the AST (Abstract Syntax Tree) of the template
+            ast = template.environment.parse(template.source)
+            
+            # Extract variable names from the AST
+            for node in ast.find_all(self.env.variable_start_string):
+                if hasattr(node, 'name'):
+                    variables.add(node.name)
+                    
+        except Exception:
+            # Fallback: try to extract variables using regex
+            import re
+            var_pattern = r'\{\{\s*(\w+)\s*\}\}'
+            matches = re.findall(var_pattern, template.source)
+            variables.update(matches)
+        
+        return variables
+    
+    def get_template_info(self, sql: str) -> Dict[str, Any]:
+        """
+        Get information about a SQL template.
+        
+        Args:
+            sql: SQL string that may contain Jinja2 template syntax
+            
+        Returns:
+            Dictionary with template information
+        """
+        try:
+            if not self._has_template_syntax(sql):
+                return {
+                    "is_template": False,
+                    "variables": set(),
+                    "template_syntax": None
+                }
+            
+            template = self.env.from_string(sql)
+            variables = self._extract_template_variables(template)
+            
+            return {
+                "is_template": True,
+                "variables": variables,
+                "template_syntax": "jinja2"
+            }
+            
+        except Exception as e:
+            raise ToolExecutionError(None, f"Template validation error: {str(e)}") 

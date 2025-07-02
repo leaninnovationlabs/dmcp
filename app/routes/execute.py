@@ -2,30 +2,30 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.schemas import (
-    QueryExecutionRequest,
-    QueryExecutionResponse,
+    ToolExecutionRequest,
+    ToolExecutionResponse,
     RawQueryRequest,
     StandardAPIResponse,
 )
 from ..database import get_db
-from ..services.query_execution_service import QueryExecutionService
+from ..services.tool_execution_service import ToolExecutionService
 from ..core.exceptions import handle_dbmcp_exception
 from ..core.responses import create_success_response, create_error_response
 
-router = APIRouter(prefix="/execute", tags=["query execution"])
+router = APIRouter(prefix="/execute", tags=["tool execution"])
 
 
-@router.post("/{query_id}", response_model=StandardAPIResponse)
-async def execute_named_query(
-    query_id: int,
-    execution_request: QueryExecutionRequest,
+@router.post("/{tool_id}", response_model=StandardAPIResponse)
+async def execute_named_tool(
+    tool_id: int,
+    execution_request: ToolExecutionRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """Execute a named query with parameters and pagination."""
+    """Execute a named tool with parameters and pagination."""
     try:
-        service = QueryExecutionService(db)
-        result = await service.execute_named_query(
-            query_id, execution_request.parameters, execution_request.pagination
+        service = ToolExecutionService(db)
+        result = await service.execute_named_tool(
+            tool_id, execution_request.parameters, execution_request.pagination
         )
         return create_success_response(data=result)
     except Exception as e:
@@ -39,7 +39,7 @@ async def execute_raw_query(
 ):
     """Execute a raw SQL query with parameters and pagination."""
     try:
-        service = QueryExecutionService(db)
+        service = ToolExecutionService(db)
         result = await service.execute_raw_query(
             raw_request.datasource_id,
             raw_request.sql,

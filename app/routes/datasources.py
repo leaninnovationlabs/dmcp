@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
-from ..models.schemas import DatasourceCreate, DatasourceResponse, StandardAPIResponse
+from ..models.schemas import DatasourceCreate, DatasourceUpdate, DatasourceResponse, StandardAPIResponse
 from ..database import get_db
 from ..services.datasource_service import DatasourceService
 from ..core.exceptions import handle_dbmcp_exception
@@ -59,6 +59,29 @@ async def get_datasource(
         if not datasource:
             return create_error_response(errors=["Datasource not found"])
         return create_success_response(data=datasource)
+    except Exception as e:
+        return create_error_response(errors=[str(e)])
+
+
+@router.put("/{datasource_id}", response_model=StandardAPIResponse)
+async def update_datasource(
+    datasource_id: int,
+    datasource_update: DatasourceUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update an existing datasource by ID."""
+    try:
+        service = DatasourceService(db)
+        # Convert Pydantic model to dict, excluding None values
+        update_data = datasource_update.model_dump(exclude_unset=True)
+        
+        if not update_data:
+            return create_error_response(errors=["No valid fields provided for update"])
+        
+        result = await service.update_datasource(datasource_id, **update_data)
+        return create_success_response(data=result)
+    except ValueError as e:
+        return create_error_response(errors=[str(e)])
     except Exception as e:
         return create_error_response(errors=[str(e)])
 

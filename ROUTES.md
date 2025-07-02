@@ -13,14 +13,14 @@ The API has been organized into separate route modules for better maintainabilit
 - **GET** `/datasources/{datasource_id}` - Get a specific datasource
 - **DELETE** `/datasources/{datasource_id}` - Delete a datasource
 
-### 3. Query Routes (`app/routes/queries.py`)
-- **POST** `/queries/` - Create a new named query
-- **GET** `/queries/` - List all queries
-- **GET** `/queries/{query_id}` - Get a specific query
-- **DELETE** `/queries/{query_id}` - Delete a query
+### 3. Tool Routes (`app/routes/tools.py`)
+- **POST** `/tools/` - Create a new named tool
+- **GET** `/tools/` - List all tools
+- **GET** `/tools/{tool_id}` - Get a specific tool
+- **DELETE** `/tools/{tool_id}` - Delete a tool
 
-### 4. Query Execution Routes (`app/routes/execute.py`)
-- **POST** `/execute/{query_id}` - Execute a named query with parameters
+### 4. Tool Execution Routes (`app/routes/execute.py`)
+- **POST** `/execute/{tool_id}` - Execute a named tool with parameters
 - **POST** `/execute/raw` - Execute a raw SQL query
 
 ## Benefits of This Structure

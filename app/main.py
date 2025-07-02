@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from .database import init_db
-from .routes import datasources, queries, execute, health
+from .routes import datasources, tools, execute, health
 from .core.config import settings
 
 
@@ -37,7 +37,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health.router)
 app.include_router(datasources.router)
-app.include_router(queries.router)
+app.include_router(tools.router)
 app.include_router(execute.router)
 
 if __name__ == "__main__":

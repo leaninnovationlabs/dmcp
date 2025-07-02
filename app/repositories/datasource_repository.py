@@ -18,19 +18,19 @@ class DatasourceRepository(BaseRepository[Datasource]):
         """Get datasource by name."""
         return await self.find_one_by(name=name)
     
-    async def get_with_queries(self, datasource_id: int) -> Optional[Datasource]:
-        """Get datasource with its associated queries."""
+    async def get_with_tools(self, datasource_id: int) -> Optional[Datasource]:
+        """Get datasource with its associated tools."""
         result = await self.db.execute(
             select(Datasource)
             .where(Datasource.id == datasource_id)
-            .options(selectinload(Datasource.queries))
+            .options(selectinload(Datasource.tools))
         )
         return result.scalar_one_or_none()
     
-    async def get_all_with_queries(self) -> List[Datasource]:
-        """Get all datasources with their associated queries."""
+    async def get_all_with_tools(self) -> List[Datasource]:
+        """Get all datasources with their associated tools."""
         result = await self.db.execute(
-            select(Datasource).options(selectinload(Datasource.queries))
+            select(Datasource).options(selectinload(Datasource.tools))
         )
         return result.scalars().all()
     
@@ -67,8 +67,8 @@ class DatasourceRepository(BaseRepository[Datasource]):
         if not datasource:
             raise DatasourceNotFoundError(datasource_id)
         
-        # Check if datasource has associated queries
-        if datasource.queries:
-            raise ValueError(f"Cannot delete datasource '{datasource.name}' - it has {len(datasource.queries)} associated queries")
+        # Check if datasource has associated tools
+        if datasource.tools:
+            raise ValueError(f"Cannot delete datasource '{datasource.name}' - it has {len(datasource.tools)} associated tools")
         
         return await self.delete(datasource_id) 

@@ -23,14 +23,14 @@ class DatasourceNotFoundError(DBMCPException):
         )
 
 
-class QueryNotFoundError(DBMCPException):
-    """Raised when a query is not found."""
+class ToolNotFoundError(DBMCPException):
+    """Raised when a tool is not found."""
     
-    def __init__(self, query_id: int):
+    def __init__(self, tool_id: int):
         super().__init__(
-            message=f"Query with ID {query_id} not found",
+            message=f"Tool with ID {tool_id} not found",
             status_code=404,
-            details={"query_id": query_id}
+            details={"tool_id": tool_id}
         )
 
 
@@ -45,14 +45,14 @@ class DatabaseConnectionError(DBMCPException):
         )
 
 
-class QueryExecutionError(DBMCPException):
-    """Raised when query execution fails."""
+class ToolExecutionError(DBMCPException):
+    """Raised when tool execution fails."""
     
-    def __init__(self, query_id: Optional[int], error: str):
+    def __init__(self, tool_id: Optional[int], error: str):
         super().__init__(
-            message=f"Query execution failed: {error}",
+            message=f"Tool execution failed: {error}",
             status_code=400,
-            details={"query_id": query_id, "error": error}
+            details={"tool_id": tool_id, "error": error}
         )
 
 

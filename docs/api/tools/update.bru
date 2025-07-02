@@ -1,7 +1,7 @@
 meta {
-  name: create
+  name: update
   type: http
-  seq: 2
+  seq: 4
 }
 
 post {
@@ -12,6 +12,7 @@ post {
 
 body:json {
   {
+      "id": 1,
       "name": "search_trans1",
       "description": "Search Transactions",
       "sql": "SELECT * FROM transactions WHERE amount > :amt and description like :desc",

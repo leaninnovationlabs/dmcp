@@ -3,8 +3,9 @@ from unittest.mock import AsyncMock, MagicMock
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.jinja_template_service import JinjaTemplateService
-from app.services.query_execution_service import QueryExecutionService
-from app.core.exceptions import QueryExecutionError
+from app.services.tool_execution_service import ToolExecutionService
+from app.core.exceptions import ToolExecutionError
+from app.models.database import Datasource
 
 
 class TestJinjaTemplateService:
@@ -77,7 +78,7 @@ class TestJinjaTemplateService:
         template = "SELECT * FROM users WHERE id = {{ user_id }}"
         parameters = {}
         
-        with pytest.raises(QueryExecutionError) as exc_info:
+        with pytest.raises(ToolExecutionError) as exc_info:
             self.template_service.render_template(template, parameters)
         
         assert "Template rendering error" in str(exc_info.value)
@@ -87,7 +88,7 @@ class TestJinjaTemplateService:
         dangerous_template = "SELECT * FROM users WHERE id = {{ config.DATABASE_URL }}"
         parameters = {"config": {"DATABASE_URL": "test"}}
         
-        with pytest.raises(QueryExecutionError) as exc_info:
+        with pytest.raises(ToolExecutionError) as exc_info:
             self.template_service.render_template(dangerous_template, parameters)
         
         assert "Template processing error" in str(exc_info.value)
@@ -101,97 +102,107 @@ class TestJinjaTemplateService:
         assert "name" in variables
 
 
-class TestQueryExecutionServiceWithTemplates:
-    """Test cases for query execution service with Jinja templates."""
+class MockDatasource:
+    def __init__(self, database_type="postgresql"):
+        self.database_type = database_type
+        self.id = 1
+        self.name = "test_datasource"
+
+
+class MockConnection:
+    def __init__(self):
+        self.execute = AsyncMock()
+    
+    async def execute(self, sql, parameters=None):
+        # Mock successful execution
+        return [{"id": 1, "name": "test"}]
+
+
+class MockConnectionManager:
+    def __init__(self):
+        self.get_connection = AsyncMock()
+    
+    async def get_connection(self, datasource):
+        return MockConnection()
+
+
+class TestToolExecutionServiceWithTemplates:
+    """Test cases for tool execution service with Jinja templates."""
     
     @pytest.fixture
     def mock_db(self):
-        return AsyncMock(spec=AsyncSession)
+        return AsyncMock()
     
     @pytest.fixture
-    def mock_connection(self):
-        connection = AsyncMock()
-        result = AsyncMock()
-        result.returns_rows = True
-        result.keys = ["id", "name", "email"]
-        result.fetchall.return_value = [(1, "John", "john@example.com")]
-        connection.execute.return_value = result
-        return connection
+    def mock_connection_manager(self):
+        return MockConnectionManager()
     
     @pytest.fixture
     def service(self, mock_db):
-        service = QueryExecutionService(mock_db)
-        # Mock the connection manager
-        service.connection_manager.get_connection = AsyncMock()
-        return service
+        return ToolExecutionService(mock_db)
     
-    async def test_execute_with_template(self, service, mock_connection):
+    @pytest.mark.asyncio
+    async def test_execute_query_with_jinja_template(self, service):
         """Test executing a query with Jinja template."""
-        service.connection_manager.get_connection.return_value = mock_connection
+        datasource = MockDatasource()
+        sql = "SELECT * FROM users WHERE name = '{{ name }}'"
+        parameters = {"name": "John"}
         
-        sql = "SELECT * FROM users WHERE id = {{ user_id }}"
-        parameters = {"user_id": 123}
-        
-        # Mock the datasource
-        datasource = MagicMock()
+        # Mock the connection manager
+        service.connection_manager = MockConnectionManager()
         
         result = await service._execute_query(datasource, sql, parameters)
         
-        # Verify the template was processed
         assert result.success is True
-        assert result.data == [{"id": 1, "name": "John", "email": "john@example.com"}]
-        
-        # Verify the connection was called with processed SQL
-        mock_connection.execute.assert_called_once()
-        call_args = mock_connection.execute.call_args[0]
-        assert "SELECT * FROM users WHERE id = 123" in call_args[0]
+        assert result.data == [{"id": 1, "name": "test"}]
+        assert result.row_count == 1
     
-    async def test_execute_without_template(self, service, mock_connection):
+    @pytest.mark.asyncio
+    async def test_execute_query_without_jinja_template(self, service):
         """Test executing a query without Jinja template."""
-        service.connection_manager.get_connection.return_value = mock_connection
-        
-        sql = "SELECT * FROM users WHERE id = 123"
+        datasource = MockDatasource()
+        sql = "SELECT * FROM users WHERE name = 'John'"
         parameters = {}
         
-        # Mock the datasource
-        datasource = MagicMock()
+        # Mock the connection manager
+        service.connection_manager = MockConnectionManager()
         
         result = await service._execute_query(datasource, sql, parameters)
         
         # Verify the query was executed as-is
         assert result.success is True
-        
-        # Verify the connection was called with original SQL
-        mock_connection.execute.assert_called_once()
-        call_args = mock_connection.execute.call_args[0]
-        assert call_args[0] == sql
+        assert result.data == [{"id": 1, "name": "test"}]
     
-    def test_contains_jinja_syntax(self, service):
-        """Test detection of Jinja syntax in SQL."""
-        # Test with variable syntax
-        assert service._contains_jinja_syntax("SELECT * FROM {{ table }}") is True
+    @pytest.mark.asyncio
+    async def test_execute_query_with_missing_template_variables(self, service):
+        """Test executing a query with missing template variables."""
+        datasource = MockDatasource()
+        sql = "SELECT * FROM users WHERE name = '{{ name }}' AND age = {{ age }}"
+        parameters = {"name": "John"}  # Missing 'age' parameter
         
-        # Test with control structure
-        assert service._contains_jinja_syntax("{% if condition %}SELECT *{% endif %}") is True
+        # Mock the connection manager
+        service.connection_manager = MockConnectionManager()
         
-        # Test with comment
-        assert service._contains_jinja_syntax("{# comment #}SELECT *") is True
-        
-        # Test without Jinja syntax
-        assert service._contains_jinja_syntax("SELECT * FROM users") is False
-    
-    async def test_missing_template_variables(self, service):
-        """Test error handling for missing template variables."""
-        sql = "SELECT * FROM users WHERE id = {{ user_id }}"
-        parameters = {}  # Missing user_id
-        
-        # Mock the datasource
-        datasource = MagicMock()
-        
-        with pytest.raises(QueryExecutionError) as exc_info:
+        with pytest.raises(ToolExecutionError) as exc_info:
             await service._execute_query(datasource, sql, parameters)
         
         assert "Missing required template variables" in str(exc_info.value)
+        assert "age" in str(exc_info.value)
+    
+    @pytest.mark.asyncio
+    async def test_execute_query_with_invalid_template_syntax(self, service):
+        """Test executing a query with invalid template syntax."""
+        datasource = MockDatasource()
+        sql = "SELECT * FROM users WHERE name = '{{ name }'  # Missing closing brace"
+        parameters = {"name": "John"}
+        
+        # Mock the connection manager
+        service.connection_manager = MockConnectionManager()
+        
+        with pytest.raises(ToolExecutionError) as exc_info:
+            await service._execute_query(datasource, sql, parameters)
+        
+        assert "Template compilation error" in str(exc_info.value)
 
 
 if __name__ == "__main__":

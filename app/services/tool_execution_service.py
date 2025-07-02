@@ -3,57 +3,57 @@ import time
 import re
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..repositories.query_repository import QueryRepository
+from ..repositories.tool_repository import ToolRepository
 from ..repositories.datasource_repository import DatasourceRepository
 from ..models.schemas import (
     PaginationRequest,
     PaginationResponse,
-    QueryExecutionResponse,
+    ToolExecutionResponse,
 )
 from ..core.exceptions import (
-    QueryNotFoundError,
+    ToolNotFoundError,
     DatasourceNotFoundError,
-    QueryExecutionError,
+    ToolExecutionError,
     DatabaseConnectionError,
 )
 from ..database_connections import DatabaseConnectionManager
 from .jinja_template_service import JinjaTemplateService
 
 
-class QueryExecutionService:
-    """Service for query execution operations."""
+class ToolExecutionService:
+    """Service for tool execution operations."""
     
     def __init__(self, db: AsyncSession):
-        self.query_repository = QueryRepository(db)
+        self.tool_repository = ToolRepository(db)
         self.datasource_repository = DatasourceRepository(db)
         self.connection_manager = DatabaseConnectionManager()
         self.template_service = JinjaTemplateService()
     
-    async def execute_named_query(
+    async def execute_named_tool(
         self,
-        query_id: int,
+        tool_id: int,
         parameters: Optional[Dict[str, Any]] = None,
         pagination: Optional[PaginationRequest] = None,
-    ) -> QueryExecutionResponse:
-        """Execute a named query with parameters and pagination."""
+    ) -> ToolExecutionResponse:
+        """Execute a named tool with parameters and pagination."""
         try:
-            # Get the query with its datasource
-            query = await self.query_repository.get_with_datasource(query_id)
-            if not query:
-                raise QueryNotFoundError(query_id)
+            # Get the tool with its datasource
+            tool = await self.tool_repository.get_with_datasource(tool_id)
+            if not tool:
+                raise ToolNotFoundError(tool_id)
             
             # Get the datasource
-            datasource = await self.datasource_repository.get_by_id(query.datasource_id)
+            datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
             if not datasource:
-                raise DatasourceNotFoundError(query.datasource_id)
+                raise DatasourceNotFoundError(tool.datasource_id)
             
             return await self._execute_query(
-                datasource, query.sql, parameters or {}, pagination
+                datasource, tool.sql, parameters or {}, pagination
             )
-        except (QueryNotFoundError, DatasourceNotFoundError):
+        except (ToolNotFoundError, DatasourceNotFoundError):
             raise
         except Exception as e:
-            raise QueryExecutionError(query_id, str(e))
+            raise ToolExecutionError(tool_id, str(e))
     
     async def execute_raw_query(
         self,
@@ -61,7 +61,7 @@ class QueryExecutionService:
         sql: str,
         parameters: Optional[Dict[str, Any]] = None,
         pagination: Optional[PaginationRequest] = None,
-    ) -> QueryExecutionResponse:
+    ) -> ToolExecutionResponse:
         """Execute a raw SQL query with parameters and pagination."""
         try:
             # Get the datasource
@@ -75,7 +75,7 @@ class QueryExecutionService:
         except DatasourceNotFoundError:
             raise
         except Exception as e:
-            raise QueryExecutionError(None, str(e))
+            raise ToolExecutionError(None, str(e))
     
     async def _execute_query(
         self,
@@ -83,72 +83,62 @@ class QueryExecutionService:
         sql: str,
         parameters: Dict[str, Any],
         pagination: Optional[PaginationRequest] = None,
-    ) -> QueryExecutionResponse:
-        """Execute a query against a datasource."""
+    ) -> ToolExecutionResponse:
+        """Execute a query with parameters and pagination."""
         start_time = time.time()
         
         try:
-            # Pre-process SQL with Jinja templates if needed
-            processed_sql = self._preprocess_sql_template(sql, parameters)
+            # Process SQL with Jinja templates if needed
+            processed_sql = self.template_service.process_sql_template(sql, parameters)
             
-            # Get connection to the target database
+            # Get database connection
             connection = await self.connection_manager.get_connection(datasource)
             
-            # Apply pagination if requested
+            # Execute query with pagination
             if pagination:
-                processed_sql = self._apply_pagination(processed_sql, pagination)
-
-            # print(f"Executing query: {processed_sql}")
-            # print(f"Parameters: {parameters}")
-            
-            # Execute the query
-            result = await connection.execute(processed_sql, parameters)
-            
-            # Process results
-            data = []
-            columns = []
-            
-            if result.returns_rows:
-                # Get column names
-                if hasattr(result, 'keys'):
-                    columns = result.keys
-                elif hasattr(result, 'column_names'):
-                    columns = result.column_names
+                # Add pagination to the query
+                offset = (pagination.page - 1) * pagination.page_size
+                limit = pagination.page_size
                 
-                # Fetch all rows
-                rows = await result.fetchall()
-                data = [dict(zip(columns, row)) for row in rows]
-            
-            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            
-            # Calculate pagination info
-            pagination_response = None
-            if pagination:
-                # Get total count for pagination - use processed SQL without LIMIT
-                original_processed_sql = processed_sql
-                if "LIMIT" in processed_sql.upper():
-                    # Remove LIMIT clause for count query
-                    limit_index = processed_sql.upper().find("LIMIT")
-                    original_processed_sql = processed_sql[:limit_index].strip()
+                # For PostgreSQL and MySQL, we can use LIMIT/OFFSET
+                if datasource.database_type in ['postgresql', 'mysql']:
+                    processed_sql += f" LIMIT {limit} OFFSET {offset}"
                 
-                count_sql = f"SELECT COUNT(*) as total FROM ({original_processed_sql}) as count_query"
-                count_result = await connection.execute(count_sql, parameters)
-                count_row = await count_result.fetchone()
-                total_items = count_row[0] if count_row else 0
+                # Execute the paginated query
+                result_wrapper = await connection.execute(processed_sql, parameters)
+                result_data = await result_wrapper.fetchall()
                 
+                # Get total count for pagination info
+                count_sql = f"SELECT COUNT(*) as total FROM ({sql}) as count_query"
+                count_result_wrapper = await connection.execute(count_sql, parameters)
+                count_result_data = await count_result_wrapper.fetchall()
+                total_items = count_result_data[0]['total'] if count_result_data else 0
+                
+                # Calculate pagination info
+                total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
                 pagination_response = PaginationResponse(
                     page=pagination.page,
                     page_size=pagination.page_size,
+                    total_pages=total_pages,
                     total_items=total_items,
-                    total_pages=(total_items + pagination.page_size - 1) // pagination.page_size,
-                    has_next=pagination.page * pagination.page_size < total_items,
-                    has_previous=pagination.page > 1,
+                    has_next=pagination.page < total_pages,
+                    has_prev=pagination.page > 1,
                 )
+            else:
+                # Execute without pagination
+                result_wrapper = await connection.execute(processed_sql, parameters)
+                result_data = await result_wrapper.fetchall()
+                pagination_response = None
             
-            return QueryExecutionResponse(
+            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+            
+            # result_data is now a list of dictionaries from all database connections
+            data = result_data or []
+            
+            return ToolExecutionResponse(
                 success=True,
                 data=data,
-                columns=columns,
+                columns=list(data[0].keys()) if data else [],
                 row_count=len(data),
                 execution_time_ms=execution_time,
                 pagination=pagination_response,
@@ -156,7 +146,15 @@ class QueryExecutionService:
             
         except Exception as e:
             execution_time = (time.time() - start_time) * 1000
-            raise QueryExecutionError(None, str(e))
+            return ToolExecutionResponse(
+                success=False,
+                data=[],
+                columns=[],
+                row_count=0,
+                execution_time_ms=execution_time,
+                pagination=None,
+                error=str(e),
+            )
     
     def _apply_pagination(self, sql: str, pagination: PaginationRequest) -> str:
         """Apply pagination to SQL query."""
@@ -195,7 +193,7 @@ class QueryExecutionService:
                 missing_vars = self.template_service.validate_template_variables(sql, parameters)
                 if missing_vars:
                     missing_var_names = list(missing_vars.keys())
-                    raise QueryExecutionError(
+                    raise ToolExecutionError(
                         None, 
                         f"Missing required template variables: {', '.join(missing_var_names)}"
                     )
@@ -204,9 +202,9 @@ class QueryExecutionService:
                 return self.template_service.render_template(sql, parameters)
                 
             except Exception as e:
-                if isinstance(e, QueryExecutionError):
+                if isinstance(e, ToolExecutionError):
                     raise
-                raise QueryExecutionError(None, f"Template processing failed: {str(e)}")
+                raise ToolExecutionError(None, f"Template processing failed: {str(e)}")
         
         # If no template syntax, return the original SQL
         return sql

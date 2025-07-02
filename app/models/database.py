@@ -26,7 +26,7 @@ class Datasource(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship
-    queries = relationship("Query", back_populates="datasource")
+    tools = relationship("Tool", back_populates="datasource")
 
     @property
     def decrypted_password(self) -> str:
@@ -47,8 +47,8 @@ class Datasource(Base):
         return f"<Datasource(id={self.id}, name='{self.name}', type='{self.database_type}')>"
 
 
-class Query(Base):
-    __tablename__ = "queries"
+class Tool(Base):
+    __tablename__ = "tools"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
@@ -60,7 +60,7 @@ class Query(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationship
-    datasource = relationship("Datasource", back_populates="queries")
+    datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Query(id={self.id}, name='{self.name}', datasource_id={self.datasource_id})>" 
+        return f"<Tool(id={self.id}, name='{self.name}', datasource_id={self.datasource_id})>" 

@@ -6,15 +6,15 @@ import time
 import asyncio
 from datetime import datetime
 
-from .models.database import Datasource, Query
+from .models.database import Datasource, Tool
 from .models.schemas import (
     DatasourceCreate,
     DatasourceResponse,
-    QueryCreate,
-    QueryResponse,
+    ToolCreate,
+    ToolResponse,
     PaginationRequest,
     PaginationResponse,
-    QueryExecutionResponse,
+    ToolExecutionResponse,
 )
 from .database_connections import DatabaseConnectionManager
 
@@ -54,9 +54,7 @@ class DatasourceService:
 
     async def get_datasource(self, datasource_id: int) -> Optional[DatasourceResponse]:
         """Get a specific datasource by ID."""
-        result = await self.db.execute(
-            select(Datasource).where(Datasource.id == datasource_id)
-        )
+        result = await self.db.execute(select(Datasource).where(Datasource.id == datasource_id))
         datasource = result.scalar_one_or_none()
         if datasource:
             return DatasourceResponse.model_validate(datasource)
@@ -64,63 +62,61 @@ class DatasourceService:
 
     async def delete_datasource(self, datasource_id: int) -> bool:
         """Delete a datasource by ID."""
-        result = await self.db.execute(
-            delete(Datasource).where(Datasource.id == datasource_id)
-        )
+        result = await self.db.execute(delete(Datasource).where(Datasource.id == datasource_id))
         await self.db.commit()
         return result.rowcount > 0
 
 
-class QueryService:
+class ToolService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_query(self, query: QueryCreate) -> QueryResponse:
-        """Create a new named query."""
+    async def create_tool(self, tool: ToolCreate) -> ToolResponse:
+        """Create a new named tool."""
         # Verify datasource exists
         datasource_result = await self.db.execute(
-            select(Datasource).where(Datasource.id == query.datasource_id)
+            select(Datasource).where(Datasource.id == tool.datasource_id)
         )
         if not datasource_result.scalar_one_or_none():
-            raise ValueError(f"Datasource with ID {query.datasource_id} not found")
+            raise ValueError(f"Datasource with ID {tool.datasource_id} not found")
 
-        db_query = Query(
-            name=query.name,
-            description=query.description,
-            sql=query.sql,
-            datasource_id=query.datasource_id,
-            parameters=query.parameters or [],
+        db_tool = Tool(
+            name=tool.name,
+            description=tool.description,
+            sql=tool.sql,
+            datasource_id=tool.datasource_id,
+            parameters=tool.parameters or [],
         )
         
-        self.db.add(db_query)
+        self.db.add(db_tool)
         await self.db.commit()
-        await self.db.refresh(db_query)
+        await self.db.refresh(db_tool)
         
-        return QueryResponse.model_validate(db_query)
+        return ToolResponse.model_validate(db_tool)
 
-    async def list_queries(self) -> List[QueryResponse]:
-        """List all named queries."""
+    async def list_tools(self) -> List[ToolResponse]:
+        """List all named tools."""
         result = await self.db.execute(
-            select(Query).options(selectinload(Query.datasource))
+            select(Tool).options(selectinload(Tool.datasource))
         )
-        queries = result.scalars().all()
-        return [QueryResponse.model_validate(q) for q in queries]
+        tools = result.scalars().all()
+        return [ToolResponse.model_validate(t) for t in tools]
 
-    async def get_query(self, query_id: int) -> Optional[QueryResponse]:
-        """Get a specific named query by ID."""
+    async def get_tool(self, tool_id: int) -> Optional[ToolResponse]:
+        """Get a specific named tool by ID."""
         result = await self.db.execute(
-            select(Query)
-            .where(Query.id == query_id)
-            .options(selectinload(Query.datasource))
+            select(Tool)
+            .where(Tool.id == tool_id)
+            .options(selectinload(Tool.datasource))
         )
-        query = result.scalar_one_or_none()
-        if query:
-            return QueryResponse.model_validate(query)
+        tool = result.scalar_one_or_none()
+        if tool:
+            return ToolResponse.model_validate(tool)
         return None
 
-    async def delete_query(self, query_id: int) -> bool:
-        """Delete a named query by ID."""
-        result = await self.db.execute(delete(Query).where(Query.id == query_id))
+    async def delete_tool(self, tool_id: int) -> bool:
+        """Delete a named tool by ID."""
+        result = await self.db.execute(delete(Tool).where(Tool.id == tool_id))
         await self.db.commit()
         return result.rowcount > 0
 

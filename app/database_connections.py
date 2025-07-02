@@ -41,6 +41,15 @@ class PostgreSQLConnection(DatabaseConnection):
         
         result = await self.connection.fetch(sql, *param_values)
         
+        # Convert asyncpg Record objects to dictionaries
+        if result:
+            # Convert each Record to dict
+            data = [dict(record) for record in result]
+            keys = list(data[0].keys()) if data else []
+        else:
+            data = []
+            keys = []
+        
         # Create a result object that mimics the expected interface
         class ResultWrapper:
             def __init__(self, data, keys):
@@ -54,7 +63,7 @@ class PostgreSQLConnection(DatabaseConnection):
             async def fetchone(self):
                 return self.data[0] if self.data else None
         
-        return ResultWrapper(result, list(result[0].keys()) if result else [])
+        return ResultWrapper(data, keys)
     
     async def close(self):
         """Close the PostgreSQL connection."""
@@ -79,6 +88,15 @@ class MySQLConnection(DatabaseConnection):
             await cursor.execute(sql, param_values)
             result = await cursor.fetchall()
             
+            # Get column names from cursor description
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
+            
+            # Convert raw tuples to dictionaries
+            if result and columns:
+                data = [dict(zip(columns, row)) for row in result]
+            else:
+                data = []
+            
             # Create a result object that mimics the expected interface
             class ResultWrapper:
                 def __init__(self, data, keys):
@@ -92,9 +110,7 @@ class MySQLConnection(DatabaseConnection):
                 async def fetchone(self):
                     return self.data[0] if self.data else None
             
-            # Get column names from cursor description
-            columns = [desc[0] for desc in cursor.description] if cursor.description else []
-            return ResultWrapper(result, columns)
+            return ResultWrapper(data, columns)
     
     async def close(self):
         """Close the MySQL connection."""
@@ -119,6 +135,15 @@ class SQLiteConnection(DatabaseConnection):
         cursor = await self.connection.execute(sql, param_values)
         result = await cursor.fetchall()
         
+        # Get column names from cursor description
+        columns = [desc[0] for desc in cursor.description] if cursor.description else []
+        
+        # Convert raw tuples to dictionaries
+        if result and columns:
+            data = [dict(zip(columns, row)) for row in result]
+        else:
+            data = []
+        
         # Create a result object that mimics the expected interface
         class ResultWrapper:
             def __init__(self, data, keys):
@@ -132,9 +157,7 @@ class SQLiteConnection(DatabaseConnection):
             async def fetchone(self):
                 return self.data[0] if self.data else None
         
-        # Get column names from cursor description
-        columns = [desc[0] for desc in cursor.description] if cursor.description else []
-        return ResultWrapper(result, columns)
+        return ResultWrapper(data, columns)
     
     async def close(self):
         """Close the SQLite connection."""
@@ -189,6 +212,8 @@ class DatabaseConnectionManager:
                 'user': datasource.username,
                 'password': datasource.decrypted_password,
             }
+
+            print(connection_params)
                         
             # Add SSL mode if specified
             if datasource.ssl_mode:

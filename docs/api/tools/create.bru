@@ -1,0 +1,34 @@
+meta {
+  name: create
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{server}}/tools
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "name": "search_trans2",
+      "description": "Search Transactions",
+      "sql": "SELECT * FROM transactions WHERE amount > :amt and description like :desc",
+      "datasource_id": 2,
+      "parameters": [
+        {
+          "name": "amt",
+          "type": "integer",
+          "description": "Trader",
+          "required": true
+        },
+        {
+          "name": "desc",
+          "type": "string",
+          "description": "Description",
+          "required": true
+        }
+      ]
+    }
+}
