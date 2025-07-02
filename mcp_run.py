@@ -5,7 +5,7 @@ MCP Server Runner
 This script instantiates and starts the MCP server.
 """
 
-from app.mcp.server import MCPServer
+from app.mcp_server import MCPServer
 
 
 def main():
