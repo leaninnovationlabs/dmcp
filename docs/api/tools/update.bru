@@ -4,30 +4,29 @@ meta {
   seq: 4
 }
 
-post {
-  url: {{server}}/queries
+put {
+  url: {{server}}/tools/1
   body: json
   auth: none
 }
 
 body:json {
   {
-      "id": 1,
-      "name": "search_trans1",
-      "description": "Search Transactions",
-      "sql": "SELECT * FROM transactions WHERE amount > :amt and description like :desc",
+      "name": "search_trans_updated",
+      "description": "Updated Search Transactions",
+      "sql": "SELECT * FROM transactions WHERE amount >= :amt and description like :desc",
       "datasource_id": 1,
       "parameters": [
         {
           "name": "amt",
           "type": "integer",
-          "description": "Trader",
+          "description": "Amount threshold",
           "required": true
         },
         {
           "name": "desc",
           "type": "string",
-          "description": "Description",
+          "description": "Description pattern",
           "required": true
         }
       ]

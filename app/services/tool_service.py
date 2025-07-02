@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..repositories.tool_repository import ToolRepository
 from ..repositories.datasource_repository import DatasourceRepository
-from ..models.schemas import ToolCreate, ToolResponse
+from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
 from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
@@ -62,28 +62,41 @@ class ToolService:
         except Exception as e:
             raise Exception(f"Failed to get tool: {str(e)}")
     
-    async def update_tool(self, tool_id: int, tool_update: ToolCreate) -> ToolResponse:
+    async def update_tool(self, tool_id: int, tool_update: ToolUpdate) -> ToolResponse:
         """Update a named tool."""
         try:
+            # Get current tool to merge with updates
+            current_tool = await self.repository.get_by_id(tool_id)
+            if not current_tool:
+                raise ToolNotFoundError(tool_id)
+            
             # Verify datasource exists if it's being changed
-            datasource = await self.datasource_repository.get_by_id(tool_update.datasource_id)
+            datasource_id = tool_update.datasource_id if tool_update.datasource_id is not None else current_tool.datasource_id
+            datasource = await self.datasource_repository.get_by_id(datasource_id)
             if not datasource:
-                raise DatasourceNotFoundError(tool_update.datasource_id)
+                raise DatasourceNotFoundError(datasource_id)
+            
+            # Prepare update data, using current values if not provided
+            update_data = {
+                'name': tool_update.name if tool_update.name is not None else current_tool.name,
+                'description': tool_update.description if tool_update.description is not None else current_tool.description,
+                'sql': tool_update.sql if tool_update.sql is not None else current_tool.sql,
+                'datasource_id': datasource_id,
+            }
             
             # Convert ParameterDefinition objects to dictionaries for JSON storage
-            parameters_dict = []
-            if tool_update.parameters:
+            if tool_update.parameters is not None:
+                parameters_dict = []
                 for param in tool_update.parameters:
                     param_dict = param.model_dump()
                     parameters_dict.append(param_dict)
+                update_data['parameters'] = parameters_dict
+            else:
+                update_data['parameters'] = current_tool.parameters
             
             updated_tool = await self.repository.update_tool(
                 tool_id,
-                name=tool_update.name,
-                description=tool_update.description,
-                sql=tool_update.sql,
-                datasource_id=tool_update.datasource_id,
-                parameters=parameters_dict,
+                **update_data
             )
             if updated_tool:
                 return ToolResponse.model_validate(updated_tool)

@@ -1,22 +1,22 @@
-# Sample cURL Requests for Creating Queries
+# Sample cURL Requests for Tools
 
-## 1. Simple Query (No Parameters)
+## 1. Simple Tool (No Parameters)
 
 ```bash
-curl -X POST "http://localhost:8000/queries/" \
+curl -X POST "http://localhost:8000/tools/" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "get_all_users",
-    "description": "Simple query to get all users",
+    "description": "Simple tool to get all users",
     "sql": "SELECT * FROM users",
     "datasource_id": 1
   }'
 ```
 
-## 2. Query with Single Parameter
+## 2. Tool with Single Parameter
 
 ```bash
-curl -X POST "http://localhost:8000/queries/" \
+curl -X POST "http://localhost:8000/tools/" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "get_users_by_status",
@@ -34,10 +34,10 @@ curl -X POST "http://localhost:8000/queries/" \
   }'
 ```
 
-## 3. Complex Query with Multiple Parameters
+## 3. Complex Tool with Multiple Parameters
 
 ```bash
-curl -X POST "http://localhost:8000/queries/" \
+curl -X POST "http://localhost:8000/tools/" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "search_orders",
@@ -71,9 +71,48 @@ curl -X POST "http://localhost:8000/queries/" \
 ## 4. Using JSON File
 
 ```bash
-curl -X POST "http://localhost:8000/queries/" \
+curl -X POST "http://localhost:8000/tools/" \
   -H "Content-Type: application/json" \
   -d @sample_requests/create_query.json
+```
+
+## 5. Update Existing Tool
+
+```bash
+curl -X PUT "http://localhost:8000/tools/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "get_users_by_status_updated",
+    "description": "Updated query to get users filtered by their status",
+    "sql": "SELECT id, name, email, status FROM users WHERE status = :status AND active = :active",
+    "datasource_id": 1,
+    "parameters": [
+      {
+        "name": "status",
+        "type": "string",
+        "description": "User status to filter by",
+        "required": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "description": "Filter by active status",
+        "required": false,
+        "default": true
+      }
+    ]
+  }'
+```
+
+## 6. Partial Update Tool (Only Update Name and Description)
+
+```bash
+curl -X PUT "http://localhost:8000/tools/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "get_users_by_status_v2",
+    "description": "Updated description only"
+  }'
 ```
 
 ## Response Format
@@ -97,5 +136,6 @@ Successful response will return:
 
 - `datasource_id` must reference an existing datasource
 - Parameter names in SQL must match the `:parameter_name` format
-- The `parameters` field is optional if your query has no parameters
-- Query names must be unique across the system 
+- The `parameters` field is optional if your tool has no parameters
+- Tool names must be unique across the system
+- For updates, only include the fields you want to change - other fields will remain unchanged 

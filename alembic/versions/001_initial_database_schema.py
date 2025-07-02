@@ -38,7 +38,9 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
+
     op.create_index(op.f('ix_datasources_id'), 'datasources', ['id'], unique=False)
+
     op.create_table('queries',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),

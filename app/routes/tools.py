@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.schemas import ToolCreate, ToolResponse, StandardAPIResponse
+from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse, StandardAPIResponse
 from ..database import get_db
 from ..services.tool_service import ToolService
 from ..core.exceptions import handle_dbmcp_exception
@@ -50,6 +50,23 @@ async def get_tool(
         if not tool:
             return create_error_response(errors=["Tool not found"])
         return create_success_response(data=tool)
+    except Exception as e:
+        return create_error_response(errors=[str(e)])
+
+
+@router.put("/{tool_id}", response_model=StandardAPIResponse)
+async def update_tool(
+    tool_id: int,
+    tool_update: ToolUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update an existing named tool by ID."""
+    try:
+        service = ToolService(db)
+        result = await service.update_tool(tool_id, tool_update)
+        return create_success_response(data=result)
+    except ValueError as e:
+        return create_error_response(errors=[str(e)])
     except Exception as e:
         return create_error_response(errors=[str(e)])
 

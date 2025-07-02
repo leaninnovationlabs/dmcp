@@ -107,6 +107,16 @@ class ToolCreate(BaseModel):
     )
 
 
+class ToolUpdate(BaseModel):
+    name: Optional[str] = Field(None, description="Name of the tool")
+    description: Optional[str] = Field(None, description="Tool description")
+    sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
+    datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
+    parameters: Optional[List[ParameterDefinition]] = Field(
+        None, description="Parameter definitions"
+    )
+
+
 class ToolResponse(BaseModel):
     id: int
     name: str
