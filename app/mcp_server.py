@@ -211,6 +211,7 @@ class MCPServer:
                 result = await service.execute_named_tool(tool_id, parameters)
                 return result.model_dump()
         
+        # Run in a new event loop to avoid conflicts with the main event loop
         def run_in_new_loop():
             new_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(new_loop)
