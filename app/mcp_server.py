@@ -37,17 +37,12 @@ DEFAULT_ERROR_RESPONSE = {
     "error": ""
 }
 
-
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
     
     def __init__(self, name: str = "Demo 🚀"):
         """Initialize the MCP server with the given name."""
         self.mcp = FastMCP(name)
-        self._register_tools()
-    
-    def _register_tools(self) -> None:
-        """Register all tools with the MCP server."""
         self.mcp.tool(self.hello_world)
         self._register_database_tools()
     
