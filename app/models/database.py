@@ -1,11 +1,18 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import enum
 
 from ..core.encryption import password_encryption
 
 Base = declarative_base()
+
+
+class ToolType(enum.Enum):
+    QUERY = "query"
+    HTTP = "http"
+    CODE = "code"
 
 
 class Datasource(Base):
@@ -53,6 +60,7 @@ class Tool(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
     description = Column(Text)
+    type = Column(Enum(ToolType), nullable=False, default=ToolType.QUERY)
     sql = Column(Text, nullable=False)
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
@@ -63,4 +71,4 @@ class Tool(Base):
     datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Tool(id={self.id}, name='{self.name}', datasource_id={self.datasource_id})>" 
+        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type.value}', datasource_id={self.datasource_id})>" 
