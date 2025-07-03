@@ -1,10 +1,11 @@
 # server.py
 import asyncio
 import sys
+import types
 from typing import Any, Callable, Dict, List
 from fastmcp import FastMCP
 
-from app.database import AsyncSessionLocal
+from app.database import get_db
 from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
 
@@ -19,53 +20,20 @@ class MCPServer:
     
     def _register_tools(self):
         """Register all tools with the MCP server."""
-        self.mcp.tool(self.add)
         self.mcp.tool(self.hello_world)
-        # self.mcp.tool(self.refresh_tools)
         self._register_database_tools()
     
     def _register_database_tools(self):
         """Register tools from the database as MCP tools."""
         try:
             print("[DBMCP DEBUG] Starting to register database tools...", file=sys.stderr)
-            tools = self._list_tools_sync()
+            tools = self._list_tools()
             print(f"[DBMCP DEBUG] Found {len(tools)} tools in database", file=sys.stderr)
             
             for tool in tools:
                 try:
                     # Create a dynamic tool function for each database tool
-                    def create_tool_function(tool_data):
-                        # Create function signature based on tool parameters
-                        if tool_data.get('parameters'):
-                            # Create explicit parameters for each tool parameter
-                            param_names = [param['name'] for param in tool_data['parameters']]
-                            
-                            # Create function with explicit parameters
-                            param_str = ', '.join([f"{name}=None" for name in param_names])
-                            func_code = f"""
-def {tool_data['name']}({param_str}):
-    \"\"\"{tool_data.get('description', f'Execute {tool_data['name']}')}\"\"\"
-    parameters = {{}}
-    for name in {param_names}:
-        if locals()[name] is not None:
-            parameters[name] = locals()[name]
-    return self.execute_tool_by_id({tool_data['id']}, parameters)
-"""
-                            # Execute the function definition
-                            local_vars = {'self': self}
-                            exec(func_code, globals(), local_vars)
-                            return local_vars[tool_data['name']]
-                        else:
-                            # No parameters, create simple function
-                            def tool_function():
-                                return self.execute_tool_by_id(tool_data['id'], {})
-                            
-                            tool_function.__name__ = tool_data['name']
-                            tool_function.__doc__ = tool_data.get('description', f"Execute {tool_data['name']}")
-                            return tool_function
-                    
-                    # Register the tool
-                    tool_func = create_tool_function(tool)
+                    tool_func = self._create_tool_function(tool)
                     self.mcp.tool(tool_func)
                     print(f"[DBMCP DEBUG] Registered tool: {tool['name']}", file=sys.stderr)
                     
@@ -79,23 +47,73 @@ def {tool_data['name']}({param_str}):
             import traceback
             traceback.print_exc(file=sys.stderr)
     
-    def add(self, a: int, b: int) -> int:
-        """Add two numbers"""
-        return a + b
-    
     def hello_world(self, name: str = "World") -> str:
         """Say hello to the world"""
         return f"Hello, {name}!"
     
-    def refresh_tools(self) -> str:
-        """Refresh the list of tools from the database."""
-        try:
-            print("[DBMCP DEBUG] Refreshing tools...", file=sys.stderr)
-            self._register_database_tools()
-            return "Tools refreshed successfully"
-        except Exception as e:
-            print(f"[DBMCP ERROR] Failed to refresh tools: {e}", file=sys.stderr)
-            return f"Failed to refresh tools: {e}"
+    def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
+        """Create a dynamic tool function for the given tool data."""
+        tool_id = tool_data['id']
+        tool_name = tool_data['name']
+        description = tool_data.get('description', f'Execute {tool_name}')
+        
+        if tool_data.get('parameters'):
+            # Create function with parameters
+            param_names = [param['name'] for param in tool_data['parameters']]
+            
+            # Validate and sanitize parameter names
+            valid_param_names = []
+            param_mapping = {}  # Maps sanitized names to original names
+            
+            for param_name in param_names:
+                # Check if parameter name is a Python reserved keyword
+                if param_name in ['class', 'def', 'import', 'from', 'as', 'in', 'is', 'if', 'else', 'elif', 'try', 'except', 'finally', 'with', 'for', 'while', 'return', 'yield', 'break', 'continue', 'pass', 'raise', 'assert', 'del', 'global', 'nonlocal', 'lambda', 'and', 'or', 'not', 'True', 'False', 'None']:
+                    # Use a sanitized name for the function signature
+                    sanitized_name = f"param_{param_name}"
+                    valid_param_names.append(sanitized_name)
+                    param_mapping[sanitized_name] = param_name
+                    print(f"[DBMCP DEBUG] Sanitized parameter name '{param_name}' to '{sanitized_name}'", file=sys.stderr)
+                else:
+                    valid_param_names.append(param_name)
+                    param_mapping[param_name] = param_name
+            
+            def tool_function(**kwargs):
+                """Dynamic tool function with parameters."""
+                # Map sanitized parameter names back to original names
+                parameters = {}
+                for sanitized_name, value in kwargs.items():
+                    if value is not None and sanitized_name in param_mapping:
+                        original_name = param_mapping[sanitized_name]
+                        parameters[original_name] = value
+                return self.execute_tool_by_id(tool_id, parameters)
+            
+            # Set function metadata
+            tool_function.__name__ = tool_name
+            tool_function.__doc__ = description
+            
+            # Create function signature with sanitized parameter names
+            import inspect
+            sig = inspect.signature(tool_function)
+            new_params = []
+            for param_name in valid_param_names:
+                new_params.append(inspect.Parameter(
+                    param_name, 
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD, 
+                    default=None
+                ))
+            
+            tool_function.__signature__ = sig.replace(parameters=new_params)
+            print(f"[DBMCP DEBUG] Tool function signature: {tool_function.__signature__}", file=sys.stderr)
+            return tool_function
+        else:
+            # No parameters, create simple function
+            def tool_function():
+                """Dynamic tool function without parameters."""
+                return self.execute_tool_by_id(tool_id, {})
+            
+            tool_function.__name__ = tool_name
+            tool_function.__doc__ = description
+            return tool_function
     
     def execute_tool_by_id(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool by its ID with parameters."""
@@ -103,7 +121,7 @@ def {tool_data['name']}({param_str}):
             print(f"[DBMCP DEBUG] Executing tool {tool_id} with parameters: {parameters}", file=sys.stderr)
             
             async def _execute_tool_async():
-                async with AsyncSessionLocal() as db:
+                async for db in get_db():
                     service = ToolExecutionService(db)
                     result = await service.execute_named_tool(tool_id, parameters)
                     return result.model_dump()
@@ -142,15 +160,16 @@ def {tool_data['name']}({param_str}):
                 "error": str(e)
             }
     
-    def _list_tools_sync(self) -> List[Dict[str, Any]]:
+    def _list_tools(self) -> List[Dict[str, Any]]:
         """Sync version of list_tools using a new event loop."""
-        async def _list_tools_async():
-            async with AsyncSessionLocal() as db:
-                tool_service = ToolService(db)
-                tools = await tool_service.list_tools()
-                return [tool.model_dump() for tool in tools]
-        
-        return asyncio.run(_list_tools_async())
+        return asyncio.run(self._list_tools_async())
+    
+    async def _list_tools_async(self) -> List[Dict[str, Any]]:
+        """Async version of list_tools."""
+        async for db in get_db():
+            tool_service = ToolService(db)
+            tools = await tool_service.list_tools()
+            return [tool.model_dump() for tool in tools]
 
     def run(self):
         """Start the MCP server."""
