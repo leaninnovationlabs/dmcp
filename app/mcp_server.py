@@ -37,14 +37,19 @@ DEFAULT_ERROR_RESPONSE = {
     "error": ""
 }
 
+mcp = FastMCP(name="DBMCP")
+
+
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
     
     def __init__(self, name: str = "Demo 🚀"):
         """Initialize the MCP server with the given name."""
-        self.mcp = FastMCP(name)
+        self.mcp = mcp
         self.mcp.tool(self.hello_world)
         self._register_database_tools()
+        # self.mcp.add_prompt(self.example_prompt)
+        # self.mcp.prompt = self.example_prompt()
     
     def _register_database_tools(self) -> None:
         """Register tools from the database as MCP tools."""
@@ -229,6 +234,12 @@ class MCPServer:
             tool_service = ToolService(db)
             tools = await tool_service.list_tools()
             return [tool.model_dump() for tool in tools]
+        
+    def example_prompt(self) -> str:
+        return """
+        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
+        You can start by saying hello or asking me to execute any of the available database tools.
+        """
     
     def _log_debug(self, message: str) -> None:
         """Log debug message to stderr."""
@@ -241,3 +252,31 @@ class MCPServer:
     def run(self) -> None:
         """Start the MCP server."""
         self.mcp.run()
+
+
+    @mcp.prompt
+    def example_prompt() -> str:
+        return """
+        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
+        You can start by saying hello or asking me to execute any of the available database tools.
+        """
+
+    @mcp.prompt
+    def aws_cost_analysis() -> str:
+        return """
+        Instructions on how to do the AWS Cost Analysis:
+
+        Step 1:
+        - Get the AWS Cost by region
+        - Observe any anomalies in the cost by region, I am intrested if the spend differnce is more than 10%
+
+        Step 2:
+        - Get the AWS Cost by service
+        - I do not want to spend more than $10 on services other than EC2, S3, RDS, and Lambda.
+
+        Step 3:
+        - Get the AWS Cost by environment
+        - My prod spend should be the highest spend and rest of the environments should be less than 10% of prod spend.
+
+        Do the analysis and summarize the finding in the report. Create any visualizations if needed.
+        """
