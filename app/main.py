@@ -33,12 +33,11 @@ app.add_middleware(
 )
 
 
-
-# Include routers
-app.include_router(health.router)
-app.include_router(datasources.router)
-app.include_router(tools.router)
-app.include_router(execute.router)
+# Include routers with /dbmcp prefix
+app.include_router(health.router, prefix="/dbmcp")
+app.include_router(datasources.router, prefix="/dbmcp")
+app.include_router(tools.router, prefix="/dbmcp")
+app.include_router(execute.router, prefix="/dbmcp")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 

@@ -5,23 +5,23 @@ The API has been organized into separate route modules for better maintainabilit
 ## Route Modules
 
 ### 1. Health Routes (`app/routes/health.py`)
-- **GET** `/health` - Health check endpoint
+- **GET** `/dbmcp/health` - Health check endpoint
 
 ### 2. Datasource Routes (`app/routes/datasources.py`)
-- **POST** `/datasources/` - Create a new datasource
-- **GET** `/datasources/` - List all datasources
-- **GET** `/datasources/{datasource_id}` - Get a specific datasource
-- **DELETE** `/datasources/{datasource_id}` - Delete a datasource
+- **POST** `/dbmcp/datasources/` - Create a new datasource
+- **GET** `/dbmcp/datasources/` - List all datasources
+- **GET** `/dbmcp/datasources/{datasource_id}` - Get a specific datasource
+- **DELETE** `/dbmcp/datasources/{datasource_id}` - Delete a datasource
 
 ### 3. Tool Routes (`app/routes/tools.py`)
-- **POST** `/tools/` - Create a new named tool
-- **GET** `/tools/` - List all tools
-- **GET** `/tools/{tool_id}` - Get a specific tool
-- **DELETE** `/tools/{tool_id}` - Delete a tool
+- **POST** `/dbmcp/tools/` - Create a new named tool
+- **GET** `/dbmcp/tools/` - List all tools
+- **GET** `/dbmcp/tools/{tool_id}` - Get a specific tool
+- **DELETE** `/dbmcp/tools/{tool_id}` - Delete a tool
 
 ### 4. Tool Execution Routes (`app/routes/execute.py`)
-- **POST** `/execute/{tool_id}` - Execute a named tool with parameters
-- **POST** `/execute/raw` - Execute a raw SQL query
+- **POST** `/dbmcp/execute/{tool_id}` - Execute a named tool with parameters
+- **POST** `/dbmcp/execute/raw` - Execute a raw SQL query
 
 ## Benefits of This Structure
 
