@@ -17,7 +17,7 @@ from fastmcp import FastMCP
 from app.database import get_db
 from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
-
+from app.core.config import settings
 
 # Constants
 PYTHON_RESERVED_KEYWORDS = {
@@ -39,11 +39,10 @@ DEFAULT_ERROR_RESPONSE = {
 
 mcp = FastMCP(name="DBMCP")
 
-
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
     
-    def __init__(self, name: str = "Demo 🚀"):
+    def __init__(self, name: str = "DB MCP"):
         """Initialize the MCP server with the given name."""
         self.mcp = mcp
         self.mcp.tool(self.hello_world)
@@ -251,7 +250,18 @@ class MCPServer:
 
     def run(self) -> None:
         """Start the MCP server."""
-        self.mcp.run()
+        # Support running both in stio and http based on a parameter
+        if settings.transport == "http":
+            mcp.run(
+                transport="http",
+                host="127.0.0.1",
+                port=4200,
+                path="/dbmcp",
+                log_level="debug",
+            )
+        else:
+            self.mcp.run()
+
 
 
     @mcp.prompt

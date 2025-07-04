@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 from datetime import datetime
@@ -99,8 +99,7 @@ class DatasourceResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ToolCreate(BaseModel):
@@ -136,8 +135,7 @@ class ToolResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
     
     @classmethod
     def model_validate(cls, obj):
@@ -200,3 +198,6 @@ class ToolExecutionResponse(BaseModel):
     execution_time_ms: float
     pagination: Optional[PaginationResponse]
     error: Optional[str] = None 
+
+
+

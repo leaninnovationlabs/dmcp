@@ -1,6 +1,7 @@
 import os
 from typing import List
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 
 class Settings(BaseSettings):
@@ -27,9 +28,10 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    # Transport
+    transport: str = "stdio"
+    
+    model_config = ConfigDict(env_file=".env", case_sensitive=False)
 
 
 # Global settings instance
