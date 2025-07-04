@@ -112,6 +112,8 @@ class ToolExecutionService:
                 if datasource.database_type in ['postgresql', 'mysql']:
                     processed_sql_with_pagination += f" LIMIT {limit} OFFSET {offset}"
                 
+                print('processed_sql_with_pagination', processed_sql_with_pagination)
+
                 # Execute the paginated query
                 result_wrapper = await connection.execute(processed_sql_with_pagination)
                 result_data = await result_wrapper.fetchall()
