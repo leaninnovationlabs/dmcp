@@ -28,6 +28,28 @@ class PostgreSQLConnection(DatabaseConnection):
     def __init__(self, connection):
         self.connection = connection
     
+    def _convert_postgresql_types(self, value):
+        """Convert PostgreSQL-specific types to JSON-serializable formats."""
+        # Handle asyncpg BitString type
+        if hasattr(value, '__class__') and 'BitString' in str(type(value)):
+            return str(value)
+        
+        # Handle other potential PostgreSQL types
+        if hasattr(value, '__class__') and hasattr(value, '__module__'):
+            module = getattr(value, '__module__', '')
+            if 'asyncpg' in module or 'pgproto' in module:
+                # Convert any other asyncpg-specific types to string
+                return str(value)
+        
+        return value
+    
+    def _convert_record_to_dict(self, record):
+        """Convert an asyncpg Record to a dictionary with type conversion."""
+        return {
+            key: self._convert_postgresql_types(value) 
+            for key, value in dict(record).items()
+        }
+    
     async def execute(self, sql: str, parameters: Dict[str, Any] = None):
         """Execute a SQL query with parameters."""
         # Convert parameters to PostgreSQL format
@@ -41,10 +63,10 @@ class PostgreSQLConnection(DatabaseConnection):
         
         result = await self.connection.fetch(sql, *param_values)
         
-        # Convert asyncpg Record objects to dictionaries
+        # Convert asyncpg Record objects to dictionaries with type conversion
         if result:
-            # Convert each Record to dict
-            data = [dict(record) for record in result]
+            # Convert each Record to dict with proper type handling
+            data = [self._convert_record_to_dict(record) for record in result]
             keys = list(data[0].keys()) if data else []
         else:
             data = []
