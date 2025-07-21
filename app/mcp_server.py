@@ -11,8 +11,8 @@ import inspect
 import sys
 import traceback
 from typing import Any, Callable, Dict, List, Optional
-
-from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_http_headers
+from fastmcp import Context, FastMCP
 
 from app.database import get_db
 from app.services.tool_service import ToolService
@@ -76,9 +76,27 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def hello_world(self, name: str = "World") -> str:
+    def hello_world(self, ctx: Context, name: str = "World") -> str:
         """Say hello to the world."""
-        return f"Hello, {name}!"
+
+        headers = get_http_headers()
+        # Get authorization header, which holds the key
+        auth_header = headers.get("authorization", "")
+        is_bearer = auth_header.startswith("Bearer ")
+        
+        return {
+            "user_agent": headers.get("user-agent", "Unknown"),
+            "content_type": headers.get("content-type", "Unknown"),
+            "has_auth": bool(auth_header),
+            "auth_type": "Bearer" if is_bearer else "Other" if auth_header else "None",
+            "headers_count": len(headers),
+            "request_id": ctx.request_id,
+            "client_id": ctx.client_id or "Unknown client",
+            "name": name,
+            "message": "Hello, World!"
+        }
+
+        # return f"Hello, {name}!"
     
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""

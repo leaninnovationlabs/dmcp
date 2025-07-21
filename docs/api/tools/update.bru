@@ -11,18 +11,14 @@ put {
 }
 
 body:json {
-  {
-      "name": "get_trans",
-      "description": "Get all the transactions",
-      "sql": "SELECT * FROM transactions ",
-      "datasource_id": 2,
-      "parameters": [
-        {
-          "name": "class",
-          "type": "string",
-          "description": "Classification",
-          "required": false
-        }
-      ]
-    }
+   {
+        "name": "aws_cost_by_region",
+        "description": "Gives you the cost by region",
+        "type": "query",
+        "sql": "SELECT  product_region, SUM(line_item_unblended_cost) as total_cost FROM aws_cost_usage_report  GROUP BY product_region  ORDER BY total_cost DESC",
+        "datasource_id": 1,
+        "parameters": [],
+        "created_at": "2025-07-03T03:44:27.970336",
+        "updated_at": "2025-07-03T03:44:27.970343"
+      }
 }
