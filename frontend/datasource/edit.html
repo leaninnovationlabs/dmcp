@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMCP - Edit Datasource</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <script src="../shared/navigation.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-gray-900">DB-MCP</h1>
+                        <p class="text-xs text-gray-500">Database Model Control Protocol</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="../index.html" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Home
+                    </a>
+                    <a href="./" class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Data Sources
+                    </a>
+                    <a href="../tools/" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Tools
+                    </a>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="testConnectionBtn" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white">
+                        Test Connection
+                    </button>
+                    <button id="deleteBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white hidden">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Page Header -->
+    <div class="bg-gray-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center space-x-4">
+                <button id="backBtn" class="text-gray-500 hover:text-gray-700 transition-colors flex items-center">
+                    <i class="fas fa-chevron-left mr-2"></i>
+                    
+                </button>
+                <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">Edit Datasource</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-2 text-gray-600">Loading datasource...</p>
+        </div>
+
+        <!-- Form -->
+        <div id="formContainer" class="bg-white rounded-lg shadow-lg p-6">
+            <form id="datasourceForm">
+                <input type="hidden" id="datasourceId" name="id" value="">
+
+                <!-- Basic Information -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Basic Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Database Type <span class="text-red-500">*</span>
+                            </label>
+                            <select id="database_type" name="database_type" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select database type</option>
+                                <option value="postgresql">PostgreSQL</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="sqlite">SQLite</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Database Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="database" name="database" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Connection Details -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Connection Details</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Host</label>
+                            <input type="text" id="host" name="host" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="localhost">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Port</label>
+                            <input type="number" id="port" name="port" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="5432">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                            <input type="text" id="username" name="username" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input type="password" id="password" name="password" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Advanced Settings</h2>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Connection String (Optional)</label>
+                            <textarea id="connection_string" name="connection_string" rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="Leave empty to use individual connection parameters"></textarea>
+                            <p class="text-sm text-gray-500 mt-1">If provided, this will override the individual connection parameters above.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SSL Mode</label>
+                            <select id="ssl_mode" name="ssl_mode" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Default</option>
+                                <option value="require">Require</option>
+                                <option value="prefer">Prefer</option>
+                                <option value="disable">Disable</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Parameters (JSON)</label>
+                            <textarea id="additional_params" name="additional_params" rows="4"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                                      placeholder="{}">{}</textarea>
+                            <p class="text-sm text-gray-500 mt-1">Additional connection parameters as JSON object.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelBtn" class="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="saveBtn" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors">
+                        Save Datasource
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script src="edit.js"></script>
+</body>
+</html> 

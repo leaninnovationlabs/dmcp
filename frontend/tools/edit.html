@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMCP - Edit Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <script src="../shared/navigation.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-gray-900">DB-MCP</h1>
+                        <p class="text-xs text-gray-500">Database Model Control Protocol</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="../index.html" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Home
+                    </a>
+                    <a href="../datasource/" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Data Sources
+                    </a>
+                    <a href="./" class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Tools
+                    </a>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="executeBtn" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white hidden">
+                        Execute Tool
+                    </button>
+                    <button id="deleteBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white hidden">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Page Header -->
+    <div class="bg-gray-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center space-x-4">
+                <button id="backBtn" class="text-gray-500 hover:text-gray-700 transition-colors flex items-center">
+                    <i class="fas fa-chevron-left mr-2"></i>
+                    
+                </button>
+                <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">Edit Tool</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto p-6">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <p class="mt-2 text-gray-600">Loading tool...</p>
+        </div>
+
+        <!-- Form -->
+        <div id="formContainer" class="bg-white rounded-lg shadow-lg p-6">
+            <form id="toolForm">
+                <input type="hidden" id="toolId" name="id" value="">
+
+                <!-- Basic Information -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Basic Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                   placeholder="e.g., aws_cost_by_service">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Tool Type <span class="text-red-500">*</span>
+                            </label>
+                            <select id="type" name="type" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">Select tool type</option>
+                                <option value="query">Query</option>
+                                <option value="http">HTTP</option>
+                                <option value="code">Code</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="description" name="description" rows="2"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                      placeholder="Brief description of what this tool does"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Datasource <span class="text-red-500">*</span>
+                            </label>
+                            <select id="datasource_id" name="datasource_id" required 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="">Select datasource</option>
+                                <!-- Options will be loaded dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SQL Query -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">SQL Query</h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            SQL Query <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="sql" name="sql" rows="8" required
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+                                  placeholder="SELECT * FROM table_name WHERE column = {{ parameter_name }}"></textarea>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Use <code class="bg-gray-100 px-1 rounded">{{ parameter_name }}</code> for parameter placeholders in your SQL query.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Parameters -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Parameters</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600">Define parameters that users can pass to this tool</p>
+                            <button type="button" id="addParameterBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                + Add Parameter
+                            </button>
+                        </div>
+                        <div id="parametersContainer" class="space-y-4">
+                            <!-- Parameters will be added here dynamically -->
+                        </div>
+                        <div id="noParametersMessage" class="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
+                            No parameters defined. Click "Add Parameter" to add one.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelBtn" class="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" id="saveBtn" class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors">
+                        Save Tool
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Parameter Template (Hidden) -->
+    <template id="parameterTemplate">
+        <div class="parameter-item bg-gray-50 p-4 rounded-lg border">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" class="param-name w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="param_name">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select class="param-type w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option value="string">String</option>
+                        <option value="integer">Integer</option>
+                        <option value="float">Float</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="date">Date</option>
+                        <option value="datetime">DateTime</option>
+                        <option value="array">Array</option>
+                        <option value="object">Object</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Default Value</label>
+                    <input type="text" class="param-default w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="Optional">
+                </div>
+                <div class="flex items-end space-x-2">
+                    <label class="flex items-center text-sm">
+                        <input type="checkbox" class="param-required mr-1">
+                        Required
+                    </label>
+                    <button type="button" class="remove-parameter text-red-500 hover:text-red-700 px-2 py-1 text-sm">
+                        ✕
+                    </button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input type="text" class="param-description w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="Parameter description">
+            </div>
+        </div>
+    </template>
+
+    <!-- Status Messages -->
+    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script src="edit.js"></script>
+</body>
+</html> 
