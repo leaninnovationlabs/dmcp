@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMCP - Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../shared/common.css">
+    <script src="../shared/navigation.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-2xl font-bold text-gray-900">DB-MCP</h1>
+                        <p class="text-xs text-gray-500">Database Model Control Protocol</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-8">
+                    <a href="../index.html" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Home
+                    </a>
+                    <a href="../datasource/" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
+                        Data Sources
+                    </a>
+                    <a href="#" class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
+                        Tools
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <button id="addToolBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white">
+                        + Add New Tool
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-8 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <p class="mt-2 text-gray-600">Loading tools...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="text-center py-8 hidden">
+            <div class="text-red-500 text-xl mb-2"><i class="fas fa-exclamation-triangle"></i></div>
+            <p class="text-red-600 font-semibold">Error loading tools</p>
+            <p id="errorMessage" class="text-gray-600 mt-1"></p>
+            <button id="retryBtn" class="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition-colors">
+                Retry
+            </button>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-12 hidden">
+            <div class="text-gray-400 text-6xl mb-4"><i class="fas fa-tools"></i></div>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Tools Found</h3>
+            <p class="text-gray-500 mb-6">Create your first tool to get started</p>
+            <button class="addToolBtn bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                Create Your First Tool
+            </button>
+        </div>
+
+        <!-- Tools Grid -->
+        <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Tool cards will be injected here -->
+        </div>
+    </div>
+
+    <script src="tools.js"></script>
+</body>
+</html> 

@@ -1,0 +1,335 @@
+$(document).ready(function() {
+    const API_BASE_URL = 'http://localhost:8000/dbmcp';
+    let isEditMode = false;
+    let currentDatasourceId = null;
+
+    // Get datasource ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const datasourceId = urlParams.get('id');
+
+    if (datasourceId) {
+        isEditMode = true;
+        currentDatasourceId = datasourceId;
+        $('#pageTitle').text('Edit Datasource');
+        $('#deleteBtn').show();
+        loadDatasource(datasourceId);
+    } else {
+        $('#pageTitle').text('Create New Datasource');
+        $('#saveBtn').text('Create Datasource');
+        hideLoadingState();
+    }
+
+    // Event listeners
+    $('#backBtn, #cancelBtn').on('click', function() {
+        window.location.href = './';
+    });
+
+    $('#datasourceForm').on('submit', function(e) {
+        e.preventDefault();
+        saveDatasource();
+    });
+
+    $('#deleteBtn').on('click', function() {
+        if (confirm('Are you sure you want to delete this datasource? This action cannot be undone.')) {
+            deleteDatasource();
+        }
+    });
+
+    $('#testConnectionBtn').on('click', function() {
+        testConnection();
+    });
+
+    // Auto-format JSON in additional_params field
+    $('#additional_params').on('blur', function() {
+        try {
+            const value = $(this).val().trim();
+            if (value && value !== '{}') {
+                const parsed = JSON.parse(value);
+                $(this).val(JSON.stringify(parsed, null, 2));
+                $(this).removeClass('border-red-300').addClass('border-gray-300');
+            }
+        } catch (e) {
+            $(this).removeClass('border-gray-300').addClass('border-red-300');
+        }
+    });
+
+    // Load existing datasource data
+    function loadDatasource(id) {
+        showLoadingState();
+
+        $.ajax({
+            url: `${API_BASE_URL}/datasources/${id}`,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    populateForm(response.data);
+                } else {
+                    showNotification('Failed to load datasource: ' + (response.errors?.[0]?.msg || 'Unknown error'), 'error');
+                    setTimeout(() => window.location.href = './', 2000);
+                }
+            },
+            error: function(xhr, status, error) {
+                let errorMessage = 'Failed to load datasource';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+                setTimeout(() => window.location.href = './', 2000);
+            },
+            complete: function() {
+                hideLoadingState();
+            }
+        });
+    }
+
+    // Populate form with datasource data
+    function populateForm(datasource) {
+        $('#datasourceId').val(datasource.id);
+        $('#name').val(datasource.name);
+        $('#database_type').val(datasource.database_type);
+        $('#database').val(datasource.database);
+        $('#host').val(datasource.host || '');
+        $('#port').val(datasource.port || '');
+        $('#username').val(datasource.username || '');
+        $('#connection_string').val(datasource.connection_string || '');
+        $('#ssl_mode').val(datasource.ssl_mode || '');
+        
+        // Format additional_params as pretty JSON
+        const additionalParams = datasource.additional_params || {};
+        $('#additional_params').val(JSON.stringify(additionalParams, null, 2));
+    }
+
+    // Save datasource (create or update)
+    function saveDatasource() {
+        const formData = getFormData();
+        
+        if (!validateForm(formData)) {
+            return;
+        }
+
+        const $saveBtn = $('#saveBtn');
+        const originalText = $saveBtn.text();
+        $saveBtn.text('Saving...').prop('disabled', true);
+
+        const url = isEditMode ? `${API_BASE_URL}/datasources/${currentDatasourceId}` : `${API_BASE_URL}/datasources`;
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showNotification(isEditMode ? 'Datasource updated successfully' : 'Datasource created successfully', 'success');
+                    setTimeout(() => window.location.href = './', 1500);
+                } else {
+                    const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
+                    showNotification('Failed to save datasource: ' + errorMessage, 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to save datasource';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+            },
+            complete: function() {
+                $saveBtn.text(originalText).prop('disabled', false);
+            }
+        });
+    }
+
+    // Delete datasource
+    function deleteDatasource() {
+        const $deleteBtn = $('#deleteBtn');
+        $deleteBtn.text('Deleting...').prop('disabled', true);
+
+        $.ajax({
+            url: `${API_BASE_URL}/datasources/${currentDatasourceId}`,
+            method: 'DELETE',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showNotification('Datasource deleted successfully', 'success');
+                    setTimeout(() => window.location.href = './', 1500);
+                } else {
+                    const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
+                    showNotification('Failed to delete datasource: ' + errorMessage, 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to delete datasource';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+            },
+            complete: function() {
+                $deleteBtn.text('Delete').prop('disabled', false);
+            }
+        });
+    }
+
+    // Test database connection
+    function testConnection() {
+        if (!isEditMode) {
+            showNotification('Please save the datasource first before testing the connection', 'warning');
+            return;
+        }
+
+        const $testBtn = $('#testConnectionBtn');
+        const originalText = $testBtn.text();
+        $testBtn.text('Testing...').prop('disabled', true);
+
+        $.ajax({
+            url: `${API_BASE_URL}/datasources/${currentDatasourceId}/test`,
+            method: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    const data = response.data;
+                    showNotification(`Connection successful! (${data.connection_time_ms}ms)`, 'success');
+                } else {
+                    showNotification('Connection test failed', 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Connection test failed';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+            },
+            complete: function() {
+                $testBtn.text(originalText).prop('disabled', false);
+            }
+        });
+    }
+
+    // Get form data
+    function getFormData() {
+        const formData = {
+            name: $('#name').val().trim(),
+            database_type: $('#database_type').val(),
+            database: $('#database').val().trim(),
+            host: $('#host').val().trim() || null,
+            port: $('#port').val() ? parseInt($('#port').val()) : null,
+            username: $('#username').val().trim() || null,
+            password: $('#password').val() || null,
+            connection_string: $('#connection_string').val().trim() || null,
+            ssl_mode: $('#ssl_mode').val() || null
+        };
+
+        // Parse additional_params JSON
+        try {
+            const additionalParamsValue = $('#additional_params').val().trim();
+            formData.additional_params = additionalParamsValue ? JSON.parse(additionalParamsValue) : {};
+        } catch (e) {
+            formData.additional_params = {};
+        }
+
+        // Remove null/empty values for updates
+        if (isEditMode) {
+            Object.keys(formData).forEach(key => {
+                if (formData[key] === null || formData[key] === '') {
+                    delete formData[key];
+                }
+            });
+        }
+
+        return formData;
+    }
+
+    // Form validation
+    function validateForm(data) {
+        let isValid = true;
+        
+        // Clear previous errors
+        $('.border-red-300').removeClass('border-red-300').addClass('border-gray-300');
+
+        // Required fields
+        if (!data.name) {
+            $('#name').removeClass('border-gray-300').addClass('border-red-300');
+            isValid = false;
+        }
+
+        if (!data.database_type) {
+            $('#database_type').removeClass('border-gray-300').addClass('border-red-300');
+            isValid = false;
+        }
+
+        if (!data.database) {
+            $('#database').removeClass('border-gray-300').addClass('border-red-300');
+            isValid = false;
+        }
+
+        // Validate JSON in additional_params
+        try {
+            const additionalParamsValue = $('#additional_params').val().trim();
+            if (additionalParamsValue) {
+                JSON.parse(additionalParamsValue);
+            }
+        } catch (e) {
+            $('#additional_params').removeClass('border-gray-300').addClass('border-red-300');
+            showNotification('Invalid JSON in Additional Parameters', 'error');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            showNotification('Please fix the highlighted fields', 'error');
+        }
+
+        return isValid;
+    }
+
+    // State management
+    function showLoadingState() {
+        $('#loadingState').show();
+        $('#formContainer').hide();
+    }
+
+    function hideLoadingState() {
+        $('#loadingState').hide();
+        $('#formContainer').show();
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500',
+            warning: 'bg-yellow-500'
+        };
+
+        const notification = $(`
+            <div class="notification ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 max-w-sm">
+                <p class="font-medium">${escapeHtml(message)}</p>
+            </div>
+        `);
+
+        $('#statusMessages').append(notification);
+        
+        // Slide in
+        setTimeout(() => {
+            notification.removeClass('translate-x-full');
+        }, 100);
+
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.addClass('translate-x-full');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 5000);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return $('<div>').text(text).html();
+    }
+}); 
