@@ -1,12 +1,12 @@
 $(document).ready(function() {
-    const API_BASE_URL = 'http://localhost:8000/dbmcp';
+    const API_BASE_URL = APP_CONFIG.API_BASE_URL;
     
     // Initialize the page
     loadDatasources();
 
     // Event listeners
     $('#addDatasourceBtn, .addDatasourceBtn').on('click', function() {
-        window.location.href = '/dbmcpui/datasource/edit.html';
+        window.location.href = APP_CONFIG.urls.datasourceEdit();
     });
 
     $('#retryBtn').on('click', function() {
@@ -124,7 +124,7 @@ $(document).ready(function() {
         }
         
         const datasourceId = $(this).data('id');
-        window.location.href = `/dbmcpui/datasource/edit.html?id=${datasourceId}`;
+        window.location.href = APP_CONFIG.urls.datasourceEdit(datasourceId);
     });
 
     // Handle test connection
