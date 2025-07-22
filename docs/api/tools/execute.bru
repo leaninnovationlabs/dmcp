@@ -5,13 +5,15 @@ meta {
 }
 
 post {
-  url: {{server}}/execute/5
+  url: {{server}}/execute/6
   body: json
   auth: none
 }
 
 body:json {
   {
-      
+    "parameters": {
+      "name": "Holiday"
+    }
   }
 }
