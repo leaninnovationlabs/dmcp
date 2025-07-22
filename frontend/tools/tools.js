@@ -1,12 +1,12 @@
 $(document).ready(function() {
-    const API_BASE_URL = 'http://localhost:8000/dbmcp';
+    const API_BASE_URL = APP_CONFIG.API_BASE_URL;
     
     // Initialize the page
     loadTools();
 
     // Event listeners
     $('#addToolBtn, .addToolBtn').on('click', function() {
-        window.location.href = '/dbmcpui/tools/edit.html';
+        window.location.href = APP_CONFIG.urls.toolsEdit();
     });
 
     $('#retryBtn').on('click', function() {
@@ -160,7 +160,7 @@ $(document).ready(function() {
         }
         
         const toolId = $(this).data('id');
-        window.location.href = `/dbmcpui/tools/edit.html?id=${toolId}`;
+        window.location.href = APP_CONFIG.urls.toolsEdit(toolId);
     });
 
     // Handle tool execution

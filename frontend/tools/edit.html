@@ -8,6 +8,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../shared/common.css">
+    <script src="../shared/config.js"></script>
     <script src="../shared/navigation.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -311,5 +312,18 @@
     <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <script src="edit.js"></script>
+    
+    <script>
+        // Update navigation links using APP_CONFIG
+        document.addEventListener('DOMContentLoaded', function() {
+            const homeLink = document.querySelector('nav a[href*="index.html"]');
+            const datasourceLink = document.querySelector('nav a[href*="datasource"]');
+            const toolsLink = document.querySelector('nav a[href*="tools"]');
+            
+            if (homeLink) homeLink.setAttribute('href', APP_CONFIG.urls.home());
+            if (datasourceLink) datasourceLink.setAttribute('href', APP_CONFIG.urls.datasource());
+            if (toolsLink) toolsLink.setAttribute('href', APP_CONFIG.urls.tools());
+        });
+    </script>
 </body>
 </html> 

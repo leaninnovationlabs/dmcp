@@ -41,7 +41,7 @@ app.include_router(tools.router, prefix="/dbmcp")
 app.include_router(execute.router, prefix="/dbmcp")
 
 # Mount static files
-app.mount("/dbmcpui", StaticFiles(directory="frontend", html=True), name="static")
+app.mount("/dbmcp/ui", StaticFiles(directory="frontend", html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000) 

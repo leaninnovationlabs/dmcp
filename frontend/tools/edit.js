@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const API_BASE_URL = 'http://localhost:8000/dbmcp';
+    const API_BASE_URL = APP_CONFIG.API_BASE_URL;
     let isEditMode = false;
     let currentToolId = null;
 
@@ -25,7 +25,7 @@ $(document).ready(function() {
 
     // Event listeners
     $('#backBtn, #cancelBtn').on('click', function() {
-        window.location.href = '/dbmcpui/tools/';
+        window.location.href = APP_CONFIG.urls.tools();
     });
 
     $('#toolForm').on('submit', function(e) {
@@ -117,7 +117,7 @@ $(document).ready(function() {
                     populateForm(response.data);
                 } else {
                     showNotification('Failed to load tool: ' + (response.errors?.[0]?.msg || 'Unknown error'), 'error');
-                    setTimeout(() => window.location.href = '/dbmcpui/tools/', 2000);
+                    setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 2000);
                 }
             },
             error: function(xhr, status, error) {
@@ -126,7 +126,7 @@ $(document).ready(function() {
                     errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
                 }
                 showNotification(errorMessage, 'error');
-                setTimeout(() => window.location.href = '/dbmcpui/tools/', 2000);
+                setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 2000);
             },
             complete: function() {
                 hideLoadingState();
@@ -206,7 +206,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showNotification(isEditMode ? 'Tool updated successfully' : 'Tool created successfully', 'success');
-                    setTimeout(() => window.location.href = '/dbmcpui/tools/', 1500);
+                    setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 1500);
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
                     showNotification('Failed to save tool: ' + errorMessage, 'error');
@@ -237,7 +237,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showNotification('Tool deleted successfully', 'success');
-                    setTimeout(() => window.location.href = '/dbmcpui/tools/', 1500);
+                    setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 1500);
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
                     showNotification('Failed to delete tool: ' + errorMessage, 'error');
