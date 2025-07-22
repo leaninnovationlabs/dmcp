@@ -48,6 +48,11 @@ class ToolExecutionService:
             if not datasource:
                 raise DatasourceNotFoundError(tool.datasource_id)
             
+            print('++++++xxx')
+            print(tool.sql)
+            print(parameters)
+            print('++++++xxx')
+
             return await self._execute_query(
                 datasource, tool.sql, parameters or {}, pagination
             )
@@ -90,7 +95,9 @@ class ToolExecutionService:
         start_time = time.time()
         
         try:
+            print('++++++')
             print(sql)
+            print(parameters)
             # Process SQL with Jinja templates if needed
             processed_sql = self.template_service.process_sql_template(sql, parameters)
 

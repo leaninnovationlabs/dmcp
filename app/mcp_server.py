@@ -224,6 +224,9 @@ class MCPServer:
         """Execute tool asynchronously in a separate thread."""
         async def _execute_tool_async():
             async for db in get_db():
+                print('++++++yyy')
+                print(parameters)
+                print('++++++yyy')
                 service = ToolExecutionService(db)
                 result = await service.execute_named_tool(tool_id, parameters)
                 return result.model_dump()
