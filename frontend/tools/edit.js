@@ -39,7 +39,7 @@ $(document).ready(function() {
     });
 
     $('#executeBtn').on('click', function() {
-        executeTool();
+        showExecuteModal();
     });
 
     $('#addParameterBtn').on('click', function() {
@@ -55,6 +55,30 @@ $(document).ready(function() {
     // Update parameters display when changes are made
     $(document).on('input change', '.parameter-item input, .parameter-item select', function() {
         updateParametersDisplay();
+    });
+
+    // Modal event handlers
+    $('#closeExecuteModal, #cancelExecute, #closeResults').on('click', function() {
+        hideExecuteModal();
+    });
+
+    $('#executeModal').on('click', function(e) {
+        if (e.target === this) {
+            hideExecuteModal();
+        }
+    });
+
+    $('#executeForm').on('submit', function(e) {
+        e.preventDefault();
+        executeToolWithParameters();
+    });
+
+    $('#runAgain').on('click', function() {
+        showParametersSection();
+    });
+
+    $('#exportResults').on('click', function() {
+        exportResultsToCSV();
     });
 
     // Load datasources for dropdown
@@ -231,44 +255,446 @@ $(document).ready(function() {
         });
     }
 
-    // Execute tool
-    function executeTool() {
+    // Show execute modal
+    function showExecuteModal() {
         if (!isEditMode) {
             showNotification('Please save the tool first before executing it', 'warning');
             return;
         }
 
-        const $executeBtn = $('#executeBtn');
-        const originalText = $executeBtn.text();
-        $executeBtn.text('Executing...').prop('disabled', true);
+        // Get current tool data
+        const toolData = getCurrentToolData();
+        
+        // Populate modal with tool info
+        $('#executeToolName').text(toolData.name);
+        $('#executeToolDescription').text(toolData.description || 'No description provided');
+        
+        // Generate parameter inputs
+        generateParameterInputs(toolData.parameters);
+        
+        // Show modal
+        $('#executeModal').removeClass('hidden');
+        $('body').addClass('overflow-hidden');
+    }
+
+    // Hide execute modal
+    function hideExecuteModal() {
+        $('#executeModal').addClass('hidden');
+        $('body').removeClass('overflow-hidden');
+        $('#executeParametersContainer').empty();
+        showParametersSection();
+    }
+
+    // Show parameters section
+    function showParametersSection() {
+        $('#parametersSection').removeClass('hidden');
+        $('#resultsSection').addClass('hidden');
+        $('#confirmExecute').prop('disabled', false).html('<i class="fas fa-play mr-2"></i>Execute Tool');
+    }
+
+    // Show results section
+    function showResultsSection() {
+        $('#parametersSection').addClass('hidden');
+        $('#resultsSection').removeClass('hidden');
+    }
+
+    // Get current tool data from form
+    function getCurrentToolData() {
+        const parameters = [];
+        
+        $('.parameter-item').each(function() {
+            const $param = $(this);
+            const name = $param.find('.param-name').val().trim();
+            if (name) {
+                const param = {
+                    name: name,
+                    type: $param.find('.param-type').val(),
+                    description: $param.find('.param-description').val().trim() || null,
+                    required: $param.find('.param-required').is(':checked'),
+                    default: $param.find('.param-default').val().trim() || null
+                };
+                parameters.push(param);
+            }
+        });
+
+        return {
+            name: $('#name').val().trim(),
+            description: $('#description').val().trim() || null,
+            parameters: parameters
+        };
+    }
+
+    // Generate parameter inputs for execution
+    function generateParameterInputs(parameters) {
+        const $container = $('#executeParametersContainer');
+        $container.empty();
+
+        if (!parameters || parameters.length === 0) {
+            $('#executeNoParametersMessage').removeClass('hidden');
+            return;
+        }
+
+        $('#executeNoParametersMessage').addClass('hidden');
+
+        parameters.forEach(param => {
+            const inputHtml = generateParameterInput(param);
+            $container.append(inputHtml);
+        });
+    }
+
+    // Generate individual parameter input
+    function generateParameterInput(param) {
+        const required = param.required ? 'required' : '';
+        const requiredLabel = param.required ? ' <span class="text-red-500">*</span>' : '';
+        const defaultValue = param.default || '';
+        const placeholder = defaultValue ? `Default: ${defaultValue}` : '';
+
+        let inputElement;
+        
+        switch (param.type) {
+            case 'boolean':
+                inputElement = `
+                    <select name="param_${param.name}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" ${required}>
+                        <option value="">Select value</option>
+                        <option value="true" ${defaultValue === 'true' ? 'selected' : ''}>True</option>
+                        <option value="false" ${defaultValue === 'false' ? 'selected' : ''}>False</option>
+                    </select>
+                `;
+                break;
+            
+            case 'integer':
+                inputElement = `
+                    <input type="number" name="param_${param.name}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                           step="1" value="${defaultValue}" placeholder="${placeholder}" ${required}>
+                `;
+                break;
+            
+            case 'float':
+                inputElement = `
+                    <input type="number" name="param_${param.name}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                           step="any" value="${defaultValue}" placeholder="${placeholder}" ${required}>
+                `;
+                break;
+            
+            case 'date':
+                inputElement = `
+                    <input type="date" name="param_${param.name}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                           value="${defaultValue}" ${required}>
+                `;
+                break;
+            
+            case 'datetime':
+                inputElement = `
+                    <input type="datetime-local" name="param_${param.name}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                           value="${defaultValue}" ${required}>
+                `;
+                break;
+            
+            case 'array':
+                inputElement = `
+                    <textarea name="param_${param.name}" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                              placeholder="Enter values separated by commas${placeholder ? '. ' + placeholder : ''}" ${required}>${defaultValue}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Enter multiple values separated by commas</p>
+                `;
+                break;
+            
+            case 'object':
+                inputElement = `
+                    <textarea name="param_${param.name}" rows="4" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent font-mono text-sm" 
+                              placeholder="Enter JSON object${placeholder ? '. ' + placeholder : ''}" ${required}>${defaultValue}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Enter a valid JSON object</p>
+                `;
+                break;
+            
+            default: // string
+                inputElement = `
+                    <input type="text" name="param_${param.name}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent" 
+                           value="${defaultValue}" placeholder="${placeholder}" ${required}>
+                `;
+                break;
+        }
+
+        return $(`
+            <div class="parameter-input-group">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    ${escapeHtml(param.name)}${requiredLabel}
+                    ${param.description ? `<span class="text-gray-500 font-normal"> - ${escapeHtml(param.description)}</span>` : ''}
+                </label>
+                ${inputElement}
+            </div>
+        `);
+    }
+
+    // Execute tool with parameters
+    function executeToolWithParameters() {
+        const parameters = getExecutionParameters();
+        
+        if (parameters === null) {
+            return; // Validation failed
+        }
+
+        const $executeBtn = $('#confirmExecute');
+        const originalText = $executeBtn.html();
+        $executeBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Executing...').prop('disabled', true);
 
         $.ajax({
             url: `${API_BASE_URL}/execute/${currentToolId}`,
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ parameters: {} }),
+            data: JSON.stringify({ parameters: parameters }),
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
                     const data = response.data;
-                    const rowCount = data.row_count || 0;
-                    const executionTime = data.execution_time_ms || 0;
-                    showNotification(`Tool executed successfully! ${rowCount} rows returned in ${executionTime}ms`, 'success');
+                    displayExecutionResults(data);
                 } else {
-                    showNotification('Tool execution failed', 'error');
+                    const errorMessage = response.errors?.[0]?.msg || 'Tool execution failed';
+                    showNotification(errorMessage, 'error');
                 }
             },
             error: function(xhr) {
                 let errorMessage = 'Tool execution failed';
                 if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
                     errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                } else if (xhr.responseText) {
+                    try {
+                        const errorData = JSON.parse(xhr.responseText);
+                        errorMessage = errorData.detail || errorMessage;
+                    } catch (e) {
+                        // Use default error message
+                    }
                 }
                 showNotification(errorMessage, 'error');
             },
             complete: function() {
-                $executeBtn.text(originalText).prop('disabled', false);
+                $executeBtn.html(originalText).prop('disabled', false);
             }
         });
+    }
+
+    // Get parameters from execution form
+    function getExecutionParameters() {
+        const parameters = {};
+        const toolData = getCurrentToolData();
+        let hasErrors = false;
+
+        // Clear previous errors
+        $('.border-red-300').removeClass('border-red-300').addClass('border-gray-300');
+
+        toolData.parameters.forEach(paramConfig => {
+            const $input = $(`[name="param_${paramConfig.name}"]`);
+            let value = $input.val();
+
+            // Handle required validation
+            if (paramConfig.required && (!value || value.trim() === '')) {
+                $input.removeClass('border-gray-300').addClass('border-red-300');
+                showNotification(`${paramConfig.name} is required`, 'error');
+                hasErrors = true;
+                return;
+            }
+
+            // Skip if empty and not required
+            if (!value || value.trim() === '') {
+                return;
+            }
+
+            // Type conversion and validation
+            try {
+                switch (paramConfig.type) {
+                    case 'integer':
+                        value = parseInt(value);
+                        if (isNaN(value)) {
+                            throw new Error('Invalid integer');
+                        }
+                        break;
+                    
+                    case 'float':
+                        value = parseFloat(value);
+                        if (isNaN(value)) {
+                            throw new Error('Invalid number');
+                        }
+                        break;
+                    
+                    case 'boolean':
+                        value = value.toLowerCase() === 'true';
+                        break;
+                    
+                    case 'array':
+                        value = value.split(',').map(item => item.trim()).filter(item => item);
+                        break;
+                    
+                    case 'object':
+                        value = JSON.parse(value);
+                        break;
+                    
+                    default: // string, date, datetime
+                        value = value.trim();
+                        break;
+                }
+                
+                parameters[paramConfig.name] = value;
+            } catch (error) {
+                $input.removeClass('border-gray-300').addClass('border-red-300');
+                showNotification(`Invalid value for ${paramConfig.name}: ${error.message}`, 'error');
+                hasErrors = true;
+            }
+        });
+
+        return hasErrors ? null : parameters;
+    }
+
+    // Display execution results
+    function displayExecutionResults(data) {
+        const rowCount = data.row_count || 0;
+        const executionTime = data.execution_time_ms || 0;
+        
+        // Update summary
+        $('#executionSummary').html(`${rowCount} rows returned in ${executionTime}ms`);
+        
+        console.log(data)
+        // Display results table
+        if (data.data && data.data.length > 0) {
+            displayResultsTable(data.data);
+            $('#resultsTableContainer').removeClass('hidden');
+            $('#noResultsMessage').addClass('hidden');
+        } else {
+            $('#resultsTableContainer').addClass('hidden');
+            $('#noResultsMessage').removeClass('hidden');
+        }
+        
+        // Switch to results section
+        showResultsSection();
+        
+        // Show success notification
+        showNotification(`Tool executed successfully! ${rowCount} rows returned`, 'success');
+    }
+
+    // Display results in table format
+    function displayResultsTable(results) {
+        const $table = $('#resultsTable');
+        const $thead = $table.find('thead');
+        const $tbody = $table.find('tbody');
+        
+        console.log(results)
+        // Clear existing content
+        $thead.empty();
+        $tbody.empty();
+        
+        if (results.length === 0) {
+            return;
+        }
+        
+        // Get column names from first row
+        const columns = Object.keys(results[0]);
+        
+        // Create header row
+        const headerRow = $('<tr></tr>');
+        columns.forEach(column => {
+            const th = $(`<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">${escapeHtml(column)}</th>`);
+            headerRow.append(th);
+        });
+        $thead.append(headerRow);
+        
+        // Create data rows
+        results.forEach((row, rowIndex) => {
+            const dataRow = $(`<tr class="${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50"></tr>`);
+            
+            columns.forEach(column => {
+                const value = row[column];
+                const formattedValue = formatCellValue(value);
+                const td = $(`<td class="px-4 py-3 text-sm text-gray-900 border-b border-gray-200">${formattedValue}</td>`);
+                dataRow.append(td);
+            });
+            
+            $tbody.append(dataRow);
+        });
+    }
+
+    // Format cell value for display
+    function formatCellValue(value) {
+        if (value === null || value === undefined) {
+            return '<span class="text-gray-400 italic">NULL</span>';
+        }
+        
+        if (typeof value === 'boolean') {
+            return value ? '<span class="text-green-600 font-semibold">TRUE</span>' : '<span class="text-red-600 font-semibold">FALSE</span>';
+        }
+        
+        if (typeof value === 'number') {
+            // Format numbers with appropriate precision
+            return value % 1 === 0 ? value.toString() : value.toFixed(2);
+        }
+        
+        if (typeof value === 'object') {
+            return `<code class="bg-gray-100 px-1 rounded text-xs">${escapeHtml(JSON.stringify(value))}</code>`;
+        }
+        
+        // String values - truncate if too long
+        const stringValue = String(value);
+        if (stringValue.length > 100) {
+            return `<span title="${escapeHtml(stringValue)}">${escapeHtml(stringValue.substring(0, 100))}...</span>`;
+        }
+        
+        return escapeHtml(stringValue);
+    }
+
+    // Export results to CSV
+    function exportResultsToCSV() {
+        const $table = $('#resultsTable');
+        const $thead = $table.find('thead tr');
+        const $tbody = $table.find('tbody tr');
+        
+        if ($thead.length === 0 || $tbody.length === 0) {
+            showNotification('No data to export', 'warning');
+            return;
+        }
+        
+        let csv = '';
+        
+        // Add headers
+        const headers = [];
+        $thead.find('th').each(function() {
+            headers.push($(this).text().trim());
+        });
+        csv += headers.map(header => `"${header.replace(/"/g, '""')}"`).join(',') + '\n';
+        
+        // Add data rows
+        $tbody.each(function() {
+            const row = [];
+            $(this).find('td').each(function() {
+                let cellText = $(this).text().trim();
+                // Clean up formatted values
+                if (cellText === 'NULL') cellText = '';
+                if (cellText === 'TRUE') cellText = 'true';
+                if (cellText === 'FALSE') cellText = 'false';
+                row.push(cellText);
+            });
+            csv += row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',') + '\n';
+        });
+        
+        // Create download link
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        
+        const toolName = $('#executeToolName').text().replace(/[^a-zA-Z0-9]/g, '_');
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+        link.setAttribute('download', `${toolName}_results_${timestamp}.csv`);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotification('Results exported to CSV', 'success');
     }
 
     // Get form data
