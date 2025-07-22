@@ -21,7 +21,7 @@ $(document).ready(function() {
 
     // Event listeners
     $('#backBtn, #cancelBtn').on('click', function() {
-        window.location.href = './';
+        window.location.href = '/dbmcpui/datasource/';
     });
 
     $('#datasourceForm').on('submit', function(e) {
@@ -66,7 +66,7 @@ $(document).ready(function() {
                     populateForm(response.data);
                 } else {
                     showNotification('Failed to load datasource: ' + (response.errors?.[0]?.msg || 'Unknown error'), 'error');
-                    setTimeout(() => window.location.href = './', 2000);
+                    setTimeout(() => window.location.href = '/dbmcpui/datasource/', 2000);
                 }
             },
             error: function(xhr, status, error) {
@@ -75,7 +75,7 @@ $(document).ready(function() {
                     errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
                 }
                 showNotification(errorMessage, 'error');
-                setTimeout(() => window.location.href = './', 2000);
+                setTimeout(() => window.location.href = '/dbmcpui/datasource/', 2000);
             },
             complete: function() {
                 hideLoadingState();
@@ -124,7 +124,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showNotification(isEditMode ? 'Datasource updated successfully' : 'Datasource created successfully', 'success');
-                    setTimeout(() => window.location.href = './', 1500);
+                    setTimeout(() => window.location.href = '/dbmcpui/datasource/', 1500);
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
                     showNotification('Failed to save datasource: ' + errorMessage, 'error');
@@ -155,7 +155,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showNotification('Datasource deleted successfully', 'success');
-                    setTimeout(() => window.location.href = './', 1500);
+                    setTimeout(() => window.location.href = '/dbmcpui/datasource/', 1500);
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
                     showNotification('Failed to delete datasource: ' + errorMessage, 'error');

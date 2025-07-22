@@ -6,7 +6,7 @@ $(document).ready(function() {
 
     // Event listeners
     $('#addDatasourceBtn, .addDatasourceBtn').on('click', function() {
-        window.location.href = 'edit.html';
+        window.location.href = '/dbmcpui/datasource/edit.html';
     });
 
     $('#retryBtn').on('click', function() {
@@ -124,7 +124,7 @@ $(document).ready(function() {
         }
         
         const datasourceId = $(this).data('id');
-        window.location.href = `edit.html?id=${datasourceId}`;
+        window.location.href = `/dbmcpui/datasource/edit.html?id=${datasourceId}`;
     });
 
     // Handle test connection

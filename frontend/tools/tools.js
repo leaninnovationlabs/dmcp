@@ -6,7 +6,7 @@ $(document).ready(function() {
 
     // Event listeners
     $('#addToolBtn, .addToolBtn').on('click', function() {
-        window.location.href = 'edit.html';
+        window.location.href = '/dbmcpui/tools/edit.html';
     });
 
     $('#retryBtn').on('click', function() {
@@ -160,7 +160,7 @@ $(document).ready(function() {
         }
         
         const toolId = $(this).data('id');
-        window.location.href = `edit.html?id=${toolId}`;
+        window.location.href = `/dbmcpui/tools/edit.html?id=${toolId}`;
     });
 
     // Handle tool execution
