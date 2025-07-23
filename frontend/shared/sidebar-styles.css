@@ -1,0 +1,70 @@
+/* Sidebar Additional Styles */
+
+/* Ensure smooth transitions */
+#sidebar {
+    will-change: transform;
+}
+
+/* Mobile adjustments */
+@media (max-width: 1023px) {
+    body {
+        padding-left: 0 !important;
+    }
+    
+    #mainContent {
+        padding-top: 4rem; /* Space for mobile menu button */
+    }
+}
+
+/* Desktop sidebar spacing */
+@media (min-width: 1024px) {
+    body.lg\:pl-64 {
+        padding-left: 16rem;
+    }
+    
+    body.lg\:pl-16 {
+        padding-left: 4rem;
+    }
+    
+    #mainContent {
+        padding-top: 0;
+    }
+}
+
+/* Sidebar collapse animation improvements */
+.sidebar-text {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Mobile menu button positioning fix */
+#mobileMenuBtn {
+    backdrop-filter: blur(4px);
+}
+
+/* Ensure status messages don't get hidden behind sidebar */
+#statusMessages {
+    z-index: 100;
+}
+
+/* Smooth scrolling for sidebar */
+#sidebar nav {
+    scrollbar-width: thin;
+    scrollbar-color: #4B5563 #374151;
+}
+
+#sidebar nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+#sidebar nav::-webkit-scrollbar-track {
+    background: #374151;
+}
+
+#sidebar nav::-webkit-scrollbar-thumb {
+    background: #4B5563;
+    border-radius: 3px;
+}
+
+#sidebar nav::-webkit-scrollbar-thumb:hover {
+    background: #6B7280;
+} 

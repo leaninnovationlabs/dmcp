@@ -8,39 +8,31 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../shared/common.css">
+    <link rel="stylesheet" href="../shared/sidebar-styles.css">
     <script src="../shared/config.js"></script>
-    <script src="../shared/navigation.js"></script>
+    <script src="../shared/sidebar.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-2xl font-bold text-gray-900">DB-MCP</h1>
-                        <p class="text-xs text-gray-500">Database Model Control Protocol</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-8">
-                    <a href="/dbmcpui/index.html" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
-                        Home
-                    </a>
-                    <a href="#" class="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium border-b-2 border-blue-600">
-                        Data Sources
-                    </a>
-                    <a href="/dbmcpui/tools/" class="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium hover:border-b-2 hover:border-gray-300 transition-all">
-                        Tools
-                    </a>
+
+
+    <!-- Main Content -->
+    <div id="mainContent">
+        <!-- Page Header -->
+        <div class="bg-gray-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Data Sources</h1>
+                    <p class="text-gray-600 mt-1">Manage your database connections</p>
                 </div>
                 <div class="flex items-center">
-                    <button id="addDatasourceBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white">
-                        + Add New Datasource
+                    <button id="addDatasourceBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Add New Datasource
                     </button>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto p-6">
@@ -71,21 +63,18 @@
         </div>
 
         <!-- Datasources Grid -->
-        <div id="datasourcesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden pb-12 ">
+        <div id="datasourcesGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 hidden pb-12">
             <!-- Datasource cards will be injected here -->
         </div>
+    </div>
     </div>
 
     <script src="datasource.js"></script>
     
     <script>
-        // Update navigation links using APP_CONFIG
+        // Set active page for sidebar
         document.addEventListener('DOMContentLoaded', function() {
-            const homeLink = document.querySelector('nav a[href*="index.html"]');
-            const toolsLink = document.querySelector('nav a[href*="tools"]');
-            
-            if (homeLink) homeLink.setAttribute('href', APP_CONFIG.urls.home());
-            if (toolsLink) toolsLink.setAttribute('href', APP_CONFIG.urls.tools());
+            setSidebarActivePage('datasource');
         });
     </script>
 </body>

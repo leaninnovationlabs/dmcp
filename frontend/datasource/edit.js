@@ -10,7 +10,7 @@ $(document).ready(function() {
     if (datasourceId) {
         isEditMode = true;
         currentDatasourceId = datasourceId;
-        $('#pageTitle').text('Edit Datasource');
+        $('#pageTitle').text('Datasource');
         $('#deleteBtn').show();
         loadDatasource(datasourceId);
     } else {
