@@ -25,7 +25,7 @@ python dbmigrate.py init
 
 3. Run the development server:
 ```bash
-uv run uvicorn app.main:app --reload --port 8000
+uv run api_run.py
 ```
 
 4. Launch MCP Inspector:
@@ -34,12 +34,9 @@ uv run uvicorn app.main:app --reload --port 8000
 npx @modelcontextprotocol/inspector
 ```
 
+5. Access the API documentation at: http://localhost:8000/docs
 
-
-
-
-
-4. Access the API documentation at: http://localhost:8000/docs
+6. Access the UI at: http://localhost:8000/dbmcp/ui
 
 ## MCP Server Setup
 
@@ -200,9 +197,21 @@ All routes are automatically documented in the OpenAPI schema and available at:
 - **OpenAPI JSON**: http://localhost:8000/openapi.json 
 
 
-TOOD
-----
-- Add some basic bearer token validation
+## Token Handling
+
+Support for bearer token authentication is built in. To create a token, run the following command:
+
+```bash
+uv run scripts/apptoken.py
+```
+
+**Authentication Usage:**
+- **Web UI**: Enter the generated token in the authentication modal when prompted
+- **API Client**: Include the token in your request headers or authentication settings
+- **MCP Inspector**: Specify the token in the "Bearer Token" field in the authentication section
+
+
+# TOOD
 - Do more testing for various datasources and complex queries and parameters (generate test cases)
 - Tool with param not working from inspector
 - Not detecting the new tools from the inspector, see how to list out the get tools
