@@ -224,16 +224,6 @@ class MCPServer:
     def execute_tool_by_id(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool by its ID with parameters."""
         try:
-            headers = get_http_headers()
-
-            # Get authorization header, which holds the key
-            auth_header = headers.get("authorization", "")
-            is_bearer = auth_header.startswith("Bearer ")
-
-            # Validate the token with the secret and then only invoke the tool or use the middleware
-            if auth_header != 'Bearer 1234':
-                return {"error": True}
-
             self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")            
             result = self._execute_tool_async(tool_id, parameters)
             self._log_debug(f"Tool execution result: {result}")
