@@ -25,7 +25,7 @@ python dbmigrate.py init
 
 3. Run the development server:
 ```bash
-uv run uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
 4. Launch MCP Inspector:

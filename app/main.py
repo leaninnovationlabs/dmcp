@@ -7,6 +7,7 @@ import uvicorn
 from .database import init_db
 from .routes import datasources, tools, execute, health
 from .core.config import settings
+from .core.auth_middleware import BearerTokenMiddleware
 
 
 @asynccontextmanager
@@ -33,6 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add Bearer token authentication middleware
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/docs", "/redoc", "/openapi.json", "/dbmcp/ui"])
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")
@@ -44,4 +47,4 @@ app.include_router(execute.router, prefix="/dbmcp")
 app.mount("/dbmcp/ui", StaticFiles(directory="frontend", html=True), name="static")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
