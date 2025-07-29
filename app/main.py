@@ -23,6 +23,9 @@ app = FastAPI(
     description="A FastAPI server for managing database connections and executing queries",
     version="0.1.0",
     lifespan=lifespan,
+    docs_url="/dbmcp/docs",
+    redoc_url="/dbmcp/redoc",
+    openapi_url="/dbmcp/openapi.json"
 )
 
 # Add CORS middleware
@@ -35,7 +38,7 @@ app.add_middleware(
 )
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcpui/*", "/docs", "/redoc", "/openapi.json", "/dbmcp/ui"])
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcpui/*", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")

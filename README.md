@@ -28,7 +28,7 @@ python dbmigrate.py init
 uv run api_run.py
 ```
 
-4. Access the API documentation at: http://localhost:8000/docs
+4. Access the API documentation at: http://localhost:8000/dbmcp/docs
 
 5. Access the UI at: http://localhost:8000/dbmcp/ui
 
@@ -134,9 +134,9 @@ SECRET_KEY=your-secret-key-here-change-this-in-production
 ## API Documentation
 
 All routes are automatically documented in the OpenAPI schema and available at:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-- **OpenAPI JSON**: http://localhost:8000/openapi.json 
+- **Swagger UI**: http://localhost:8000/dbmcp/docs
+- **ReDoc**: http://localhost:8000/dbmcp/redoc
+- **OpenAPI JSON**: http://localhost:8000/dbmcp/openapi.json 
 
 
 ## Token Handling
