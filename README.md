@@ -23,119 +23,75 @@ uv sync
 python dbmigrate.py init
 ```
 
-3. Run the development server:
+3. Run the API server:
 ```bash
 uv run api_run.py
 ```
 
-4. Launch MCP Inspector:
+4. Access the API documentation at: http://localhost:8000/docs
 
-```bash
-npx @modelcontextprotocol/inspector
-```
-
-5. Access the API documentation at: http://localhost:8000/docs
-
-6. Access the UI at: http://localhost:8000/dbmcp/ui
+5. Access the UI at: http://localhost:8000/dbmcp/ui
 
 ## MCP Server Setup
 
 This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants.
 
-### Starting the MCP Server
+1. Starting the MCP Server
 
 ```bash
 # Start the MCP server
-python run_mcp_server.py
+uv run mcp_run.py
 ```
 
-### Using with MCP Clients
+2. Launch MCP Inspector:
 
-1. **Claude Desktop**: Add the following to your `claude_desktop_config.json`:
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+3. Using with MCP Clients with stdio transport
+
+**Claude Desktop**: Add the following to your `claude_desktop_config.json`:
 ```json
 {
-  "mcpServers": {
-    "dbmcp": {
-      "command": "python",
-      "args": ["run_mcp_server.py"],
-      "env": {
-        "PYTHONPATH": "."
-      }
+    "mcpServers": {
+        "dbmcp": {
+            "command": "<uv_path>",
+            "args": [
+                "--directory",
+                "<source_path>/dbmcp",
+                "run",
+                "mcp_run.py"
+            ],
+            "env": {
+                "TRANSPORT": "stdio"
+            }
+        }
     }
-  }
 }
 ```
-
-2. **Other MCP Clients**: Use the `mcp_config.json` file provided in this project.
-
-### Available MCP Tools
-
-- **create_datasource**: Create a new database datasource with connection information
-- **list_datasources**: List all available datasources
-- **create_query**: Create a new named query with parameter support
-- **list_queries**: List all available named queries
-- **execute_query**: Execute a named query with parameters and pagination
-- **execute_raw_query**: Execute a raw SQL query with parameters and pagination
 
 ## Database Management
 
 This project uses **Alembic** for database schema management. All database changes are handled through migrations to ensure version control and safe schema evolution.
 
-### Quick Start
-
-```bash
-# Initialize database (creates tables)
-python manage_db.py init
-
-# Check migration status
-python manage_db.py status
-
-# Apply pending migrations
-python manage_db.py upgrade
-```
-
-### Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `python manage_db.py init` | Initialize database with initial schema |
-| `python manage_db.py upgrade` | Apply all pending migrations |
-| `python manage_db.py downgrade <revision>` | Downgrade to specific revision |
-| `python manage_db.py revision -m "message"` | Create new migration |
-| `python manage_db.py status` | Show current migration status |
-| `python manage_db.py history` | Show migration history |
-| `python manage_db.py reset` | Reset database (⚠️ deletes all data) |
-
-### Creating New Migrations
-
-When you modify the database models in `app/models/database.py`, create a new migration:
-
-```bash
-# Create migration for model changes
-python manage_db.py revision -m "Add new column to users table"
-
-# Review the generated migration file in alembic/versions/
-# Then apply the migration
-python manage_db.py upgrade
-```
-
-### Manual Alembic Commands
+## Database Schema Management
 
 You can also use Alembic commands directly:
 
 ```bash
 # Create migration
-alembic revision --autogenerate -m "Description of changes"
+uv run alembic revision --autogenerate -m "Description of changes"
 
 # Apply migrations
-alembic upgrade head
+uv run alembic upgrade head
 
 # Downgrade
-alembic downgrade -1
+uv run alembic downgrade -1
 
 # Check status
-alembic current
-alembic history
+uv run alembic current
+uv run alembic history
 ```
 
 ### Database Schema
@@ -170,23 +126,9 @@ DATABASE_URL=sqlite:///./dbmcp.db
 SECRET_KEY=your-secret-key-here-change-this-in-production
 ```
 
-**Important**: The `SECRET_KEY` is used for password encryption. Make sure to use a strong, unique secret key in production and keep it secure.
-
-
-
-----
-
-GET      /health                        Health Check
-GET      /datasources/                  List Datasources
-POST     /datasources/                  Create Datasource
-GET      /datasources/{datasource_id}   Get Datasource
-DELETE   /datasources/{datasource_id}   Delete Datasource
-GET      /queries/                      List Queries
-POST     /queries/                      Create Query
-GET      /queries/{query_id}            Get Query
-DELETE   /queries/{query_id}            Delete Query
-POST     /execute/{query_id}            Execute Named Query
-POST     /execute/raw                   Execute Raw Query
+**Important**: 
+- The `SECRET_KEY` is used for database password encryption. Make sure to use a strong, unique secret key in production and keep it secure.
+- The `JWT_SECRET_KEY` is used for JWT token generation. Make sure to use a strong, unique secret key in production and keep it secure.
 
 
 ## API Documentation
