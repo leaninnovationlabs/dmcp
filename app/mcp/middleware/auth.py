@@ -5,6 +5,7 @@ from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 from app.core.jwt_validator import jwt_validator
 from app.core.exceptions import AuthenticationError
+from app.core.config import settings
 
 
 class AuthMiddleware(Middleware):
@@ -12,6 +13,12 @@ class AuthMiddleware(Middleware):
     
     async def on_message(self, context: MiddlewareContext, call_next):
         """Called for all MCP messages."""
+        # Skip authentication in stdio mode (used by Claude Desktop)
+        if settings.transport == "stdio":
+            result = await call_next(context)
+            print(f"+++++++ Completed {context.method} (stdio mode - auth bypassed)")
+            return result
+            
         headers = get_http_headers()
 
         # # Get authorization header, which holds the key
