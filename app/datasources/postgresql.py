@@ -1,6 +1,5 @@
 import asyncpg
-from typing import Dict, Any
-from urllib.parse import urlparse
+from typing import Dict, Any, List, Tuple
 import logging
 
 from .base import DatabaseConnection
@@ -10,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class PostgreSQLConnection(DatabaseConnection):
-    def __init__(self, connection):
-        self.connection = connection
     
     def _convert_postgresql_types(self, value):
         """Convert PostgreSQL-specific types to JSON-serializable formats."""
@@ -35,42 +32,35 @@ class PostgreSQLConnection(DatabaseConnection):
             for key, value in dict(record).items()
         }
     
-    async def execute(self, sql: str, parameters: Dict[str, Any] = None):
-        """Execute a SQL query with parameters."""
-        # Convert parameters to PostgreSQL format
-        if parameters:
-            # Replace named parameters with positional parameters
-            for key, value in parameters.items():
-                sql = sql.replace(f":{key}", f"${list(parameters.keys()).index(key) + 1}")
-            param_values = list(parameters.values())
-        else:
-            param_values = []
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
+        """Convert named parameters to PostgreSQL positional parameters."""
+        if not parameters:
+            return sql, []
         
+        # Replace named parameters with positional parameters
+        param_keys = list(parameters.keys())
+        for i, key in enumerate(param_keys):
+            sql = sql.replace(f":{key}", f"${i + 1}")
+        
+        return sql, list(parameters.values())
+    
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
+        """Execute PostgreSQL query and return results with column names."""
         result = await self.connection.fetch(sql, *param_values)
         
         # Convert asyncpg Record objects to dictionaries with type conversion
         if result:
-            # Convert each Record to dict with proper type handling
             data = [self._convert_record_to_dict(record) for record in result]
             keys = list(data[0].keys()) if data else []
         else:
             data = []
             keys = []
         
-        # Create a result object that mimics the expected interface
-        class ResultWrapper:
-            def __init__(self, data, keys):
-                self.data = data
-                self.keys = keys
-                self.returns_rows = True
-            
-            async def fetchall(self):
-                return self.data
-            
-            async def fetchone(self):
-                return self.data[0] if self.data else None
-        
-        return ResultWrapper(data, keys)
+        return data, keys
+    
+    def _process_results(self, raw_result: List[Dict[str, Any]], columns: List[str]) -> List[Dict[str, Any]]:
+        """PostgreSQL results are already processed by _execute_query."""
+        return raw_result
     
     async def close(self):
         """Close the PostgreSQL connection."""
@@ -107,5 +97,4 @@ class PostgreSQLConnection(DatabaseConnection):
             
             return cls(connection)
         except Exception as e:
-            logger.error(f"Failed to create PostgreSQL connection for datasource {datasource.id}: {e}")
-            raise 
+            cls._handle_connection_error(datasource, e) 

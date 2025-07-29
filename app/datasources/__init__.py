@@ -1,4 +1,4 @@
-from .base import DatabaseConnection
+from .base import DatabaseConnection, ResultWrapper
 from .postgresql import PostgreSQLConnection
 from .mysql import MySQLConnection
 from .sqlite import SQLiteConnection
@@ -12,6 +12,7 @@ CONNECTION_REGISTRY = {
 
 __all__ = [
     'DatabaseConnection',
+    'ResultWrapper',
     'PostgreSQLConnection', 
     'MySQLConnection',
     'SQLiteConnection',

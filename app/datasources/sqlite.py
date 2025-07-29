@@ -1,5 +1,5 @@
 import aiosqlite
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 import logging
 
 from .base import DatabaseConnection
@@ -9,45 +9,27 @@ logger = logging.getLogger(__name__)
 
 
 class SQLiteConnection(DatabaseConnection):
-    def __init__(self, connection):
-        self.connection = connection
     
-    async def execute(self, sql: str, parameters: Dict[str, Any] = None):
-        """Execute a SQL query with parameters."""
-        if parameters:
-            # SQLite uses ? for parameter placeholders
-            for key, value in parameters.items():
-                sql = sql.replace(f":{key}", "?")
-            param_values = list(parameters.values())
-        else:
-            param_values = []
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
+        """Convert named parameters to SQLite ? placeholders."""
+        if not parameters:
+            return sql, []
         
+        # SQLite uses ? for parameter placeholders
+        for key in parameters.keys():
+            sql = sql.replace(f":{key}", "?")
+        
+        return sql, list(parameters.values())
+    
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Tuple], List[str]]:
+        """Execute SQLite query and return results with column names."""
         cursor = await self.connection.execute(sql, param_values)
         result = await cursor.fetchall()
         
         # Get column names from cursor description
         columns = [desc[0] for desc in cursor.description] if cursor.description else []
         
-        # Convert raw tuples to dictionaries
-        if result and columns:
-            data = [dict(zip(columns, row)) for row in result]
-        else:
-            data = []
-        
-        # Create a result object that mimics the expected interface
-        class ResultWrapper:
-            def __init__(self, data, keys):
-                self.data = data
-                self.keys = keys
-                self.returns_rows = True
-            
-            async def fetchall(self):
-                return self.data
-            
-            async def fetchone(self):
-                return self.data[0] if self.data else None
-        
-        return ResultWrapper(data, columns)
+        return result, columns
     
     async def close(self):
         """Close the SQLite connection."""
@@ -69,5 +51,4 @@ class SQLiteConnection(DatabaseConnection):
             connection = await aiosqlite.connect(db_path)
             return cls(connection)
         except Exception as e:
-            logger.error(f"Failed to create SQLite connection for datasource {datasource.id}: {e}")
-            raise 
+            cls._handle_connection_error(datasource, e) 

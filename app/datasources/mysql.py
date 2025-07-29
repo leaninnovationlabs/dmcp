@@ -1,5 +1,5 @@
 import aiomysql
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple
 from urllib.parse import urlparse
 import logging
 
@@ -10,46 +10,28 @@ logger = logging.getLogger(__name__)
 
 
 class MySQLConnection(DatabaseConnection):
-    def __init__(self, connection):
-        self.connection = connection
     
-    async def execute(self, sql: str, parameters: Dict[str, Any] = None):
-        """Execute a SQL query with parameters."""
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
+        """Convert named parameters to MySQL %s placeholders."""
+        if not parameters:
+            return sql, []
+        
+        # MySQL uses %s for parameter placeholders
+        for key in parameters.keys():
+            sql = sql.replace(f":{key}", "%s")
+        
+        return sql, list(parameters.values())
+    
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Tuple], List[str]]:
+        """Execute MySQL query and return results with column names."""
         async with self.connection.cursor() as cursor:
-            if parameters:
-                # MySQL uses %s for parameter placeholders
-                for key, value in parameters.items():
-                    sql = sql.replace(f":{key}", "%s")
-                param_values = list(parameters.values())
-            else:
-                param_values = []
-            
             await cursor.execute(sql, param_values)
             result = await cursor.fetchall()
             
             # Get column names from cursor description
             columns = [desc[0] for desc in cursor.description] if cursor.description else []
             
-            # Convert raw tuples to dictionaries
-            if result and columns:
-                data = [dict(zip(columns, row)) for row in result]
-            else:
-                data = []
-            
-            # Create a result object that mimics the expected interface
-            class ResultWrapper:
-                def __init__(self, data, keys):
-                    self.data = data
-                    self.keys = keys
-                    self.returns_rows = True
-                
-                async def fetchall(self):
-                    return self.data
-                
-                async def fetchone(self):
-                    return self.data[0] if self.data else None
-            
-            return ResultWrapper(data, columns)
+            return result, columns
     
     async def close(self):
         """Close the MySQL connection."""
@@ -86,5 +68,4 @@ class MySQLConnection(DatabaseConnection):
             connection = await aiomysql.connect(**connection_params)
             return cls(connection)
         except Exception as e:
-            logger.error(f"Failed to create MySQL connection for datasource {datasource.id}: {e}")
-            raise 
+            cls._handle_connection_error(datasource, e) 
