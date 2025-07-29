@@ -17,7 +17,7 @@ $(document).ready(function() {
     function loadDatasources() {
         showLoadingState();
         
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources`,
             method: 'GET',
             dataType: 'json',
@@ -140,7 +140,7 @@ $(document).ready(function() {
         $button.html('<div class="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>');
         $button.prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources/${datasourceId}/test`,
             method: 'POST',
             dataType: 'json',

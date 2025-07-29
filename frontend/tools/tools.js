@@ -17,7 +17,7 @@ $(document).ready(function() {
     function loadTools() {
         showLoadingState();
         
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/tools`,
             method: 'GET',
             dataType: 'json',
@@ -41,7 +41,7 @@ $(document).ready(function() {
     // Load datasources for tool cards
     let datasourcesMap = {};
     function loadDatasources() {
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources`,
             method: 'GET',
             dataType: 'json',
@@ -176,7 +176,7 @@ $(document).ready(function() {
         $button.html('<div class="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>');
         $button.prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/execute/${toolId}`,
             method: 'POST',
             contentType: 'application/json',

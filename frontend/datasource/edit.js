@@ -57,7 +57,7 @@ $(document).ready(function() {
     function loadDatasource(id) {
         showLoadingState();
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources/${id}`,
             method: 'GET',
             dataType: 'json',
@@ -115,7 +115,7 @@ $(document).ready(function() {
         const url = isEditMode ? `${API_BASE_URL}/datasources/${currentDatasourceId}` : `${API_BASE_URL}/datasources`;
         const method = isEditMode ? 'PUT' : 'POST';
 
-        $.ajax({
+        makeApiRequest({
             url: url,
             method: method,
             contentType: 'application/json',
@@ -148,7 +148,7 @@ $(document).ready(function() {
         const $deleteBtn = $('#deleteBtn');
         $deleteBtn.text('Deleting...').prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources/${currentDatasourceId}`,
             method: 'DELETE',
             dataType: 'json',
@@ -185,7 +185,7 @@ $(document).ready(function() {
         const originalText = $testBtn.text();
         $testBtn.text('Testing...').prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/datasources/${currentDatasourceId}/test`,
             method: 'POST',
             dataType: 'json',

@@ -84,7 +84,7 @@ $(document).ready(function() {
 
     // Load datasources for dropdown
     function loadDatasources() {
-        return $.ajax({
+        return makeApiRequest({
             url: `${API_BASE_URL}/datasources`,
             method: 'GET',
             dataType: 'json',
@@ -108,7 +108,7 @@ $(document).ready(function() {
     function loadTool(id) {
         showLoadingState();
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/tools/${id}`,
             method: 'GET',
             dataType: 'json',
@@ -197,7 +197,7 @@ $(document).ready(function() {
         const url = isEditMode ? `${API_BASE_URL}/tools/${currentToolId}` : `${API_BASE_URL}/tools`;
         const method = isEditMode ? 'PUT' : 'POST';
 
-        $.ajax({
+        makeApiRequest({
             url: url,
             method: method,
             contentType: 'application/json',
@@ -230,7 +230,7 @@ $(document).ready(function() {
         const $deleteBtn = $('#deleteBtn');
         $deleteBtn.text('Deleting...').prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/tools/${currentToolId}`,
             method: 'DELETE',
             dataType: 'json',
@@ -445,7 +445,7 @@ $(document).ready(function() {
         const originalText = $executeBtn.html();
         $executeBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Executing...').prop('disabled', true);
 
-        $.ajax({
+        makeApiRequest({
             url: `${API_BASE_URL}/execute/${currentToolId}`,
             method: 'POST',
             contentType: 'application/json',
