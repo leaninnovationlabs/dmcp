@@ -1,11 +1,14 @@
 """Authentication middleware for MCP operations."""
 
+import logging
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 from app.core.jwt_validator import jwt_validator
 from app.core.exceptions import AuthenticationError
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class AuthMiddleware(Middleware):
@@ -16,7 +19,7 @@ class AuthMiddleware(Middleware):
         # Skip authentication in stdio mode (used by Claude Desktop)
         if settings.transport == "stdio":
             result = await call_next(context)
-            print(f"+++++++ Completed {context.method} (stdio mode - auth bypassed)")
+            logger.info(f"Completed {context.method} (stdio mode - auth bypassed)")
             return result
             
         headers = get_http_headers()
@@ -28,12 +31,12 @@ class AuthMiddleware(Middleware):
         if context.method != 'tools/list' :
             try:
                 decoded_payload = jwt_validator.validate_token(auth_header)
-                print(f"User ID: {decoded_payload}")
+                logger.debug(f"User ID: {decoded_payload}")
             except AuthenticationError as e:
-                print(f"Authentication failed: {e.message}")
+                logger.warning(f"Authentication failed: {e.message}")
                 return {"error": True}
             
         result = await call_next(context)
         
-        print(f"+++++++ Completed {context.method}")
+        logger.info(f"Completed {context.method}")
         return result
