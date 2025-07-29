@@ -53,6 +53,14 @@ class Sidebar {
                             <span class="sidebar-text">Tools</span>
                         </a>
                     </div>
+                    
+                    <!-- Authentication Section -->
+                    <div class="px-4 py-2 mt-4 border-t border-gray-700">
+                        <button id="logoutBtn" class="w-full flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                            <i class="fas fa-sign-out-alt w-5 h-5 mr-3 flex-shrink-0"></i>
+                            <span class="sidebar-text">Logout</span>
+                        </button>
+                    </div>
                 </nav>
                 
                 <!-- Collapse Toggle (Desktop) -->
@@ -102,6 +110,13 @@ class Sidebar {
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 1024) {
                 this.closeMobile();
+            }
+        });
+
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (window.authManager) {
+                window.authManager.logout();
             }
         });
     }

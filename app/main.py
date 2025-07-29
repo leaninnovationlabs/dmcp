@@ -35,7 +35,7 @@ app.add_middleware(
 )
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/docs", "/redoc", "/openapi.json", "/dbmcp/ui"])
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcpui/*", "/docs", "/redoc", "/openapi.json", "/dbmcp/ui"])
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")
