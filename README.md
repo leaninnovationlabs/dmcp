@@ -191,6 +191,15 @@ DELETE   /queries/{query_id}            Delete Query
 POST     /execute/{query_id}            Execute Named Query
 POST     /execute/raw                   Execute Raw Query
 
+
+## API Documentation
+
+All routes are automatically documented in the OpenAPI schema and available at:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **OpenAPI JSON**: http://localhost:8000/openapi.json 
+
+
 TOOD
 ----
 - Add some basic bearer token validation
