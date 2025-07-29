@@ -17,7 +17,7 @@ if __name__ == "__main__":
     
     print(f"Starting DBMCP server on {host}:{port}")
     print(f"Debug mode: {debug}")
-    print(f"API documentation: http://{host}:{port}/docs")
+    print(f"API documentation: http://{host}:{port}/dbmcp/docs")
     
     uvicorn.run(
         "app.main:app",
