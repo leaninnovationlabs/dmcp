@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     # Security
     secret_key: str = "your-secret-key-here-change-this-in-production"
     
+    # JWT Settings
+    jwt_secret_key: str = "jwt-secret-key-change-this-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expiration_minutes: int = 60
+    
     # Server
     host: str = "0.0.0.0"
     port: int = 8000

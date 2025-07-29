@@ -67,6 +67,17 @@ class ValidationError(DBMCPException):
         )
 
 
+class AuthenticationError(DBMCPException):
+    """Raised when authentication fails."""
+    
+    def __init__(self, message: str = "Authentication failed"):
+        super().__init__(
+            message=message,
+            status_code=401,
+            details={"error": "authentication_failed"}
+        )
+
+
 def handle_dbmcp_exception(exc: DBMCPException) -> HTTPException:
     """Convert DBMCP exceptions to FastAPI HTTP exceptions."""
     return HTTPException(
