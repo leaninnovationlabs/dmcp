@@ -28,6 +28,17 @@ python dbmigrate.py init
 uv run uvicorn app.main:app --reload
 ```
 
+4. Launch MCP Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+
+
+
+
+
 4. Access the API documentation at: http://localhost:8000/docs
 
 ## MCP Server Setup
@@ -180,11 +191,10 @@ DELETE   /queries/{query_id}            Delete Query
 POST     /execute/{query_id}            Execute Named Query
 POST     /execute/raw                   Execute Raw Query
 
-
-
 TOOD
 ----
-- Tool with param not working from inspector
-- No proper error handling when the response does not have valid results or errors out
 - Add some basic bearer token validation
 - Do more testing for various datasources and complex queries and parameters (generate test cases)
+- Tool with param not working from inspector
+- Not detecting the new tools from the inspector, see how to list out the get tools
+- No proper error handling when the response does not have valid results or errors out

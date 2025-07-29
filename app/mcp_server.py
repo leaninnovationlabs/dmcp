@@ -13,11 +13,15 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp import Context, FastMCP
+from sqlalchemy import true
 
+from app.core.jwt_validator import jwt_validator
 from app.database import get_db
 from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
 from app.core.config import settings
+from app.mcp.middleware.logging import LoggingMiddleware
+from app.mcp.middleware.auth import AuthMiddleware
 
 # Constants
 PYTHON_RESERVED_KEYWORDS = {
@@ -37,7 +41,16 @@ DEFAULT_ERROR_RESPONSE = {
     "error": ""
 }
 
+# Create a token
+# payload = {"user_id": 123, "username": "john_doe"}
+# token = jwt_validator.create_token(payload)
+# print(f"+++++++ Token: {token}")
+
 mcp = FastMCP(name="DBMCP")
+# Add middlewares
+mcp.add_middleware(LoggingMiddleware())
+mcp.add_middleware(AuthMiddleware())
+
 
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
@@ -45,10 +58,11 @@ class MCPServer:
     def __init__(self, name: str = "DB MCP"):
         """Initialize the MCP server with the given name."""
         self.mcp = mcp
-        self.mcp.tool(self.hello_world)
+        self.mcp.tool(self.ping)
         self._register_database_tools()
+
+        # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
-        # self.mcp.prompt = self.example_prompt()
     
     def _register_database_tools(self) -> None:
         """Register tools from the database as MCP tools."""
@@ -76,15 +90,17 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def hello_world(self, ctx: Context, name: str = "World") -> str:
-        """Say hello to the world."""
+    def ping(self, ctx: Context, name: str = "World") -> Dict[str, Any]:
+        """Ping tool to get the info about the current request."""
 
         headers = get_http_headers()
-        # Get authorization header, which holds the key
+        # # Get authorization header, which holds the key
         auth_header = headers.get("authorization", "")
         is_bearer = auth_header.startswith("Bearer ")
         
-        return {
+        data = {
+            "name": name,
+            "message": "Pong!",
             "user_agent": headers.get("user-agent", "Unknown"),
             "content_type": headers.get("content-type", "Unknown"),
             "has_auth": bool(auth_header),
@@ -92,11 +108,10 @@ class MCPServer:
             "headers_count": len(headers),
             "request_id": ctx.request_id,
             "client_id": ctx.client_id or "Unknown client",
-            "name": name,
-            "message": "Hello, World!"
         }
-
-        # return f"Hello, {name}!"
+        
+        # Return the string equqivalent of data object
+        return data
     
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
@@ -209,8 +224,17 @@ class MCPServer:
     def execute_tool_by_id(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool by its ID with parameters."""
         try:
-            self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")
-            
+            headers = get_http_headers()
+
+            # Get authorization header, which holds the key
+            auth_header = headers.get("authorization", "")
+            is_bearer = auth_header.startswith("Bearer ")
+
+            # Validate the token with the secret and then only invoke the tool or use the middleware
+            if auth_header != 'Bearer 1234':
+                return {"error": True}
+
+            self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")            
             result = self._execute_tool_async(tool_id, parameters)
             self._log_debug(f"Tool execution result: {result}")
             return result
@@ -224,9 +248,6 @@ class MCPServer:
         """Execute tool asynchronously in a separate thread."""
         async def _execute_tool_async():
             async for db in get_db():
-                print('++++++yyy')
-                print(parameters)
-                print('++++++yyy')
                 service = ToolExecutionService(db)
                 result = await service.execute_named_tool(tool_id, parameters)
                 return result.model_dump()
@@ -255,12 +276,6 @@ class MCPServer:
             tools = await tool_service.list_tools()
             return [tool.model_dump() for tool in tools]
         
-    def example_prompt(self) -> str:
-        return """
-        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
-        You can start by saying hello or asking me to execute any of the available database tools.
-        """
-    
     def _log_debug(self, message: str) -> None:
         """Log debug message to stderr."""
         print(f"[DBMCP DEBUG] {message}", file=sys.stderr)
@@ -283,31 +298,9 @@ class MCPServer:
         else:
             self.mcp.run()
 
-
-
     @mcp.prompt
     def example_prompt() -> str:
         return """
         Hello! I'm a database tool assistant. I can help you execute database queries and tools.
         You can start by saying hello or asking me to execute any of the available database tools.
-        """
-
-    @mcp.prompt
-    def aws_cost_analysis() -> str:
-        return """
-        Instructions on how to do the AWS Cost Analysis:
-
-        Step 1:
-        - Get the AWS Cost by region
-        - Observe any anomalies in the cost by region, I am intrested if the spend differnce is more than 10%
-
-        Step 2:
-        - Get the AWS Cost by service
-        - I do not want to spend more than $10 on services other than EC2, S3, RDS, and Lambda.
-
-        Step 3:
-        - Get the AWS Cost by environment
-        - My prod spend should be the highest spend and rest of the environments should be less than 10% of prod spend.
-
-        Do the analysis and summarize the finding in the report. Create any visualizations if needed.
         """
