@@ -20,7 +20,7 @@ class ConnectionTestResponse(BaseModel):
 router = APIRouter(prefix="/datasources", tags=["datasources"])
 
 
-@router.post("/", response_model=StandardAPIResponse)
+@router.post("", response_model=StandardAPIResponse)
 async def create_datasource(
     datasource: DatasourceCreate,
     db: AsyncSession = Depends(get_db),
@@ -36,7 +36,7 @@ async def create_datasource(
         return create_error_response(errors=[str(e)])
 
 
-@router.get("/", response_model=StandardAPIResponse)
+@router.get("", response_model=StandardAPIResponse)
 async def list_datasources(db: AsyncSession = Depends(get_db)):
     """List all available datasources."""
     try:

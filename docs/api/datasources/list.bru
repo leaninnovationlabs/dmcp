@@ -7,9 +7,9 @@ meta {
 get {
   url: {{server}}/datasources
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjMsInVzZXJuYW1lIjoiam9obl9kb2UiLCJleHAiOjE3NTQxMzI5MTYsImlhdCI6MTc1Mzc3MjkxNn0.d5UHu7wrzLp1OWtMMp6zs9dqzd5v20IH_aco0NyRAjU
+headers {
+  Authorization: Bearer {{token}}
 }
