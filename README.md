@@ -20,7 +20,6 @@ uv sync
 
 2. Initialize the database:
 ```bash
-uv run alembic init
 uv run alembic upgrade head
 ```
 
