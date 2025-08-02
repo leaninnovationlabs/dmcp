@@ -6,7 +6,7 @@ from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse, StandardAPIRe
 from ..database import get_db
 from ..services.tool_service import ToolService
 from ..core.exceptions import handle_dbmcp_exception
-from ..core.responses import create_success_response, create_error_response
+from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -22,9 +22,9 @@ async def create_tool(
         result = await service.create_tool(tool)
         return create_success_response(data=result)
     except ValueError as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(400, "Invalid tool data", [str(e)])
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.get("", response_model=StandardAPIResponse)
@@ -35,7 +35,7 @@ async def list_tools(db: AsyncSession = Depends(get_db)):
         result = await service.list_tools()
         return create_success_response(data=result)
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.get("/{tool_id}", response_model=StandardAPIResponse)
@@ -48,10 +48,12 @@ async def get_tool(
         service = ToolService(db)
         tool = await service.get_tool(tool_id)
         if not tool:
-            return create_error_response(errors=["Tool not found"])
+            raise_http_error(404, "Tool not found")
         return create_success_response(data=tool)
+    except HTTPException:
+        raise
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.put("/{tool_id}", response_model=StandardAPIResponse)
@@ -65,10 +67,12 @@ async def update_tool(
         service = ToolService(db)
         result = await service.update_tool(tool_id, tool_update)
         return create_success_response(data=result)
+    except HTTPException:
+        raise
     except ValueError as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(400, "Invalid tool data", [str(e)])
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.delete("/{tool_id}", response_model=StandardAPIResponse)
@@ -81,7 +85,9 @@ async def delete_tool(
         service = ToolService(db)
         success = await service.delete_tool(tool_id)
         if not success:
-            return create_error_response(errors=["Tool not found"])
+            raise_http_error(404, "Tool not found")
         return create_success_response(data={"message": "Tool deleted successfully"})
+    except HTTPException:
+        raise
     except Exception as e:
-        return create_error_response(errors=[str(e)]) 
+        raise_http_error(500, "Internal server error", [str(e)]) 
