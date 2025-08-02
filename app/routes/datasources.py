@@ -7,7 +7,7 @@ from ..models.schemas import DatasourceCreate, DatasourceUpdate, DatasourceRespo
 from ..database import get_db
 from ..services.datasource_service import DatasourceService
 from ..core.exceptions import handle_dbmcp_exception
-from ..core.responses import create_success_response, create_error_response
+from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 
 class ConnectionTestResponse(BaseModel):
@@ -31,9 +31,9 @@ async def create_datasource(
         result = await service.create_datasource(datasource)
         return create_success_response(data=result)
     except ValueError as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(400, "Invalid datasource data", [str(e)])
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.get("", response_model=StandardAPIResponse)
@@ -44,7 +44,7 @@ async def list_datasources(db: AsyncSession = Depends(get_db)):
         result = await service.list_datasources()
         return create_success_response(data=result)
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.get("/{datasource_id}", response_model=StandardAPIResponse)
@@ -57,10 +57,12 @@ async def get_datasource(
         service = DatasourceService(db)
         datasource = await service.get_datasource(datasource_id)
         if not datasource:
-            return create_error_response(errors=["Datasource not found"])
+            raise_http_error(404, "Datasource not found")
         return create_success_response(data=datasource)
+    except HTTPException:
+        raise
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.put("/{datasource_id}", response_model=StandardAPIResponse)
@@ -76,14 +78,16 @@ async def update_datasource(
         update_data = datasource_update.model_dump(exclude_unset=True)
         
         if not update_data:
-            return create_error_response(errors=["No valid fields provided for update"])
+            raise_http_error(400, "No valid fields provided for update")
         
         result = await service.update_datasource(datasource_id, **update_data)
         return create_success_response(data=result)
+    except HTTPException:
+        raise
     except ValueError as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(400, "Invalid datasource data", [str(e)])
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.delete("/{datasource_id}", response_model=StandardAPIResponse)
@@ -96,12 +100,14 @@ async def delete_datasource(
         service = DatasourceService(db)
         success = await service.delete_datasource(datasource_id)
         if not success:
-            return create_error_response(errors=["Datasource not found"])
+            raise_http_error(404, "Datasource not found")
         return create_success_response(data={"message": "Datasource deleted successfully"})
+    except HTTPException:
+        raise
     except ValueError as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(400, "Invalid datasource data", [str(e)])
     except Exception as e:
-        return create_error_response(errors=[str(e)])
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.post("/{datasource_id}/test", response_model=StandardAPIResponse)
@@ -113,8 +119,11 @@ async def test_datasource_connection(
     try:
         service = DatasourceService(db)
         result = await service.test_connection(datasource_id)
+        print(result)
+        if not result["success"]:
+            raise_http_error(400, "Connection test failed", [result["message"]])
         return create_success_response(data=result)
     except HTTPException:
         raise
     except Exception as e:
-        return create_error_response(errors=[str(e)]) 
+        raise_http_error(500, "Internal server error", [str(e)]) 

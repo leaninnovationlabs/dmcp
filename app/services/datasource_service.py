@@ -143,7 +143,7 @@ class DatasourceService:
             
             connection_time = (time.time() - start_time) * 1000  # Convert to milliseconds
             
-            if test_row and test_row[0] == 1:
+            if test_row and test_row["test"] == 1:
                 return {
                     "success": True,
                     "message": f"Successfully connected to {datasource.database_type} database '{datasource.database}'",
@@ -158,8 +158,6 @@ class DatasourceService:
                     "error": "Test query did not return expected result"
                 }
                 
-        except DatasourceNotFoundError:
-            raise
         except Exception as e:
             # Debug logging - removed print statement to avoid stdout pollution
             connection_time = (time.time() - start_time) * 1000

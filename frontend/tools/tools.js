@@ -184,9 +184,16 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    const rowCount = response.data.row_count || 0;
-                    const executionTime = response.data.execution_time_ms || 0;
-                    showNotification(`Tool executed successfully! ${rowCount} rows returned in ${executionTime}ms`, 'success');
+                    // Check if the inner data indicates success or failure
+                    if (response.data.success) {
+                        const rowCount = response.data.row_count || 0;
+                        const executionTime = response.data.execution_time_ms || 0;
+                        showNotification(`Tool executed successfully! ${rowCount} rows returned in ${executionTime}ms`, 'success');
+                    } else {
+                        // Handle error from the inner data
+                        const errorMessage = response.data.error || 'Tool execution failed';
+                        showNotification(`Execution failed: ${errorMessage}`, 'error');
+                    }
                 } else {
                     showNotification('Tool execution failed', 'error');
                 }

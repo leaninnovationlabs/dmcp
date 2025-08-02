@@ -453,8 +453,15 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    const data = response.data;
-                    displayExecutionResults(data);
+                    // Check if the inner data indicates success or failure
+                    if (response.data.success) {
+                        const data = response.data;
+                        displayExecutionResults(data);
+                    } else {
+                        // Handle error from the inner data
+                        const errorMessage = response.data.error || 'Tool execution failed';
+                        showNotification(`Execution failed: ${errorMessage}`, 'error');
+                    }
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Tool execution failed';
                     showNotification(errorMessage, 'error');

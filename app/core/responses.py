@@ -31,4 +31,16 @@ def create_warning_response(data: Any, warnings: List[str]) -> StandardAPIRespon
         success=True,
         errors=[],
         warnings=warning_list
-    ) 
+    )
+
+
+def raise_http_error(status_code: int, detail: str, errors: List[str] = None):
+    """Raise an HTTPException with the given status code and details."""
+    from fastapi import HTTPException
+    
+    if errors:
+        detail = {"detail": detail, "errors": [{"msg": error} for error in errors]}
+    else:
+        detail = {"detail": detail}
+    
+    raise HTTPException(status_code=status_code, detail=detail) 
