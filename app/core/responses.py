@@ -39,8 +39,8 @@ def raise_http_error(status_code: int, detail: str, errors: List[str] = None):
     from fastapi import HTTPException
     
     if errors:
-        detail = {"detail": detail, "errors": [{"msg": error} for error in errors]}
+        detail = {"success": False, "errors": [{"msg": error} for error in errors]}
     else:
-        detail = {"detail": detail}
+        detail = {"success": False, "detail": detail}
     
     raise HTTPException(status_code=status_code, detail=detail) 
