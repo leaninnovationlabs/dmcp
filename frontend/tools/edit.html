@@ -12,284 +12,359 @@
     <script src="../shared/config.js"></script>
     <script src="../shared/auth.js"></script>
     <script src="../shared/sidebar.js"></script>
-</head>
-<body class="bg-gray-100 min-h-screen">
-
     
+    <!-- Google Fonts - Inter for modern, clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles for modern, minimalist design */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        .modern-button {
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modern-button:hover {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+        
+        .modern-button-secondary {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .modern-button-secondary:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .form-container {
+            background: #ffffff;
+            border: 1px solid #f3f4f6;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #000000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+
     <!-- Main Content -->
     <div id="mainContent">
         <!-- Page Header -->
-        <div class="bg-gray-50 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex items-center space-x-4">
-                <button id="backBtn" class="text-gray-500 hover:text-gray-700 transition-colors flex items-center">
-                    <i class="fas fa-chevron-left mr-2"></i>
-                    
-                </button>
-                <h2 id="pageTitle" class="text-2xl font-bold text-gray-900">Edit Tool</h2>
+        <div class="background-feature border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex items-center space-x-4">
+                    <h2 id="pageTitle" class="text-2xl font-bold text-black">Edit Tool</h2>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="max-w-6xl mx-auto p-6">
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-8 hidden">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <p class="mt-2 text-gray-600">Loading tool...</p>
-        </div>
+        <!-- Main Content -->
+        <div class="max-w-6xl mx-auto p-6">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12 hidden">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                <p class="mt-4 text-gray-600">Loading tool...</p>
+            </div>
 
-        <!-- Form -->
-        <div id="formContainer" class="bg-white rounded-lg shadow-lg p-6">
-            <form id="toolForm">
-                <input type="hidden" id="toolId" name="id" value="">
+            <!-- Form -->
+            <div id="formContainer" class="form-container">
+                <form id="toolForm">
+                    <input type="hidden" id="toolId" name="id" value="">
 
-                
-                <!-- Basic Information -->
-                <div class="mb-8">
-                                    <!-- Form Actions -->
+                    <!-- Form Actions -->
                     <div class="flex justify-end space-x-4 pt-6 border-b p-4 mb-6 border-gray-200">
-                        <button type="button" id="executeBtn" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white hidden">
-                            <i class="fas fa-play mr-2"></i>Execute Tool
+                        <button type="button" id="executeBtn" class="modern-button hidden">
+                            <i class="fas fa-play"></i>
+                            Execute Tool
                         </button>
-                        <button type="button" id="deleteBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white hidden">
+                        <button type="button" id="deleteBtn" class="modern-button-secondary hidden">
                             <i class="fas fa-trash mr-2"></i>Delete Tool
                         </button>
-                    <button type="button" id="cancelBtn" class="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors">
+                        <button type="button" id="cancelBtn" class="modern-button-secondary">
                             Cancel
                         </button>
-                        <button type="submit" id="saveBtn" class="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-colors">
+                        <button type="submit" id="saveBtn" class="modern-button">
                             Save Tool
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Name <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="name" name="name" required 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                   placeholder="e.g., aws_cost_by_service">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Tool Type <span class="text-red-500">*</span>
-                            </label>
-                            <select id="type" name="type" required 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="">Select tool type</option>
-                                <option value="query">Query</option>
-                                <option value="http">HTTP</option>
-                                <option value="code">Code</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                            <textarea id="description" name="description" rows="2"
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                      placeholder="Brief description of what this tool does"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Datasource <span class="text-red-500">*</span>
-                            </label>
-                            <select id="datasource_id" name="datasource_id" required 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                <option value="">Select datasource</option>
-                                <!-- Options will be loaded dynamically -->
-                            </select>
+                    <!-- Basic Information -->
+                    <div class="mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="form-label">
+                                    Name <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="name" name="name" required 
+                                       class="form-input"
+                                       placeholder="e.g., aws_cost_by_service">
+                            </div>
+                            <div>
+                                <label class="form-label">
+                                    Tool Type <span class="text-red-500">*</span>
+                                </label>
+                                <select id="type" name="type" required class="form-input">
+                                    <option value="">Select tool type</option>
+                                    <option value="query">Query</option>
+                                    <option value="http">HTTP</option>
+                                    <option value="code">Code</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="form-label">Description</label>
+                                <textarea id="description" name="description" rows="2"
+                                          class="form-input"
+                                          placeholder="Brief description of what this tool does"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">
+                                    Datasource <span class="text-red-500">*</span>
+                                </label>
+                                <select id="datasource_id" name="datasource_id" required class="form-input">
+                                    <option value="">Select datasource</option>
+                                    <!-- Options will be loaded dynamically -->
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- SQL Query -->
-                <div class="mb-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">SQL Query</h2>
+                    <!-- SQL Query -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">SQL Query</h2>
+                        <div>
+                            <label class="form-label">
+                                SQL Query <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="sql" name="sql" rows="8" required
+                                      class="form-input font-mono text-sm"
+                                      placeholder="SELECT * FROM table_name WHERE column = {{ parameter_name }}"></textarea>
+                            <p class="text-sm text-gray-500 mt-2">
+                                Use <code class="bg-gray-100 px-1 rounded">{{ parameter_name }}</code> for parameter placeholders in your SQL query.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Parameters -->
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Parameters</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-gray-600">Define parameters that users can pass to this tool</p>
+                                <button type="button" id="addParameterBtn" class="modern-button text-sm px-3 py-1">
+                                    <i class="fas fa-plus"></i>
+                                    Add Parameter
+                                </button>
+                            </div>
+                            <div id="parametersContainer" class="space-y-4">
+                                <!-- Parameters will be added here dynamically -->
+                            </div>
+                            <div id="noParametersMessage" class="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
+                                No parameters defined. Click "Add Parameter" to add one.
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Parameter Template (Hidden) -->
+        <template id="parameterTemplate">
+            <div class="parameter-item bg-gray-50 p-4 rounded-lg border">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            SQL Query <span class="text-red-500">*</span>
+                        <label class="form-label">Name</label>
+                        <input type="text" class="param-name form-input text-sm" placeholder="param_name">
+                    </div>
+                    <div>
+                        <label class="form-label">Type</label>
+                        <select class="param-type form-input text-sm">
+                            <option value="string">String</option>
+                            <option value="integer">Integer</option>
+                            <option value="float">Float</option>
+                            <option value="boolean">Boolean</option>
+                            <option value="date">Date</option>
+                            <option value="datetime">DateTime</option>
+                            <option value="array">Array</option>
+                            <option value="object">Object</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Default Value</label>
+                        <input type="text" class="param-default form-input text-sm" placeholder="Optional">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <label class="flex items-center text-sm">
+                            <input type="checkbox" class="param-required mr-1">
+                            Required
                         </label>
-                        <textarea id="sql" name="sql" rows="8" required
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-                                  placeholder="SELECT * FROM table_name WHERE column = {{ parameter_name }}"></textarea>
-                        <p class="text-sm text-gray-500 mt-1">
-                            Use <code class="bg-gray-100 px-1 rounded">{{ parameter_name }}</code> for parameter placeholders in your SQL query.
-                        </p>
+                        <button type="button" class="remove-parameter text-red-500 hover:text-red-700 px-2 py-1 text-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
+                <div class="mt-2">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="param-description form-input text-sm" placeholder="Parameter description">
+                </div>
+            </div>
+        </template>
 
-                <!-- Parameters -->
-                <div class="mb-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">Parameters</h2>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <p class="text-sm text-gray-600">Define parameters that users can pass to this tool</p>
-                            <button type="button" id="addParameterBtn" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                                + Add Parameter
-                            </button>
-                        </div>
-                        <div id="parametersContainer" class="space-y-4">
-                            <!-- Parameters will be added here dynamically -->
-                        </div>
-                        <div id="noParametersMessage" class="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
-                            No parameters defined. Click "Add Parameter" to add one.
-                        </div>
+        <!-- Execute Tool Modal -->
+        <div id="executeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+                <div class="p-6">
+                    <!-- Modal Header -->
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-black">Execute Tool</h3>
+                        <button id="closeExecuteModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
                     </div>
-                </div>
 
-            </form>
-        </div>
-    </div>
+                    <!-- Tool Info -->
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 id="executeToolName" class="font-semibold text-black"></h4>
+                        <p id="executeToolDescription" class="text-gray-600 text-sm mt-1"></p>
+                    </div>
 
-    <!-- Parameter Template (Hidden) -->
-    <template id="parameterTemplate">
-        <div class="parameter-item bg-gray-50 p-4 rounded-lg border">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                    <input type="text" class="param-name w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="param_name">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                    <select class="param-type w-full px-2 py-1 border border-gray-300 rounded text-sm">
-                        <option value="string">String</option>
-                        <option value="integer">Integer</option>
-                        <option value="float">Float</option>
-                        <option value="boolean">Boolean</option>
-                        <option value="date">Date</option>
-                        <option value="datetime">DateTime</option>
-                        <option value="array">Array</option>
-                        <option value="object">Object</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Default Value</label>
-                    <input type="text" class="param-default w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="Optional">
-                </div>
-                <div class="flex items-end space-x-2">
-                    <label class="flex items-center text-sm">
-                        <input type="checkbox" class="param-required mr-1">
-                        Required
-                    </label>
-                    <button type="button" class="remove-parameter text-red-500 hover:text-red-700 px-2 py-1 text-sm">
-                        
-                    </button>
-                </div>
-            </div>
-            <div class="mt-2">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <input type="text" class="param-description w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="Parameter description">
-            </div>
-        </div>
-    </template>
-
-    <!-- Execute Tool Modal -->
-    <div id="executeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
-            <div class="p-6">
-                <!-- Modal Header -->
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xl font-bold text-gray-900">Execute Tool</h3>
-                    <button id="closeExecuteModal" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-
-                <!-- Tool Info -->
-                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h4 id="executeToolName" class="font-semibold text-gray-900"></h4>
-                    <p id="executeToolDescription" class="text-gray-600 text-sm mt-1"></p>
-                </div>
-
-                <!-- Parameters Form -->
-                <div id="parametersSection">
-                    <form id="executeForm">
-                        <div id="executeParametersContainer" class="space-y-4 mb-6">
-                            <!-- Parameters will be generated dynamically -->
-                        </div>
-
-                        <div id="executeNoParametersMessage" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg hidden">
-                            <i class="fas fa-info-circle text-2xl mb-2"></i>
-                            <p>This tool has no parameters to configure.</p>
-                        </div>
-
-                        <!-- Modal Actions -->
-                        <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-                            <button type="button" id="cancelExecute" class="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors">
-                                Cancel
-                            </button>
-                            <button type="submit" id="confirmExecute" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors">
-                                <i class="fas fa-play mr-2"></i>
-                                Execute Tool
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Results Section -->
-                <div id="resultsSection" class="hidden">
-                    <div class="border-t border-gray-200 pt-6">
-                        <!-- Execution Summary -->
-                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                            <div class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                <span class="font-semibold text-green-700">Execution Completed</span>
-                            </div>
-                            <div id="executionSummary" class="text-sm text-green-600 mt-1">
-                                <!-- Summary will be populated dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Results Table Container -->
-                        <div class="mb-6">
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="text-lg font-semibold text-gray-900">Results</h4>
-                                <div class="flex space-x-2">
-                                    <button id="exportResults" class="text-sm px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors">
-                                        <i class="fas fa-download mr-1"></i>
-                                        Export CSV
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="resultsTableContainer" class="border border-gray-200 rounded-lg overflow-hidden">
-                                <div class="overflow-x-auto max-h-96">
-                                    <table id="resultsTable" class="w-full">
-                                        <thead class="bg-gray-50 sticky top-0">
-                                            <!-- Table headers will be generated dynamically -->
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            <!-- Table rows will be generated dynamically -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                    <!-- Parameters Form -->
+                    <div id="parametersSection">
+                        <form id="executeForm">
+                            <div id="executeParametersContainer" class="space-y-4 mb-6">
+                                <!-- Parameters will be generated dynamically -->
                             </div>
 
-                            <div id="noResultsMessage" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg hidden">
+                            <div id="executeNoParametersMessage" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg hidden">
                                 <i class="fas fa-info-circle text-2xl mb-2"></i>
-                                <p>No data returned from the query.</p>
+                                <p>This tool has no parameters to configure.</p>
                             </div>
-                        </div>
 
-                        <!-- Results Actions -->
-                        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                            <button type="button" id="runAgain" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold transition-colors">
-                                <i class="fas fa-redo mr-2"></i>
-                                Run Again
-                            </button>
-                            <button type="button" id="closeResults" class="px-6 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors">
-                                Close
-                            </button>
+                            <!-- Modal Actions -->
+                            <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+                                <button type="button" id="cancelExecute" class="modern-button-secondary">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="confirmExecute" class="modern-button">
+                                    <i class="fas fa-play"></i>
+                                    Execute Tool
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="hidden">
+                        <div class="border-t border-gray-200 pt-6">
+                            <!-- Execution Summary -->
+                            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    <span class="font-semibold text-green-700">Execution Completed</span>
+                                </div>
+                                <div id="executionSummary" class="text-sm text-green-600 mt-1">
+                                    <!-- Summary will be populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Results Table Container -->
+                            <div class="mb-6">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="text-lg font-semibold text-black">Results</h4>
+                                    <div class="flex space-x-2">
+                                        <button id="exportResults" class="text-sm px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors">
+                                            <i class="fas fa-download mr-1"></i>
+                                            Export CSV
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div id="resultsTableContainer" class="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div class="overflow-x-auto max-h-96">
+                                        <table id="resultsTable" class="w-full">
+                                            <thead class="bg-gray-50 sticky top-0">
+                                                <!-- Table headers will be generated dynamically -->
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200">
+                                                <!-- Table rows will be generated dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div id="noResultsMessage" class="text-center py-8 text-gray-500 bg-gray-50 rounded-lg hidden">
+                                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                                    <p>No data returned from the query.</p>
+                                </div>
+                            </div>
+
+                            <!-- Results Actions -->
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                <button type="button" id="runAgain" class="modern-button">
+                                    <i class="fas fa-redo"></i>
+                                    Run Again
+                                </button>
+                                <button type="button" id="closeResults" class="modern-button-secondary">
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Status Messages -->
-    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
+        <!-- Status Messages -->
+        <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
     </div>
 
     <script src="edit.js"></script>
