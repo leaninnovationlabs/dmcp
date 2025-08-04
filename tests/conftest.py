@@ -66,6 +66,27 @@ def postgres_config():
 
 
 @pytest.fixture
+def databricks_config():
+    """Get Databricks configuration from test environment."""
+    # Load test environment variables
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.test.env'))
+    
+    return {
+        "name": "Test Databricks Database",
+        "database_type": DatabaseType.DATABRICKS.value,
+        "host": os.getenv("TEST_DATABRICKS_HOST", "adb-1234567890123456.7.azuredatabricks.net"),
+        "database": os.getenv("TEST_DATABRICKS_DATABASE", "default"),
+        "password": os.getenv("TEST_DATABRICKS_TOKEN", "dapi1234567890abcdef"),
+        "additional_params": {
+            "http_path": os.getenv("TEST_DATABRICKS_HTTP_PATH", "/sql/1.0/warehouses/1234567890abcdef"),
+            "catalog": os.getenv("TEST_DATABRICKS_CATALOG", "hive_metastore"),
+            "schema": os.getenv("TEST_DATABRICKS_SCHEMA", "default")
+        }
+    }
+
+
+@pytest.fixture
 def server_health_check(api_base_url, http_client):
     """Check if the API server is running."""
     try:

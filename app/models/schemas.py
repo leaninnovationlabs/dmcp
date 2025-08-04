@@ -26,6 +26,7 @@ class DatabaseType(str, Enum):
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
     SQLITE = "sqlite"
+    DATABRICKS = "databricks"
 
 
 class ToolType(str, Enum):

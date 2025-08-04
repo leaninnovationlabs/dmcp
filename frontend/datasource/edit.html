@@ -92,6 +92,24 @@
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
         }
+
+        .field-group {
+            transition: all 0.3s ease;
+        }
+
+        .field-group.hidden {
+            display: none;
+        }
+
+        .field-group.required {
+            border-left: 3px solid #ef4444;
+            padding-left: 1rem;
+        }
+
+        .field-group.optional {
+            border-left: 3px solid #3b82f6;
+            padding-left: 1rem;
+        }
     </style>
 </head>
 <body class="bg-white min-h-screen">
@@ -119,25 +137,27 @@
             <div id="formContainer" class="form-container">
                 <form id="datasourceForm">
                     <input type="hidden" id="datasourceId" name="id" value="">
+                    
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 pt-6 border-b border-gray-200 mb-6 pb-6">
+                        <button type="button" id="testConnectionBtn" class="modern-button-secondary">
+                            <i class="fas fa-plug"></i>
+                            Test Connection
+                        </button>
+                        <button type="button" id="deleteBtn" class="modern-button-secondary hidden">
+                            <i class="fas fa-trash mr-2"></i>Delete Datasource
+                        </button>
+                        <button type="button" id="cancelBtn" class="modern-button-secondary">
+                            Cancel
+                        </button>
+                        <button type="submit" id="saveBtn" class="modern-button">
+                            Save Datasource
+                        </button>
+                    </div>
+
                     <!-- Basic Information -->
                     <div class="mb-8">
-                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Datasource Information</h2>
-                        <!-- Form Actions -->
-                        <div class="flex justify-end space-x-4 pt-6 border-b border-gray-200 mb-6 pb-6">
-                            <button type="button" id="testConnectionBtn" class="modern-button-secondary">
-                                <i class="fas fa-plug"></i>
-                                Test Connection
-                            </button>
-                            <button type="button" id="deleteBtn" class="modern-button-secondary hidden">
-                                <i class="fas fa-trash mr-2"></i>Delete Datasource
-                            </button>
-                            <button type="button" id="cancelBtn" class="modern-button-secondary">
-                                Cancel
-                            </button>
-                            <button type="submit" id="saveBtn" class="modern-button">
-                                Save Datasource
-                            </button>
-                        </div>
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Basic Information</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="form-label">
@@ -154,52 +174,118 @@
                                     <option value="postgresql">PostgreSQL</option>
                                     <option value="mysql">MySQL</option>
                                     <option value="sqlite">SQLite</option>
+                                    <option value="databricks">Databricks</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SQLite Configuration -->
+                    <div id="sqlite-config" class="field-group hidden mb-8">
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">SQLite Configuration</h2>
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="form-label">
+                                    Database File Path <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="sqlite_database" name="sqlite_database" class="form-input" placeholder="/path/to/database.db">
+                                <p class="text-sm text-gray-500 mt-1">Path to the SQLite database file</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PostgreSQL/MySQL Configuration -->
+                    <div id="postgresql-config" class="field-group hidden mb-8">
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">PostgreSQL/MySQL Configuration</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="form-label">
+                                    Host <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="host" name="host" class="form-input" placeholder="localhost">
+                            </div>
+                            <div>
+                                <label class="form-label">
+                                    Port <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" id="port" name="port" class="form-input" placeholder="5432">
                             </div>
                             <div>
                                 <label class="form-label">
                                     Database Name <span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" id="database" name="database" required class="form-input">
+                                <input type="text" id="database" name="database" class="form-input" placeholder="mydatabase">
+                            </div>
+                            <div>
+                                <label class="form-label">
+                                    Username <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="username" name="username" class="form-input" placeholder="myuser">
+                            </div>
+                            <div>
+                                <label class="form-label">
+                                    Password <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="password" name="password" class="form-input" placeholder="mypassword">
+                            </div>
+                            <div>
+                                <label class="form-label">SSL Mode</label>
+                                <select id="ssl_mode" name="ssl_mode" class="form-input">
+                                    <option value="">None</option>
+                                    <option value="require">Require</option>
+                                    <option value="verify-ca">Verify CA</option>
+                                    <option value="verify-full">Verify Full</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Connection Details -->
-                    <div class="mb-8">
-                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Connection Details</h2>
+                    <!-- Databricks Configuration -->
+                    <div id="databricks-config" class="field-group hidden mb-8">
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Databricks Configuration</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="form-label">Host</label>
-                                <input type="text" id="host" name="host" class="form-input" placeholder="localhost">
+                                <label class="form-label">
+                                    Workspace URL <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="databricks_host" name="databricks_host" class="form-input" placeholder="https://your-workspace.cloud.databricks.com">
                             </div>
                             <div>
-                                <label class="form-label">Port</label>
-                                <input type="number" id="port" name="port" class="form-input" placeholder="5432">
+                                <label class="form-label">
+                                    HTTP Path <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="http_path" name="http_path" class="form-input" placeholder="/sql/1.0/warehouses/default">
                             </div>
                             <div>
-                                <label class="form-label">Username</label>
-                                <input type="text" id="username" name="username" class="form-input">
+                                <label class="form-label">
+                                    Access Token <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="databricks_token" name="databricks_token" class="form-input" placeholder="dapi...">
                             </div>
                             <div>
-                                <label class="form-label">Password</label>
-                                <input type="password" id="password" name="password" class="form-input">
+                                <label class="form-label">Catalog</label>
+                                <input type="text" id="catalog" name="catalog" class="form-input" placeholder="hive_metastore">
+                            </div>
+                            <div>
+                                <label class="form-label">Schema</label>
+                                <input type="text" id="schema" name="schema" class="form-input" placeholder="default">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Additional Options -->
+                    <!-- Connection String (Optional) -->
                     <div class="mb-8">
-                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Additional Options</h2>
+                        <h2 class="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">Advanced Options</h2>
                         <div class="space-y-4">
                             <div>
                                 <label class="form-label">Connection String (Optional)</label>
                                 <input type="text" id="connection_string" name="connection_string" class="form-input" placeholder="postgresql://user:pass@host:port/db">
                                 <p class="text-sm text-gray-500 mt-1">If provided, this will override the individual connection parameters above.</p>
                             </div>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="ssl_enabled" name="ssl_enabled" class="mr-2">
-                                <label for="ssl_enabled" class="form-label mb-0">Enable SSL</label>
+                            <div>
+                                <label class="form-label">Additional Parameters (JSON)</label>
+                                <textarea id="additional_params" name="additional_params" class="form-input" rows="4" placeholder='{"key": "value"}'></textarea>
+                                <p class="text-sm text-gray-500 mt-1">Additional connection parameters in JSON format</p>
                             </div>
                         </div>
                     </div>
