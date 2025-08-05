@@ -2,6 +2,7 @@ $(document).ready(function() {
     const API_BASE_URL = APP_CONFIG.API_BASE_URL;
     let isEditMode = false;
     let currentDatasourceId = null;
+    let fieldConfigs = null;
 
     // Get datasource ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,6 +19,9 @@ $(document).ready(function() {
         $('#saveBtn').text('Create Datasource');
         hideLoadingState();
     }
+
+    // Load field configurations from API
+    loadFieldConfigs();
 
     // Event listeners
     $('#backBtn, #cancelBtn').on('click', function() {
@@ -58,25 +62,49 @@ $(document).ready(function() {
         }
     });
 
+    // Load field configurations from API
+    function loadFieldConfigs() {
+        makeApiRequest({
+            url: `${API_BASE_URL}/datasources/field-config`,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    fieldConfigs = response.data;
+                    // If we're in edit mode, we'll update the form after loading the datasource
+                    if (!isEditMode) {
+                        updateFormFields();
+                    }
+                } else {
+                    showNotification('Failed to load field configurations', 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to load field configurations';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+            }
+        });
+    }
+
     // Update form fields based on database type
     function updateFormFields() {
+        if (!fieldConfigs) return;
+        
         const databaseType = $('#database_type').val();
         
         // Hide all configuration sections
         $('.field-group').addClass('hidden');
         
         // Show relevant configuration based on database type
-        switch (databaseType) {
-            case 'sqlite':
-                $('#sqlite-config').removeClass('hidden');
-                break;
-            case 'postgresql':
-            case 'mysql':
-                $('#postgresql-config').removeClass('hidden');
-                break;
-            case 'databricks':
-                $('#databricks-config').removeClass('hidden');
-                break;
+        if (databaseType && fieldConfigs[databaseType]) {
+            const config = fieldConfigs[databaseType];
+            const sectionId = config.sections[0]?.id;
+            if (sectionId) {
+                $(`#${sectionId}`).removeClass('hidden');
+            }
         }
     }
 
@@ -323,7 +351,7 @@ $(document).ready(function() {
         return formData;
     }
 
-    // Form validation based on database type
+    // Form validation based on field configurations from API
     function validateForm(data) {
         let isValid = true;
         
@@ -341,51 +369,18 @@ $(document).ready(function() {
             isValid = false;
         }
 
-        // Type-specific validation
-        switch (data.database_type) {
-            case 'sqlite':
-                if (!data.database) {
-                    $('#sqlite_database').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
+        // Type-specific validation using field configurations
+        if (data.database_type && fieldConfigs && fieldConfigs[data.database_type]) {
+            const config = fieldConfigs[data.database_type];
+            config.fields.forEach(field => {
+                if (field.required) {
+                    const fieldValue = $(`#${field.name}`).val().trim();
+                    if (!fieldValue) {
+                        $(`#${field.name}`).removeClass('border-gray-300').addClass('border-red-300');
+                        isValid = false;
+                    }
                 }
-                break;
-            case 'postgresql':
-            case 'mysql':
-                if (!data.host) {
-                    $('#host').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.port) {
-                    $('#port').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.database) {
-                    $('#database').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.username) {
-                    $('#username').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.password) {
-                    $('#password').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                break;
-            case 'databricks':
-                if (!data.host) {
-                    $('#databricks_host').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.password) {
-                    $('#databricks_token').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                if (!data.additional_params?.http_path) {
-                    $('#http_path').removeClass('border-gray-300').addClass('border-red-300');
-                    isValid = false;
-                }
-                break;
+            });
         }
 
         // Validate JSON in additional_params
