@@ -108,11 +108,28 @@ docker-compose.override.yml
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfvars.json
 *.tfplan
+*.tfplan.*
 .terraform/
 .terraform.lock.hcl
 terraform.tfstate.backup
 terraform.tfstate.*.backup
+*.terraform.lock.hcl
+.terraformrc
+terraform.rc
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.d/
+terraform.tfstate.d/
+*.auto.tfvars
+*.auto.tfvars.json
+crash.log
+crash.*.log
+terraform-provider-*
+.terraform-version
 
 # Ansible
 *.retry
