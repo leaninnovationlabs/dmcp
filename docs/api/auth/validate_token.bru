@@ -1,0 +1,29 @@
+{
+  "name": "Validate JWT Token",
+  "method": "POST",
+  "url": "{{baseUrl}}/auth/validate",
+  "headers": [
+    {
+      "name": "Authorization",
+      "value": "Bearer {{token}}"
+    },
+    {
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "tests": [
+    {
+      "type": "test",
+      "value": "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});"
+    },
+    {
+      "type": "test",
+      "value": "pm.test('Response has payload', function () {\n    const response = pm.response.json();\n    pm.expect(response.data).to.have.property('payload');\n    pm.expect(response.data.payload).to.be.an('object');\n});"
+    },
+    {
+      "type": "test",
+      "value": "pm.test('Response indicates valid token', function () {\n    const response = pm.response.json();\n    pm.expect(response.data).to.have.property('valid');\n    pm.expect(response.data.valid).to.be.true;\n});"
+    }
+  ]
+} 

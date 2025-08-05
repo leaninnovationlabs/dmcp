@@ -1,0 +1,15 @@
+meta {
+  name: validate
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{server}}/auth/validate
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
