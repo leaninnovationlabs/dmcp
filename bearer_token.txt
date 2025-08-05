@@ -1,8 +1,8 @@
 ================================================================================
 JWT BEARER TOKEN GENERATED
 ================================================================================
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGVwbG95bWVudF91c2VyIiwidXNlcm5hbWUiOiJkZXBsb3ltZW50X3NlcnZpY2UiLCJwdXJwb3NlIjoiZGVwbG95bWVudF9hdXRoIiwiZ2VuZXJhdGVkX2F0IjoiMjAyNS0wNy0zMVQxNTo0NToyMS4zMTA0NDUiLCJleHAiOjE3NTM5OTQ3MjEsImlhdCI6MTc1Mzk5MTEyMX0.7dPG1wnCdP39RqHWANk7QGObr1uH_yhp_4ryjw092t0
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGVwbG95bWVudF91c2VyIiwidXNlcm5hbWUiOiJkZXBsb3ltZW50X3NlcnZpY2UiLCJwdXJwb3NlIjoiZGVwbG95bWVudF9hdXRoIiwiZ2VuZXJhdGVkX2F0IjoiMjAyNS0wOC0wMVQxODowNTowMy42NDM0MTgiLCJleHAiOjE3ODU2MjE5MDMsImlhdCI6MTc1NDA4NTkwM30.RyUH_qRUl9BHu2yed_BaFReUgtTcZnWed5IAhsXJvV0
 ================================================================================
-This token is valid for 60 minutes
+This token is valid for 525600 minutes (1 year) - effectively never expires
 Save this token securely - it will be used for API authentication.
 ================================================================================

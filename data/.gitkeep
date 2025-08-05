@@ -1,3 +1,0 @@
-# This directory stores the SQLite database file
-# The database file (dbmcp.db) is created automatically when the application starts
-# Database files are excluded from git via .gitignore for security 

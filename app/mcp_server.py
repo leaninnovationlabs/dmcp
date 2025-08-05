@@ -59,7 +59,8 @@ class MCPServer:
         """Initialize the MCP server with the given name."""
         self.mcp = mcp
         self.mcp.tool(self.ping)
-        self._register_database_tools()
+        # Temporarily disable database tools for testing
+        # self._register_database_tools()
 
         # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
@@ -287,13 +288,12 @@ class MCPServer:
             self._log_debug(f"ENVIRONMENT variable: {env_var}")
             self._log_debug(f"MCP path will be: {mcp_path}")
             
-            import asyncio
-            asyncio.run(mcp.run_async(
+            mcp.run(
                 transport="http",
                 host="0.0.0.0",
                 port=4200,
                 path=mcp_path
-            ))
+            )
         else:
             self.mcp.run()
 
