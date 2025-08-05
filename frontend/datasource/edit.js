@@ -13,15 +13,17 @@ $(document).ready(function() {
         currentDatasourceId = datasourceId;
         $('#pageTitle').text('Datasource');
         $('#deleteBtn').show();
-        loadDatasource(datasourceId);
+        // Load field configs first, then load datasource
+        loadFieldConfigs().then(() => {
+            loadDatasource(datasourceId);
+        });
     } else {
         $('#pageTitle').text('Create New Datasource');
         $('#saveBtn').text('Create Datasource');
         hideLoadingState();
+        // Load field configs for new datasource
+        loadFieldConfigs();
     }
-
-    // Load field configurations from API
-    loadFieldConfigs();
 
     // Event listeners
     $('#backBtn, #cancelBtn').on('click', function() {
@@ -64,28 +66,29 @@ $(document).ready(function() {
 
     // Load field configurations from API
     function loadFieldConfigs() {
-        makeApiRequest({
-            url: `${API_BASE_URL}/datasources/field-config`,
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.data) {
-                    fieldConfigs = response.data;
-                    // If we're in edit mode, we'll update the form after loading the datasource
-                    if (!isEditMode) {
-                        updateFormFields();
+        return new Promise((resolve, reject) => {
+            makeApiRequest({
+                url: `${API_BASE_URL}/datasources/field-config`,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success && response.data) {
+                        fieldConfigs = response.data;
+                        resolve();
+                    } else {
+                        showNotification('Failed to load field configurations', 'error');
+                        reject(new Error('Failed to load field configurations'));
                     }
-                } else {
-                    showNotification('Failed to load field configurations', 'error');
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Failed to load field configurations';
+                    if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                        errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                    }
+                    showNotification(errorMessage, 'error');
+                    reject(new Error(errorMessage));
                 }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Failed to load field configurations';
-                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
-                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
-                }
-                showNotification(errorMessage, 'error');
-            }
+            });
         });
     }
 
@@ -171,7 +174,7 @@ $(document).ready(function() {
         const additionalParams = datasource.additional_params || {};
         $('#additional_params').val(JSON.stringify(additionalParams, null, 2));
         
-        // Update form fields visibility
+        // Update form fields visibility - this is crucial for edit mode
         updateFormFields();
     }
 
