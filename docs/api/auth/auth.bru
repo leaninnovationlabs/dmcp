@@ -1,0 +1,23 @@
+meta {
+  name: auth
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{server}}/auth
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+    "payload": {
+        "userid": "2123"
+    }
+  }
+}

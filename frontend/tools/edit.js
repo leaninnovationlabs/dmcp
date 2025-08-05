@@ -33,6 +33,16 @@ $(document).ready(function() {
         saveTool();
     });
 
+    // Handle tool type selection - prevent unsupported types
+    $('#type').on('change', function() {
+        const selectedType = $(this).val();
+        if (selectedType === 'http' || selectedType === 'code') {
+            alert('Tool type "' + selectedType.charAt(0).toUpperCase() + selectedType.slice(1) + '" is not supported yet. Please select a different tool type.');
+            $(this).val(''); // Reset to empty selection
+            return false;
+        }
+    });
+
     $('#deleteBtn').on('click', function() {
         if (confirm('Are you sure you want to delete this tool? This action cannot be undone.')) {
             deleteTool();
@@ -453,8 +463,15 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    const data = response.data;
-                    displayExecutionResults(data);
+                    // Check if the inner data indicates success or failure
+                    if (response.data.success) {
+                        const data = response.data;
+                        displayExecutionResults(data);
+                    } else {
+                        // Handle error from the inner data
+                        const errorMessage = response.data.error || 'Tool execution failed';
+                        showNotification(`Execution failed: ${errorMessage}`, 'error');
+                    }
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Tool execution failed';
                     showNotification(errorMessage, 'error');
@@ -753,6 +770,13 @@ $(document).ready(function() {
 
         if (!data.type) {
             $('#type').removeClass('border-gray-300').addClass('border-red-300');
+            isValid = false;
+        }
+
+        // Check for unsupported tool types
+        if (data.type === 'http' || data.type === 'code') {
+            $('#type').removeClass('border-gray-300').addClass('border-red-300');
+            showNotification('Tool type "' + data.type.charAt(0).toUpperCase() + data.type.slice(1) + '" is not supported yet. Please select a different tool type.', 'error');
             isValid = false;
         }
 

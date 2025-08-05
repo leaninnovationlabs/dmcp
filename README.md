@@ -133,7 +133,7 @@ See `app/models/database.py` for the complete model definitions.
 
 ## Environment Variables
 
-Create a `.env` file with:
+Create a `.env` file with required variables. Checkout .env.example file for reference:
 ```
 DATABASE_URL=sqlite:///./dbmcp.db
 SECRET_KEY=your-secret-key-here-change-this-in-production
@@ -158,7 +158,7 @@ All routes are automatically documented in the OpenAPI schema and available at:
 - **MCP Inspector**: Specify the token in the "Bearer Token" field in the authentication section
 
 
-# TOOD
+# TODO
 - Do more testing for various datasources and complex queries and parameters (generate test cases)
 - Tool with param not working from inspector
 - Not detecting the new tools from the inspector, see how to list out the get tools

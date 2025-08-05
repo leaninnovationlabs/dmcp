@@ -12,63 +12,125 @@
     <script src="../shared/config.js"></script>
     <script src="../shared/auth.js"></script>
     <script src="../shared/sidebar.js"></script>
+    
+    <!-- Google Fonts - Inter for modern, clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom styles for modern, minimalist design */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        
+        .modern-button {
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modern-button:hover {
+            background-color: #333333;
+            transform: translateY(-1px);
+        }
+        
+        .tool-card {
+            background: #ffffff;
+            border: 1px solid #f3f4f6;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .icon-container {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-
+<body class="bg-white min-h-screen">
 
     <!-- Main Content -->
     <div id="mainContent">
         <!-- Page Header -->
-        <div class="bg-gray-50 border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Tools</h1>
-                    <p class="text-gray-600 mt-1">Manage and execute your database tools</p>
+        <div class="background-feature border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-black">Tools</h1>
+                        <p class="text-gray-600 mt-2">Manage and execute your database tools</p>
+                    </div>
+                    <div class="flex items-center">
+                        <button id="addToolBtn" class="modern-button">
+                            <i class="fas fa-plus"></i>
+                            Add New Tool
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center">
-                    <button id="addToolBtn" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg font-semibold transition-colors text-white flex items-center">
-                        <i class="fas fa-plus mr-2"></i>Add New Tool
-                    </button>
-                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-12 hidden">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                <p class="mt-4 text-gray-600">Loading tools...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="text-center py-12 hidden">
+                <div class="text-red-500 text-4xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+                <p class="text-red-600 font-semibold text-lg">Error loading tools</p>
+                <p id="errorMessage" class="text-gray-600 mt-2"></p>
+                <button id="retryBtn" class="mt-6 modern-button">
+                    <i class="fas fa-redo"></i>
+                    Retry
+                </button>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-16 hidden">
+                <div class="text-gray-400 text-6xl mb-6"><i class="fas fa-tools"></i></div>
+                <h3 class="text-2xl font-semibold text-black mb-3">No Tools Found</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">Create your first tool to get started with database management</p>
+                <button class="addToolBtn modern-button">
+                    <i class="fas fa-plus"></i>
+                    Create Your First Tool
+                </button>
+            </div>
+
+            <!-- Tools Grid -->
+            <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
+                <!-- Tool cards will be injected here -->
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto p-6">
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-8 hidden">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <p class="mt-2 text-gray-600">Loading tools...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="errorState" class="text-center py-8 hidden">
-            <div class="text-red-500 text-xl mb-2"><i class="fas fa-exclamation-triangle"></i></div>
-            <p class="text-red-600 font-semibold">Error loading tools</p>
-            <p id="errorMessage" class="text-gray-600 mt-1"></p>
-            <button id="retryBtn" class="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition-colors">
-                Retry
-            </button>
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="text-center py-12 hidden">
-            <div class="text-gray-400 text-6xl mb-4"><i class="fas fa-tools"></i></div>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">No Tools Found</h3>
-            <p class="text-gray-500 mb-6">Create your first tool to get started</p>
-            <button class="addToolBtn bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                Create Your First Tool
-            </button>
-        </div>
-
-        <!-- Tools Grid -->
-        <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 hidden">
-            <!-- Tool cards will be injected here -->
-        </div>
-    </div>
-    </div>
+    <!-- Status Messages Container -->
+    <div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <script src="tools.js"></script>
     

@@ -191,7 +191,8 @@ $(document).ready(function() {
         const icons = {
             'postgresql': '<i class="fab fa-elephant text-2xl text-blue-600"></i>',
             'mysql': '<i class="fas fa-fish text-2xl text-orange-500"></i>',
-            'sqlite': '<i class="fas fa-cube text-2xl text-gray-600"></i>'
+            'sqlite': '<i class="fas fa-cube text-2xl text-gray-600"></i>',
+            'databricks': '<i class="fas fa-cloud text-2xl text-orange-400"></i>'
         };
         return icons[databaseType] || '<i class="fas fa-database text-2xl text-blue-500"></i>';
     }

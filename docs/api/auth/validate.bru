@@ -1,11 +1,11 @@
 meta {
-  name: list
+  name: validate
   type: http
-  seq: 1
+  seq: 2
 }
 
 get {
-  url: /datasources/field-config{{server}}/datasources
+  url: {{server}}/auth/validate
   body: none
   auth: none
 }

@@ -15,16 +15,16 @@ class Sidebar {
     createSidebar() {
         const sidebarHTML = `
             <!-- Sidebar -->
-            <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
+            <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white text-black transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col border-r border-gray-200">
                 <!-- Sidebar Header -->
-                <div class="flex items-center justify-between h-16 px-4 border-b border-gray-700">
+                <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200">
                     <div class="flex items-center min-w-0">
                         <div class="sidebar-logo">
-                            <h1 class="text-xl font-bold text-white">DB-MCP</h1>
-                            <p class="text-xs text-gray-400 sidebar-subtitle">Database Model Control Protocol</p>
+                            <h1 class="text-xl font-bold text-black">DB-MCP</h1>
+                            <p class="text-xs text-gray-600 sidebar-subtitle">Database Model Control Protocol</p>
                         </div>
                     </div>
-                    <button id="sidebarToggle" class="lg:hidden text-gray-400 hover:text-white flex-shrink-0">
+                    <button id="sidebarToggle" class="lg:hidden text-gray-500 hover:text-black flex-shrink-0">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
@@ -33,21 +33,21 @@ class Sidebar {
                 <nav class="flex-1 overflow-y-auto">
                     <div class="px-4 py-4 space-y-2">
                         <a href="${APP_CONFIG ? APP_CONFIG.urls.home() : '/index.html'}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-colors" 
+                           class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
                            data-page="home">
                             <i class="fas fa-home w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Home</span>
                         </a>
                         
                         <a href="${APP_CONFIG ? APP_CONFIG.urls.datasource() : '/datasource/'}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-colors" 
+                           class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
                            data-page="datasource">
                             <i class="fas fa-database w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Data Sources</span>
                         </a>
                         
                         <a href="${APP_CONFIG ? APP_CONFIG.urls.tools() : '/tools/'}" 
-                           class="sidebar-link flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 hover:text-white transition-colors" 
+                           class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
                            data-page="tools">
                             <i class="fas fa-tools w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Tools</span>
@@ -55,8 +55,8 @@ class Sidebar {
                     </div>
                     
                     <!-- Authentication Section -->
-                    <div class="px-4 py-2 mt-4 border-t border-gray-700">
-                        <button id="logoutBtn" class="w-full flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-red-600 hover:text-white transition-colors">
+                    <div class="px-4 py-2 mt-4 border-t border-gray-200">
+                        <button id="logoutBtn" class="w-full flex items-center px-4 py-3 text-black rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                             <i class="fas fa-sign-out-alt w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Logout</span>
                         </button>
@@ -64,8 +64,8 @@ class Sidebar {
                 </nav>
                 
                 <!-- Collapse Toggle (Desktop) -->
-                <div class="border-t border-gray-700 p-4 hidden lg:block">
-                    <button id="collapseToggle" class="w-full flex items-center justify-center px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors">
+                <div class="border-t border-gray-200 p-4 hidden lg:block">
+                    <button id="collapseToggle" class="w-full flex items-center justify-center px-4 py-3 text-gray-500 hover:text-black hover:bg-gray-50 rounded-lg transition-colors">
                         <i class="fas fa-chevron-left collapse-icon transition-transform duration-300 flex-shrink-0"></i>
                         <span class="sidebar-text ml-2">Collapse</span>
                     </button>
@@ -76,7 +76,7 @@ class Sidebar {
             <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
 
             <!-- Mobile Menu Button -->
-            <button id="mobileMenuBtn" class="fixed top-4 left-4 z-60 lg:hidden bg-gray-900 text-white p-3 rounded-lg shadow-lg hover:bg-gray-800 transition-colors">
+            <button id="mobileMenuBtn" class="fixed top-4 left-4 z-60 lg:hidden bg-white text-black p-3 rounded-lg shadow-lg hover:bg-gray-50 transition-colors border border-gray-200">
                 <i class="fas fa-bars text-lg"></i>
             </button>
         `;
@@ -228,13 +228,14 @@ class Sidebar {
         // Remove active class from all links
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.classList.remove('bg-blue-600', 'text-white');
-            link.classList.add('text-gray-300');
+            link.classList.add('text-black');
+            link.classList.remove('bg-gray-100');
         });
 
         // Add active class to current page
         const activeLink = document.querySelector(`[data-page="${page}"]`);
         if (activeLink) {
-            activeLink.classList.remove('text-gray-300');
+            activeLink.classList.remove('text-black');
             activeLink.classList.add('bg-blue-600', 'text-white');
         }
     }

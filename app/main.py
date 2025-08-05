@@ -1,13 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import uvicorn
 
 from .database import init_db
-from .routes import datasources, tools, execute, health
+from .routes import datasources, tools, execute, health, auth
 from .core.config import settings
 from .core.auth_middleware import BearerTokenMiddleware
+from .core.responses import create_error_response
 
 
 @asynccontextmanager
@@ -28,6 +30,22 @@ app = FastAPI(
     openapi_url="/dbmcp/openapi.json"
 )
 
+# Custom exception handler for StandardAPIResponse format
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions and return StandardAPIResponse format."""
+    # Handle complex detail structure from raise_http_error
+    if isinstance(exc.detail, dict) and "errors" in exc.detail:
+        errors = [error["msg"] for error in exc.detail["errors"]]
+    else:
+        errors = [str(exc.detail)]
+    
+    error_response = create_error_response(errors, data=None)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=error_response.model_dump()
+    )
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -38,10 +56,11 @@ app.add_middleware(
 )
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/auth", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")
+app.include_router(auth.router, prefix="/dbmcp")
 app.include_router(datasources.router, prefix="/dbmcp")
 app.include_router(tools.router, prefix="/dbmcp")
 app.include_router(execute.router, prefix="/dbmcp")

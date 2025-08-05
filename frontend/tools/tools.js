@@ -184,9 +184,16 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    const rowCount = response.data.row_count || 0;
-                    const executionTime = response.data.execution_time_ms || 0;
-                    showNotification(`Tool executed successfully! ${rowCount} rows returned in ${executionTime}ms`, 'success');
+                    // Check if the inner data indicates success or failure
+                    if (response.data.success) {
+                        const rowCount = response.data.row_count || 0;
+                        const executionTime = response.data.execution_time_ms || 0;
+                        showNotification(`Tool executed successfully! ${rowCount} rows returned in ${executionTime}ms`, 'success');
+                    } else {
+                        // Handle error from the inner data
+                        const errorMessage = response.data.error || 'Tool execution failed';
+                        showNotification(`Execution failed: ${errorMessage}`, 'error');
+                    }
                 } else {
                     showNotification('Tool execution failed', 'error');
                 }
@@ -239,8 +246,8 @@ $(document).ready(function() {
     function getToolTypeColor(toolType) {
         const colors = {
             'query': 'bg-blue-100 text-blue-800',
-            'http': 'bg-green-100 text-green-800',
-            'code': 'bg-purple-100 text-purple-800'
+            'http': 'bg-gray-100 text-gray-500', // Disabled color for unsupported type
+            'code': 'bg-gray-100 text-gray-500'   // Disabled color for unsupported type
         };
         return colors[toolType] || 'bg-gray-100 text-gray-800';
     }
