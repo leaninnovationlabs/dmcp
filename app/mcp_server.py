@@ -47,9 +47,9 @@ DEFAULT_ERROR_RESPONSE = {
 # print(f"+++++++ Token: {token}")
 
 mcp = FastMCP(name="DBMCP")
-# Add middlewares - TEMPORARILY DISABLED FOR TESTING
-# mcp.add_middleware(LoggingMiddleware())
-# mcp.add_middleware(AuthMiddleware())
+# Add middlewares
+mcp.add_middleware(LoggingMiddleware())
+mcp.add_middleware(AuthMiddleware())
 
 
 class MCPServer:
@@ -59,8 +59,7 @@ class MCPServer:
         """Initialize the MCP server with the given name."""
         self.mcp = mcp
         self.mcp.tool(self.ping)
-        # Temporarily disable database tools for testing
-        # self._register_database_tools()
+        self._register_database_tools()
 
         # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
