@@ -246,8 +246,8 @@ $(document).ready(function() {
     function getToolTypeColor(toolType) {
         const colors = {
             'query': 'bg-blue-100 text-blue-800',
-            'http': 'bg-green-100 text-green-800',
-            'code': 'bg-purple-100 text-purple-800'
+            'http': 'bg-gray-100 text-gray-500', // Disabled color for unsupported type
+            'code': 'bg-gray-100 text-gray-500'   // Disabled color for unsupported type
         };
         return colors[toolType] || 'bg-gray-100 text-gray-800';
     }
