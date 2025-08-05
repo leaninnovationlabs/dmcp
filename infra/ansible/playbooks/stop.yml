@@ -1,0 +1,39 @@
+---
+# DBMCP Stop Services Playbook
+# Gracefully stops all DBMCP services
+- name: Stop DBMCP Application
+  hosts: dbmcp
+  become: yes
+  gather_facts: no
+  
+  vars:
+    app_dir: /opt/dbmcp
+    
+  tasks:
+    - name: Check if docker-compose file exists
+      stat:
+        path: "{{ app_dir }}/docker-compose.yml"
+      register: compose_file
+    
+    - name: Stop DBMCP services
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: absent
+      become_user: ec2-user
+      when: compose_file.stat.exists
+    
+    - name: Display stopped services status
+      command: docker ps -a --filter "name=dbmcp-"
+      become_user: ec2-user
+      register: container_status
+      when: compose_file.stat.exists
+    
+    - name: Show container status
+      debug:
+        msg: "{{ container_status.stdout_lines }}"
+      when: compose_file.stat.exists
+    
+    - name: Clean up unused Docker resources
+      command: docker system prune -f
+      become_user: ec2-user
+      when: compose_file.stat.exists

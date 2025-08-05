@@ -3,8 +3,20 @@ const APP_CONFIG = {
     // Base context path for the application
     CONTEXT_PATH: '/dbmcp/ui',
     
-    // API configuration
-    API_BASE_URL: 'http://localhost:8000/dbmcp',
+    // API configuration - SIMPLE RELATIVE PATH (browser uses same protocol automatically)
+    API_BASE_URL: '/dbmcp',
+    
+    // Debug information
+    getDebugInfo: function() {
+        return {
+            currentUrl: window.location.href,
+            apiBaseUrl: this.API_BASE_URL,
+            contextPath: this.CONTEXT_PATH,
+            detectedPort: window.location.port,
+            detectedProtocol: window.location.protocol,
+            detectedHostname: window.location.hostname
+        };
+    },
     
     // Helper functions for path generation
     getPath: function(path) {
@@ -30,4 +42,24 @@ const APP_CONFIG = {
 };
 
 // Make it globally available
-window.APP_CONFIG = APP_CONFIG; 
+window.APP_CONFIG = APP_CONFIG;
+
+// Debug helper - accessible via browser console
+window.dbmcpDebug = function() {
+
+};
+
+// Test API connection - accessible via browser console
+window.dbmcpTestConnection = function() {
+
+    
+    fetch(`${APP_CONFIG.API_BASE_URL}/health`)
+        .then(response => {
+            return response.json();
+        })
+        .then(data => {
+        })
+        .catch(error => {
+
+        });
+}; 

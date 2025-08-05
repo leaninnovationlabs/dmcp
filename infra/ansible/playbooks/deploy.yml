@@ -1,0 +1,210 @@
+---
+# DBMCP Deployment Playbook
+# Deploys both FastAPI and MCP containers to EC2 instance
+- name: Deploy DBMCP Application
+  hosts: dbmcp
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    app_dir: /opt/dbmcp
+    log_dir: /var/log/dbmcp
+    compose_file: "{{ app_dir }}/docker-compose.yml"
+    
+  tasks:
+    - name: Ensure application directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+    
+    - name: Ensure log directory exists
+      file:
+        path: "{{ log_dir }}"
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+    
+    - name: Authenticate with ECR
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | \
+        docker login --username AWS --password-stdin {{ ecr_registry }}
+      become_user: ec2-user
+      environment:
+        AWS_DEFAULT_REGION: "{{ aws_region }}"
+    
+    - name: Create Docker Compose file
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ compose_file }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+      notify: restart services
+    
+    - name: Create environment file
+      template:
+        src: .env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0600'
+      notify: restart services
+    
+    - name: Get Aurora cluster details
+      shell: |
+        aws rds describe-db-clusters \
+          --query 'DBClusters[?contains(DBClusterIdentifier, `dbmcp-{{ app_environment }}`)].{Endpoint:Endpoint,SecretArn:MasterUserSecret.SecretArn,Username:MasterUsername}[0]' \
+          --output json
+      register: aurora_cluster
+      delegate_to: localhost
+      become: false
+    
+    - name: Set cluster facts
+      set_fact:
+        aurora_endpoint: "{{ (aurora_cluster.stdout | from_json).Endpoint }}"
+        aurora_secret_arn: "{{ (aurora_cluster.stdout | from_json).SecretArn }}"
+        aurora_username: "{{ (aurora_cluster.stdout | from_json).Username }}"
+    
+    - name: Get Aurora master password from AWS Secrets Manager
+      shell: |
+        aws secretsmanager get-secret-value \
+          --secret-id "{{ aurora_secret_arn }}" \
+          --query 'SecretString' --output text | jq -r '.password'
+      register: aurora_password
+      delegate_to: localhost
+      become: false
+    
+    - name: Set database URL fact
+      set_fact:
+        database_url: "postgresql+asyncpg://{{ aurora_username }}:{{ aurora_password.stdout }}@{{ aurora_endpoint }}:5432/dbmcp"
+    
+    - name: Pull FastAPI container image
+      community.docker.docker_image:
+        name: "{{ fastapi_image }}"
+        source: pull
+        force_source: true
+      become_user: ec2-user
+    
+    - name: Pull MCP container image
+      community.docker.docker_image:
+        name: "{{ mcp_image }}"
+        source: pull
+        force_source: true
+      become_user: ec2-user
+    
+    - name: Create Docker network
+      community.docker.docker_network:
+        name: dbmcp-network
+      become_user: ec2-user
+    
+    - name: Stop existing FastAPI container
+      community.docker.docker_container:
+        name: dbmcp-fastapi
+        state: absent
+      become_user: ec2-user
+      ignore_errors: true
+    
+    - name: Stop existing MCP container
+      community.docker.docker_container:
+        name: dbmcp-mcp
+        state: absent
+      become_user: ec2-user
+      ignore_errors: true
+    
+    - name: Start FastAPI container
+      community.docker.docker_container:
+        name: dbmcp-fastapi
+        image: "{{ fastapi_image }}"
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "{{ fastapi_port }}:8000"
+        env:
+          ENVIRONMENT: "{{ app_environment }}"
+          DATABASE_URL: "{{ database_url }}"
+          USE_PARAMETER_STORE: "false"
+          AWS_DEFAULT_REGION: "{{ aws_region }}"
+          LOG_LEVEL: "info"
+          SKIP_MIGRATIONS: "true"
+        volumes:
+          - "{{ log_dir }}/fastapi:/app/logs"
+        networks:
+          - name: dbmcp-network
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:8000/dbmcp/health"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 40s
+        log_driver: json-file
+        log_options:
+          max-size: "10m"
+          max-file: "3"
+        command: ["python", "api_run.py"]
+      become_user: ec2-user
+    
+    - name: Start MCP container
+      community.docker.docker_container:
+        name: dbmcp-mcp
+        image: "{{ mcp_image }}"
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "{{ mcp_port }}:4200"
+        env:
+          ENVIRONMENT: "{{ app_environment }}"
+          DATABASE_URL: "{{ database_url }}"
+          USE_PARAMETER_STORE: "false"
+          AWS_DEFAULT_REGION: "{{ aws_region }}"
+          LOG_LEVEL: "info"
+          TRANSPORT: "http"
+          SKIP_MIGRATIONS: "true"
+        volumes:
+          - "{{ log_dir }}/mcp:/app/logs"
+        networks:
+          - name: dbmcp-network
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:4200/dbmcp/mcp"]
+          interval: 30s
+          timeout: 10s
+          retries: 3
+          start_period: 40s
+        log_driver: json-file
+        log_options:
+          max-size: "10m"
+          max-file: "3"
+        command: ["python", "mcp_run.py"]
+      become_user: ec2-user
+    
+    - name: Wait for FastAPI to be ready
+      uri:
+        url: "http://localhost:{{ fastapi_port }}/dbmcp/health"
+        method: GET
+        status_code: 200
+      retries: 30
+      delay: 5
+      
+    - name: Wait for MCP server to be ready
+      wait_for:
+        port: "{{ mcp_port }}"
+        host: localhost
+        timeout: 60
+    
+    - name: Display service status
+      command: docker ps --filter "name=dbmcp-"
+      become_user: ec2-user
+      register: container_status
+    
+    - name: Show running services
+      debug:
+        msg: "{{ container_status.stdout_lines }}"
+  
+  handlers:
+    - name: restart services
+      shell: |
+        docker restart dbmcp-fastapi dbmcp-mcp
+      become_user: ec2-user

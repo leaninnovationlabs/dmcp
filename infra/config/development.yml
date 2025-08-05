@@ -1,0 +1,54 @@
+# Development Environment Configuration
+environment: development
+region: us-east-1
+
+app:
+  name: dbmcp
+  version: "1.0.0"
+  port: 8000
+
+ecr:
+  repository_name: dbmcp
+
+# EC2 Simple Architecture (replaces EKS)
+ec2:
+  instance_type: t3.medium
+  key_name: null  # Optional SSH key
+  domain_name: dbmcp.opsloom.io
+
+
+# Database configuration - Aurora Serverless v2
+database:
+  # Will be populated from Parameter Store at runtime
+  parameter_store_url: "/development/dbmcp/database_url"
+  poolSize: 5  # Reduced for development
+  maxOverflow: 10  # Reduced for development
+  # Aurora Serverless v2 configuration
+  aurora:
+    cluster_name: "dbmcp-development"
+    engine_version: "15.7"
+    max_capacity: 2  # ACUs - keep low for cost optimization
+    auto_pause_seconds: 300  # 5 minutes
+
+# RDS Test Database Configuration
+rds_test:
+  enabled: true
+  vpc_id: "vpc-0a8d1cb26ad27e083"
+  subnet_ids:
+    - "subnet-000c0c155f5b97f0b"  # us-east-1a
+    - "subnet-09270e54713dd8fd5"  # us-east-1b
+  database_name: "warehouse"
+  database_username: "dbadmin"
+  publicly_accessible: true
+
+# Security configuration  
+security:
+  jwtAlgorithm: "HS256"
+  jwtExpirationMinutes: 60
+
+# CORS configuration
+cors:
+  allowedOrigins: 
+    - "https://dbmcp.opsloom.io"
+    - "http://localhost:3000"
+    - "http://localhost:8000"

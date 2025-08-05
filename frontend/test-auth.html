@@ -6,6 +6,7 @@
     <title>Authentication Test</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="shared/config.js"></script>
+    <script src="shared/api.js"></script>
     <script src="shared/auth.js"></script>
 </head>
 <body>
@@ -16,8 +17,7 @@
 
     <script>
         $(document).ready(function() {
-            console.log('makeApiRequest function:', typeof window.makeApiRequest);
-            console.log('authManager instance:', typeof window.authManager);
+
             
             $('#testApi').click(function() {
                 $('#result').html('Testing API...');

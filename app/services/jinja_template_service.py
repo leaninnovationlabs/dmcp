@@ -30,7 +30,8 @@ class JinjaTemplateService:
                 return "NULL"
             if isinstance(value, (int, float)):
                 return str(value)
-            return f"'{str(value).replace("'", "''")}'"
+            escaped_value = str(value).replace("'", "''")
+            return f"'{escaped_value}'"
         self.env.filters['sql_quote'] = sql_quote
         
         def sql_in(values):
@@ -45,7 +46,8 @@ class JinjaTemplateService:
             """Escape LIKE patterns."""
             if value is None:
                 return "NULL"
-            return f"'{str(value).replace('%', '\\%').replace('_', '\\_')}'"
+            escaped_value = str(value).replace('%', '\\%').replace('_', '\\_')
+            return f"'{escaped_value}'"
         self.env.filters['sql_like'] = sql_like
     
     def compile_template(self, template_string: str) -> Template:

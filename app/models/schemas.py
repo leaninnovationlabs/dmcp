@@ -25,7 +25,6 @@ class WarningMessage(BaseModel):
 class DatabaseType(str, Enum):
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
-    SQLITE = "sqlite"
 
 
 class ToolType(str, Enum):

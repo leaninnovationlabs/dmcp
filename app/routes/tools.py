@@ -11,7 +11,7 @@ from ..core.responses import create_success_response, create_error_response
 router = APIRouter(prefix="/tools", tags=["tools"])
 
 
-@router.post("/", response_model=StandardAPIResponse)
+@router.post("", response_model=StandardAPIResponse)
 async def create_tool(
     tool: ToolCreate,
     db: AsyncSession = Depends(get_db),
@@ -27,7 +27,7 @@ async def create_tool(
         return create_error_response(errors=[str(e)])
 
 
-@router.get("/", response_model=StandardAPIResponse)
+@router.get("", response_model=StandardAPIResponse)
 async def list_tools(db: AsyncSession = Depends(get_db)):
     """List all available named tools."""
     try:

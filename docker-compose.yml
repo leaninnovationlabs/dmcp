@@ -1,0 +1,99 @@
+services:
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: dbmcp-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - fastapi
+      - mcp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: dbmcp-postgres
+    environment:
+      - POSTGRES_USER=dbmcp
+      - POSTGRES_PASSWORD=dbmcp
+      - POSTGRES_DB=dbmcp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbmcp -d dbmcp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # FastAPI Server
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: dbmcp-fastapi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development (optional)
+      - ./app:/app/app:ro
+      - ./frontend:/app/frontend:ro
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dbmcp:dbmcp@postgres/dbmcp
+      - DEBUG=true
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_SECRET_KEY=dev-jwt-secret-change-in-production
+      # CORS Configuration for Development
+      - CORS_ALLOW_ORIGINS=["http://localhost:3000", "http://localhost:8000", "http://localhost:8002", "http://localhost:8080", "http://127.0.0.1:8000"]
+      - CORS_ALLOW_METHODS=["*"]
+      - CORS_ALLOW_HEADERS=["*"]
+      - CORS_ALLOW_CREDENTIALS=true
+      - CORS_MAX_AGE=600
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/dbmcp/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # MCP Server
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: dbmcp-mcp
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development (optional)
+      - ./app:/app/app:ro
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://dbmcp:dbmcp@postgres/dbmcp
+      - DEBUG=true
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - JWT_SECRET_KEY=dev-jwt-secret-change-in-production
+      - TRANSPORT=http
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/dbmcp/mcp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

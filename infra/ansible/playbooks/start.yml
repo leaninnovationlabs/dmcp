@@ -1,0 +1,52 @@
+---
+# DBMCP Start Services Playbook
+# Starts existing DBMCP services without redeploying
+- name: Start DBMCP Application
+  hosts: dbmcp
+  become: yes
+  gather_facts: no
+  
+  vars:
+    app_dir: /opt/dbmcp
+    
+  tasks:
+    - name: Check if docker-compose file exists
+      stat:
+        path: "{{ app_dir }}/docker-compose.yml"
+      register: compose_file
+    
+    - name: Fail if no deployment exists
+      fail:
+        msg: "No DBMCP deployment found. Run deploy.yml first."
+      when: not compose_file.stat.exists
+    
+    - name: Start DBMCP services
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: present
+      become_user: ec2-user
+    
+    - name: Wait for FastAPI to be ready
+      uri:
+        url: "http://localhost:{{ fastapi_port }}/dbmcp/health"
+        method: GET
+        status_code: 200
+      retries: 30
+      delay: 5
+      
+    - name: Wait for MCP server to be ready
+      wait_for:
+        port: "{{ mcp_port }}"
+        host: localhost
+        timeout: 60
+    
+    - name: Display service status
+      command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ec2-user
+      register: compose_status
+    
+    - name: Show running services
+      debug:
+        msg: "{{ compose_status.stdout_lines }}"

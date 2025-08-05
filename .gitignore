@@ -1,6 +1,256 @@
-__pycache__/ 
-.venv/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Virtual environments
 .env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Database
+*.sqlite
+*.sqlite3
 *.db
-*.db-journal
-tests/*.db
+
+# FastAPI / Uvicorn
+.pytest_cache/
+
+# Alembic
+alembic/versions/*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+*.env
+
+# JWT Tokens and secrets
+*.token
+jwt_token.txt
+bearer_token.txt
+bearer_token_clean.txt
+*token*.txt
+
+# Docker
+.dockerignore
+
+# Docker Compose
+docker-compose.override.yml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate.backup
+terraform.tfstate.*.backup
+
+# Ansible
+*.retry
+.ansible/
+
+# AWS
+.aws/
+
+# Kubernetes
+kubectl
+*.kubeconfig
+
+# SSH keys
+.ssh/
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# JetBrains
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Vim
+*.swp
+*.swo
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.tmp
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
+.hypothesis/
+
+# Node.js (for frontend tooling)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Data files
+data/
+!data/.gitkeep
+
+# Configuration overrides
+config.local.yml
+config.override.yml
+
+# Bruno API client
+docs/api/environments/*.bru
+!docs/api/environments/local.bru
+
+# Helm
+*.tgz
+
+# Development tools
+.black
+.isort
+.flake8
+.mypy_cache
+
+# Application specific
+warehouse.db
+test.db
+debug*.yml
+hotfix*.yml
+restart*.yml
+check*.yml
+
+# Ansible playbooks (if containing sensitive data)
+*-playbook.yml
+!example-playbook.yml
+
+# Test files
+test_*.py
+*_test.py
+
+# Certificates
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Local development overrides
+docker-compose.local.yml
+docker-compose.dev.yml
+docker-compose.test.yml

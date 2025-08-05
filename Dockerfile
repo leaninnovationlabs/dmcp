@@ -1,0 +1,77 @@
+# Multi-stage build using official UV Docker image
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
+
+# Set environment variables for optimal builds
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+# Disable Python downloads (use system Python)
+ENV UV_PYTHON_DOWNLOADS=0
+
+# Set work directory
+WORKDIR /app
+
+# Install dependencies first (cached layer)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-dev
+
+# Copy application code and project configuration
+COPY pyproject.toml uv.lock ./
+COPY app/ ./app/
+COPY frontend/ ./frontend/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./
+COPY api_run.py ./
+
+# Install the project itself
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# Production stage - minimal image without uv
+FROM python:3.11-slim-bookworm
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies for runtime
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN groupadd -r app && useradd -r -g app app
+
+# Copy the application from builder stage
+COPY --from=builder --chown=app:app /app /app
+
+# Copy entrypoint script
+COPY infra/scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Set work directory
+WORKDIR /app
+
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Create necessary directories and set permissions
+RUN chown -R app:app /app
+
+# Switch to app user
+USER app
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/dbmcp/health || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Default command - no need for "uv run" since .venv/bin is in PATH
+CMD ["python", "api_run.py"] 

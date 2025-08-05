@@ -22,7 +22,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             excluded_paths: List of paths that don't require authentication
         """
         super().__init__(app)
-        self.excluded_paths = excluded_paths 
+        self.excluded_paths = excluded_paths or [] 
     
     async def dispatch(self, request: Request, call_next) -> Response:
         """
@@ -35,12 +35,17 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         Returns:
             Response from the next handler or error response
         """
-        # Skip authentication for health endpoint and other excluded paths
-        if any(request.url.path.startswith(path) for path in self.excluded_paths):
+        # Always skip authentication for root path redirect
+        if request.url.path == "/":
+            return await call_next(request)
+            
+        # Skip authentication for exact path matches
+        if request.url.path in self.excluded_paths:
             return await call_next(request)
         
-        # Skip authentication for static files and UI
-        if request.url.path.startswith("/dbmcp/ui"):
+        # Also check for prefix matches for paths that should use startswith
+        prefix_paths = ["/dbmcp/ui/", "/dbmcp/ui", "/static/", "/frontend/", "/dbmcp/docs", "/dbmcp/redoc"]
+        if any(request.url.path.startswith(path) for path in prefix_paths):
             return await call_next(request)
             
         # Get authorization header

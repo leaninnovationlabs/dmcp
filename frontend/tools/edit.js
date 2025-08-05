@@ -559,7 +559,7 @@ $(document).ready(function() {
         // Update summary
         $('#executionSummary').html(`${rowCount} rows returned in ${executionTime}ms`);
         
-        console.log(data)
+        
         // Display results table
         if (data.data && data.data.length > 0) {
             displayResultsTable(data.data);
@@ -583,7 +583,7 @@ $(document).ready(function() {
         const $thead = $table.find('thead');
         const $tbody = $table.find('tbody');
         
-        console.log(results)
+        
         // Clear existing content
         $thead.empty();
         $tbody.empty();

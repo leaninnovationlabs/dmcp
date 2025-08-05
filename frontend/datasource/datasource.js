@@ -60,8 +60,8 @@ $(document).ready(function() {
 
     // Create individual datasource card
     function createDatasourceCard(datasource) {
-        const databaseTypeIcon = getDatabaseIcon(datasource.database_type);
-        const statusColor = 'bg-green-100 text-green-800'; // Default to healthy
+        const typeIcon = getDatabaseTypeIcon(datasource.database_type);
+        const typeColor = getDatabaseTypeColor(datasource.database_type);
         
         return $(`
             <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer datasource-card mb-4" data-id="${datasource.id}">
@@ -69,76 +69,100 @@ $(document).ready(function() {
                     <!-- Header -->
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center space-x-3">
-                            <div>${databaseTypeIcon}</div>
+                            <div class="text-2xl">${typeIcon}</div>
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 truncate">${escapeHtml(datasource.name)}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeColor}">
                                     ${datasource.database_type.toUpperCase()}
                                 </span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button class="text-gray-400 hover:text-gray-600 transition-colors test-connection-btn" data-id="${datasource.id}" title="Test Connection">
-                                <i class="fas fa-plug text-lg"></i>
+                            <button class="test-connection text-green-600 hover:text-green-700 p-1 rounded" data-id="${datasource.id}" title="Test Connection">
+                                <i class="fas fa-plug"></i>
+                            </button>
+                            <button class="edit-datasource text-blue-600 hover:text-blue-700 p-1 rounded" data-id="${datasource.id}" title="Edit">
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Connection Info -->
+                    <!-- Details -->
                     <div class="space-y-2 text-sm text-gray-600">
-                        ${datasource.host ? `
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-server text-gray-400"></i>
-                                <span>${escapeHtml(datasource.host)}${datasource.port ? ':' + datasource.port : ''}</span>
-                            </div>
-                        ` : ''}
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-database text-gray-400"></i>
-                            <span>${escapeHtml(datasource.database)}</span>
-                        </div>
-                        ${datasource.username ? `
-                            <div class="flex items-center space-x-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                <span>${escapeHtml(datasource.username)}</span>
-                            </div>
-                        ` : ''}
+                        ${datasource.host ? `<div><span class="font-medium">Host:</span> ${escapeHtml(datasource.host)}${datasource.port ? ':' + datasource.port : ''}</div>` : ''}
+                        <div><span class="font-medium">Database:</span> ${escapeHtml(datasource.database)}</div>
+                        ${datasource.username ? `<div><span class="font-medium">Username:</span> ${escapeHtml(datasource.username)}</div>` : ''}
+                        ${datasource.ssl_mode ? `<div><span class="font-medium">SSL Mode:</span> ${escapeHtml(datasource.ssl_mode)}</div>` : ''}
                     </div>
 
-                    <!-- Footer -->
-                    <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center text-xs text-gray-500">
-                        <span>Created: ${formatDate(datasource.created_at)}</span>
-                        <span class="text-blue-600 font-medium">Click to edit</span>
+                    <!-- Connection Status -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-500">Connection Status</span>
+                            <div class="connection-status-${datasource.id} flex items-center space-x-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span class="text-xs text-gray-500">Unknown</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         `);
     }
 
-    // Handle card click (navigate to edit page)
+    // Database type icons and colors
+    function getDatabaseTypeIcon(type) {
+        const icons = {
+            'postgresql': '<i class="fas fa-database text-blue-600"></i>',
+            'mysql': '<i class="fas fa-database text-orange-600"></i>',
+            'sqlite': '<i class="fas fa-database text-green-600"></i>',
+            'mongodb': '<i class="fas fa-leaf text-green-600"></i>',
+            'redis': '<i class="fas fa-memory text-red-600"></i>'
+        };
+        return icons[type] || '<i class="fas fa-database text-gray-600"></i>';
+    }
+
+    function getDatabaseTypeColor(type) {
+        const colors = {
+            'postgresql': 'bg-blue-100 text-blue-800',
+            'mysql': 'bg-orange-100 text-orange-800',
+            'sqlite': 'bg-green-100 text-green-800',
+            'mongodb': 'bg-green-100 text-green-800',
+            'redis': 'bg-red-100 text-red-800'
+        };
+        return colors[type] || 'bg-gray-100 text-gray-800';
+    }
+
+    // Event delegation for card actions
     $(document).on('click', '.datasource-card', function(e) {
-        // Prevent navigation if clicking on test connection button
-        if ($(e.target).closest('.test-connection-btn').length > 0) {
-            return;
-        }
+        if ($(e.target).closest('button').length) return; // Don't trigger on button clicks
         
         const datasourceId = $(this).data('id');
         window.location.href = APP_CONFIG.urls.datasourceEdit(datasourceId);
     });
 
-    // Handle test connection
-    $(document).on('click', '.test-connection-btn', function(e) {
+    $(document).on('click', '.edit-datasource', function(e) {
         e.stopPropagation();
         const datasourceId = $(this).data('id');
-        testConnection(datasourceId, $(this));
+        window.location.href = APP_CONFIG.urls.datasourceEdit(datasourceId);
     });
 
-    // Test database connection
-    function testConnection(datasourceId, $button) {
-        const originalHtml = $button.html();
-        $button.html('<div class="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>');
-        $button.prop('disabled', true);
+    $(document).on('click', '.test-connection', function(e) {
+        e.stopPropagation();
+        const datasourceId = $(this).data('id');
+        testConnection(datasourceId);
+    });
+
+    // Test connection functionality
+    function testConnection(datasourceId) {
+        const $statusContainer = $(`.connection-status-${datasourceId}`);
+        const $testBtn = $(this);
+        
+        // Show testing state
+        $statusContainer.html(`
+            <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            <span class="text-xs text-yellow-600">Testing...</span>
+        `);
 
         makeApiRequest({
             url: `${API_BASE_URL}/datasources/${datasourceId}/test`,
@@ -146,8 +170,17 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success && response.data) {
-                    showNotification('Connection test successful', 'success');
+                    const data = response.data;
+                    $statusContainer.html(`
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-xs text-green-600">Connected (${data.connection_time_ms}ms)</span>
+                    `);
+                    showNotification('Connection successful!', 'success');
                 } else {
+                    $statusContainer.html(`
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span class="text-xs text-red-600">Failed</span>
+                    `);
                     showNotification('Connection test failed', 'error');
                 }
             },
@@ -156,11 +189,11 @@ $(document).ready(function() {
                 if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
                     errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
                 }
+                $statusContainer.html(`
+                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span class="text-xs text-red-600">Failed</span>
+                `);
                 showNotification(errorMessage, 'error');
-            },
-            complete: function() {
-                $button.html(originalHtml);
-                $button.prop('disabled', false);
             }
         });
     }
@@ -186,25 +219,7 @@ $(document).ready(function() {
         $('#loadingState, #errorState, #emptyState, #datasourcesGrid').hide();
     }
 
-    // Utility functions
-    function getDatabaseIcon(databaseType) {
-        const icons = {
-            'postgresql': '<i class="fab fa-elephant text-2xl text-blue-600"></i>',
-            'mysql': '<i class="fas fa-fish text-2xl text-orange-500"></i>',
-            'sqlite': '<i class="fas fa-cube text-2xl text-gray-600"></i>'
-        };
-        return icons[databaseType] || '<i class="fas fa-database text-2xl text-blue-500"></i>';
-    }
-
-    function formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString();
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return $('<div>').text(text).html();
-    }
-
+    // Notification system
     function showNotification(message, type = 'info') {
         const colors = {
             success: 'bg-green-500',
@@ -218,6 +233,11 @@ $(document).ready(function() {
                 <p class="font-medium">${escapeHtml(message)}</p>
             </div>
         `);
+
+        // Create container if it doesn't exist
+        if ($('#statusMessages').length === 0) {
+            $('body').append('<div id="statusMessages" class="fixed top-4 right-4 z-50 space-y-2"></div>');
+        }
 
         $('#statusMessages').append(notification);
         
@@ -234,4 +254,9 @@ $(document).ready(function() {
             }, 300);
         }, 5000);
     }
-}); 
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return $('<div>').text(text).html();
+    }
+});

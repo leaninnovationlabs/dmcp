@@ -1,0 +1,122 @@
+---
+# DBMCP Upgrade Services Playbook
+# Pulls latest images and performs rolling upgrade
+- name: Upgrade DBMCP Application
+  hosts: dbmcp
+  become: yes
+  gather_facts: no
+  
+  vars:
+    app_dir: /opt/dbmcp
+    backup_dir: /opt/dbmcp/backups
+    
+  tasks:
+    - name: Check if docker-compose file exists
+      stat:
+        path: "{{ app_dir }}/docker-compose.yml"
+      register: compose_file
+    
+    - name: Fail if no deployment exists
+      fail:
+        msg: "No DBMCP deployment found. Run deploy.yml first."
+      when: not compose_file.stat.exists
+    
+    - name: Create backup directory
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+    
+    - name: Backup current docker-compose file
+      copy:
+        src: "{{ app_dir }}/docker-compose.yml"
+        dest: "{{ backup_dir }}/docker-compose.yml.backup.{{ ansible_date_time.epoch }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+        remote_src: yes
+    
+    - name: Authenticate with ECR
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} | \
+        docker login --username AWS --password-stdin {{ ecr_registry }}
+      become_user: ec2-user
+      environment:
+        AWS_DEFAULT_REGION: "{{ aws_region }}"
+    
+    - name: Pull latest container images
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        pull: always
+      become_user: ec2-user
+    
+    - name: Get current image IDs before upgrade
+      shell: |
+        docker compose images --format "table {{.Service}}\t{{.Repository}}\t{{.Tag}}\t{{.ID}}"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ec2-user
+      register: images_before
+    
+    - name: Show images before upgrade
+      debug:
+        msg: "Images before upgrade:\n{{ images_before.stdout }}"
+    
+    - name: Perform rolling upgrade - FastAPI first
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        services:
+          - fastapi
+        restarted: yes
+      become_user: ec2-user
+    
+    - name: Wait for FastAPI to be healthy after upgrade
+      uri:
+        url: "http://localhost:{{ fastapi_port }}/dbmcp/health"
+        method: GET
+        status_code: 200
+      retries: 30
+      delay: 5
+    
+    - name: Upgrade MCP server
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        services:
+          - mcp
+        restarted: yes
+      become_user: ec2-user
+    
+    - name: Wait for MCP server to be ready after upgrade
+      wait_for:
+        port: "{{ mcp_port }}"
+        host: localhost
+        timeout: 60
+    
+    - name: Get image IDs after upgrade
+      shell: |
+        docker compose images --format "table {{.Service}}\t{{.Repository}}\t{{.Tag}}\t{{.ID}}"
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ec2-user
+      register: images_after
+    
+    - name: Show images after upgrade
+      debug:
+        msg: "Images after upgrade:\n{{ images_after.stdout }}"
+    
+    - name: Display service status after upgrade
+      command: docker compose ps
+      args:
+        chdir: "{{ app_dir }}"
+      become_user: ec2-user
+      register: compose_status
+    
+    - name: Show running services
+      debug:
+        msg: "{{ compose_status.stdout_lines }}"
+    
+    - name: Clean up old Docker images
+      command: docker image prune -f
+      become_user: ec2-user

@@ -45,7 +45,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 # For backward compatibility with sync operations if needed
 def get_sync_db() -> Session:
     """Get a synchronous database session for operations that need it."""
-    sync_url = settings.database_url.replace("+aiosqlite", "").replace("+asyncpg", "").replace("+aiomysql", "")
+    sync_url = settings.database_url.replace("+asyncpg", "+psycopg2")
     sync_engine = create_engine(
         sync_url,
         echo=False,

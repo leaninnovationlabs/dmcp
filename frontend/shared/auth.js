@@ -126,12 +126,22 @@ class AuthManager {
                 window.location.reload();
             },
             error: (xhr) => {
-                // Token is invalid
+                // Token is invalid or connection failed
                 this.clearToken();
                 if (xhr.status === 401) {
                     $('#authErrorMessage').text('Invalid or expired token. Please check your bearer token.');
+                } else if (xhr.status === 0) {
+                    // Network error - likely CORS or connection issue
+                    const debugInfo = APP_CONFIG.getDebugInfo();
+                    $('#authErrorMessage').html(`
+                        Connection failed. Please check:<br>
+                        • API URL: ${debugInfo.apiBaseUrl}<br>
+                        • CORS configuration<br>
+                        • Server is running<br>
+                        <small>Debug: ${xhr.statusText || 'Network Error'}</small>
+                    `);
                 } else {
-                    $('#authErrorMessage').text('Unable to validate token. Please try again.');
+                    $('#authErrorMessage').text(`Unable to validate token. Server responded with ${xhr.status}: ${xhr.statusText}`);
                 }
                 $('#authError').show();
                 $('#tokenInput').focus().select();
@@ -231,7 +241,8 @@ class AuthManager {
 // Initialize auth manager globally
 window.authManager = new AuthManager();
 
-// Global helper function for making authenticated requests
+// Simple API request function - no bullshit
 window.makeApiRequest = function(options) {
+    
     return window.authManager.makeAuthenticatedRequest(options);
 }; 

@@ -1,0 +1,90 @@
+# Production Environment Configuration
+environment: production
+region: us-east-1
+
+app:
+  name: dbmcp
+  version: "1.0.0"
+  port: 8000
+
+ecr:
+  repository_name: dbmcp
+
+eks:
+  cluster_name: opsloom-cluster
+  namespace: dbmcp-production
+  ingress:
+    host: dbmcp.opsloom.io
+    certificate_arn: "arn:aws:acm:us-east-1:ACCOUNT_ID:certificate/CERT_ID"
+    scheme: internet-facing
+
+# Application configuration
+fastapi:
+  replicaCount: 3
+  port: 8000
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  image:
+    repository: "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/dbmcp-fastapi"
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 80
+
+mcp:
+  replicaCount: 2
+  port: 4200
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  image:
+    repository: "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/dbmcp-mcp"
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 80
+
+# Database configuration
+database:
+  url: "postgresql+asyncpg://postgres:postgres@postgres.dbmcp-production.svc.cluster.local/dbmcp"
+  poolSize: 20
+  maxOverflow: 40
+
+# Security configuration
+security:
+  jwtAlgorithm: "HS256"
+  jwtExpirationMinutes: 60
+
+# CORS configuration
+cors:
+  allowedOrigins:
+    - "https://dbmcp.opsloom.io"
+
+# Resource configuration
+resources:
+  requests:
+    cpu: "500m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+# Health check configuration
+health:
+  liveness_probe:
+    path: "/dbmcp/health"
+    initial_delay_seconds: 60
+    period_seconds: 10
+  readiness_probe:
+    path: "/dbmcp/health"
+    initial_delay_seconds: 30
+    period_seconds: 5

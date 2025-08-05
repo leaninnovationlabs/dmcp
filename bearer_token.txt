@@ -1,0 +1,8 @@
+================================================================================
+JWT BEARER TOKEN GENERATED
+================================================================================
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZGVwbG95bWVudF91c2VyIiwidXNlcm5hbWUiOiJkZXBsb3ltZW50X3NlcnZpY2UiLCJwdXJwb3NlIjoiZGVwbG95bWVudF9hdXRoIiwiZ2VuZXJhdGVkX2F0IjoiMjAyNS0wNy0zMVQxNTo0NToyMS4zMTA0NDUiLCJleHAiOjE3NTM5OTQ3MjEsImlhdCI6MTc1Mzk5MTEyMX0.7dPG1wnCdP39RqHWANk7QGObr1uH_yhp_4ryjw092t0
+================================================================================
+This token is valid for 60 minutes
+Save this token securely - it will be used for API authentication.
+================================================================================

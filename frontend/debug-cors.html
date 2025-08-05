@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBMCP CORS Debug Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">🔍 DBMCP CORS Debug Tool</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Current Environment Info -->
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold text-blue-800 mb-3">Current Environment</h2>
+                    <div id="envInfo" class="space-y-2 text-sm">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- CORS Test Results -->
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-semibold text-green-800 mb-3">CORS Test Results</h2>
+                    <div id="corsResults" class="space-y-2 text-sm">
+                        <p class="text-gray-600">Click "Test CORS" to check connectivity</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Controls -->
+            <div class="mt-6 flex flex-wrap gap-3">
+                <button onclick="testCors()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    🧪 Test CORS
+                </button>
+                <button onclick="testHealth()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    ❤️ Test Health
+                </button>
+                <button onclick="testAuth()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                    🔐 Test Auth (with token)
+                </button>
+                <button onclick="clearResults()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    🗑️ Clear Results
+                </button>
+            </div>
+            
+            <!-- Token Input -->
+            <div class="mt-6">
+                <label for="bearerToken" class="block text-sm font-medium text-gray-700 mb-2">
+                    Bearer Token (for auth test):
+                </label>
+                <input type="text" 
+                       id="bearerToken" 
+                       placeholder="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono">
+            </div>
+        </div>
+    </div>
+
+    <script src="shared/config.js"></script>
+    <script src="shared/api.js"></script>
+    <script>
+        // Display environment information
+        function updateEnvInfo() {
+            const info = APP_CONFIG.getDebugInfo();
+            const envDiv = document.getElementById('envInfo');
+            
+            envDiv.innerHTML = `
+                <div><strong>Current URL:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.currentUrl}</code></div>
+                <div><strong>API Base URL:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.apiBaseUrl}</code></div>
+                <div><strong>Hostname:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.detectedHostname}</code></div>
+                <div><strong>Protocol:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.detectedProtocol}</code></div>
+                <div><strong>Port:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.detectedPort || 'default'}</code></div>
+                <div><strong>Context Path:</strong> <code class="text-xs bg-gray-200 px-1 rounded">${info.contextPath}</code></div>
+            `;
+        }
+        
+        // Add result to the display
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('corsResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: 'text-green-600 bg-green-100',
+                error: 'text-red-600 bg-red-100',
+                info: 'text-blue-600 bg-blue-100',
+                warning: 'text-yellow-600 bg-yellow-100'
+            };
+            
+            const resultElement = document.createElement('div');
+            resultElement.className = `p-2 rounded text-sm ${colors[type] || colors.info}`;
+            resultElement.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            
+            resultsDiv.appendChild(resultElement);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        // Clear results
+        function clearResults() {
+            document.getElementById('corsResults').innerHTML = '<p class="text-gray-600">Results cleared</p>';
+        }
+        
+        // Test basic CORS connectivity
+        async function testCors() {
+            addResult('🧪 Testing CORS connectivity...', 'info');
+            
+            try {
+                const response = await fetch(`${APP_CONFIG.API_BASE_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ CORS test successful! Status: ${response.status}`, 'success');
+                    addResult(`Response: ${JSON.stringify(data, null, 2)}`, 'success');
+                } else {
+                    addResult(`⚠️ CORS test returned status: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                addResult(`❌ CORS test failed: ${error.message}`, 'error');
+                if (error.message.includes('CORS')) {
+                    addResult('💡 This is a CORS error. Check server CORS configuration.', 'warning');
+                }
+            }
+        }
+        
+        // Test health endpoint specifically
+        async function testHealth() {
+            addResult('❤️ Testing health endpoint...', 'info');
+            
+            try {
+                const response = await fetch(`${APP_CONFIG.API_BASE_URL}/health`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('✅ Health check successful!', 'success');
+                    addResult(`Server status: ${data.data?.status || 'unknown'}`, 'success');
+                } else {
+                    addResult(`⚠️ Health check returned status: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                addResult(`❌ Health check failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test authenticated endpoint
+        async function testAuth() {
+            const token = document.getElementById('bearerToken').value.trim();
+            
+            if (!token) {
+                addResult('❌ Please enter a Bearer token first', 'error');
+                return;
+            }
+            
+            addResult('🔐 Testing authenticated endpoint...', 'info');
+            
+            try {
+                const authHeader = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+                
+                const response = await fetch(`${APP_CONFIG.API_BASE_URL}/datasources`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': authHeader
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('✅ Authentication test successful!', 'success');
+                    addResult(`Found ${data.data?.length || 0} datasources`, 'success');
+                } else if (response.status === 401) {
+                    addResult('❌ Authentication failed - invalid or expired token', 'error');
+                } else {
+                    addResult(`⚠️ Auth test returned status: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                addResult(`❌ Auth test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateEnvInfo();
+            addResult('🚀 CORS Debug Tool initialized', 'info');
+            addResult('Use the buttons above to test connectivity', 'info');
+        });
+    </script>
+</body>
+</html>
