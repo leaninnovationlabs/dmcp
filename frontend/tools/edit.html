@@ -92,6 +92,12 @@
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
         }
+
+        /* Style for disabled select options */
+        select option:disabled {
+            color: #9ca3af;
+            font-style: italic;
+        }
     </style>
 </head>
 <body class="bg-white min-h-screen">
@@ -155,8 +161,8 @@
                                 <select id="type" name="type" required class="form-input">
                                     <option value="">Select tool type</option>
                                     <option value="query">Query</option>
-                                    <option value="http">HTTP</option>
-                                    <option value="code">Code</option>
+                                    <option value="http" disabled>HTTP (Coming Soon)</option>
+                                    <option value="code" disabled>Code (Coming Soon)</option>
                                 </select>
                             </div>
                             <div class="md:col-span-2">
