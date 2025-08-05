@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
-from ..models.schemas import DatasourceCreate, DatasourceUpdate, DatasourceResponse, StandardAPIResponse
+from ..models.schemas import DatasourceCreate, DatasourceUpdate, DatasourceResponse, StandardAPIResponse, DatabaseType, FieldDefinition, DatasourceFieldConfig
 from ..database import get_db
 from ..services.datasource_service import DatasourceService
 from ..core.exceptions import handle_dbmcp_exception
@@ -18,6 +18,204 @@ class ConnectionTestResponse(BaseModel):
 
 
 router = APIRouter(prefix="/datasources", tags=["datasources"])
+
+
+@router.get("/field-config", response_model=StandardAPIResponse)
+async def get_datasource_field_config():
+    """Get field configuration for all datasource types."""
+    try:
+        # Hardcoded field configurations for each database type
+        field_configs = {
+            "sqlite": {
+                "database_type": DatabaseType.SQLITE,
+                "fields": [
+                    FieldDefinition(
+                        name="sqlite_database",
+                        type="text",
+                        label="Database File Path",
+                        required=True,
+                        placeholder="/path/to/database.db",
+                        description="Path to the SQLite database file"
+                    )
+                ],
+                "sections": [
+                    {
+                        "id": "sqlite-config",
+                        "title": "SQLite Configuration",
+                        "description": "Configure your SQLite database connection"
+                    }
+                ]
+            },
+            "postgresql": {
+                "database_type": DatabaseType.POSTGRESQL,
+                "fields": [
+                    FieldDefinition(
+                        name="host",
+                        type="text",
+                        label="Host",
+                        required=True,
+                        placeholder="localhost"
+                    ),
+                    FieldDefinition(
+                        name="port",
+                        type="number",
+                        label="Port",
+                        required=True,
+                        placeholder="5432"
+                    ),
+                    FieldDefinition(
+                        name="database",
+                        type="text",
+                        label="Database Name",
+                        required=True,
+                        placeholder="mydatabase"
+                    ),
+                    FieldDefinition(
+                        name="username",
+                        type="text",
+                        label="Username",
+                        required=True,
+                        placeholder="myuser"
+                    ),
+                    FieldDefinition(
+                        name="password",
+                        type="password",
+                        label="Password",
+                        required=True,
+                        placeholder="mypassword"
+                    ),
+                    FieldDefinition(
+                        name="ssl_mode",
+                        type="select",
+                        label="SSL Mode",
+                        required=False,
+                        options=[
+                            {"value": "", "label": "None"},
+                            {"value": "require", "label": "Require"},
+                            {"value": "verify-ca", "label": "Verify CA"},
+                            {"value": "verify-full", "label": "Verify Full"}
+                        ]
+                    )
+                ],
+                "sections": [
+                    {
+                        "id": "postgresql-config",
+                        "title": "PostgreSQL/MySQL Configuration",
+                        "description": "Configure your PostgreSQL or MySQL database connection"
+                    }
+                ]
+            },
+            "mysql": {
+                "database_type": DatabaseType.MYSQL,
+                "fields": [
+                    FieldDefinition(
+                        name="host",
+                        type="text",
+                        label="Host",
+                        required=True,
+                        placeholder="localhost"
+                    ),
+                    FieldDefinition(
+                        name="port",
+                        type="number",
+                        label="Port",
+                        required=True,
+                        placeholder="3306"
+                    ),
+                    FieldDefinition(
+                        name="database",
+                        type="text",
+                        label="Database Name",
+                        required=True,
+                        placeholder="mydatabase"
+                    ),
+                    FieldDefinition(
+                        name="username",
+                        type="text",
+                        label="Username",
+                        required=True,
+                        placeholder="myuser"
+                    ),
+                    FieldDefinition(
+                        name="password",
+                        type="password",
+                        label="Password",
+                        required=True,
+                        placeholder="mypassword"
+                    ),
+                    FieldDefinition(
+                        name="ssl_mode",
+                        type="select",
+                        label="SSL Mode",
+                        required=False,
+                        options=[
+                            {"value": "", "label": "None"},
+                            {"value": "require", "label": "Require"},
+                            {"value": "verify-ca", "label": "Verify CA"},
+                            {"value": "verify-full", "label": "Verify Full"}
+                        ]
+                    )
+                ],
+                "sections": [
+                    {
+                        "id": "postgresql-config",
+                        "title": "PostgreSQL/MySQL Configuration",
+                        "description": "Configure your PostgreSQL or MySQL database connection"
+                    }
+                ]
+            },
+            "databricks": {
+                "database_type": DatabaseType.DATABRICKS,
+                "fields": [
+                    FieldDefinition(
+                        name="databricks_host",
+                        type="text",
+                        label="Workspace URL",
+                        required=True,
+                        placeholder="https://your-workspace.cloud.databricks.com"
+                    ),
+                    FieldDefinition(
+                        name="http_path",
+                        type="text",
+                        label="HTTP Path",
+                        required=True,
+                        placeholder="/sql/1.0/warehouses/default"
+                    ),
+                    FieldDefinition(
+                        name="databricks_token",
+                        type="password",
+                        label="Access Token",
+                        required=True,
+                        placeholder="dapi..."
+                    ),
+                    FieldDefinition(
+                        name="catalog",
+                        type="text",
+                        label="Catalog",
+                        required=False,
+                        placeholder="hive_metastore"
+                    ),
+                    FieldDefinition(
+                        name="schema",
+                        type="text",
+                        label="Schema",
+                        required=False,
+                        placeholder="default"
+                    )
+                ],
+                "sections": [
+                    {
+                        "id": "databricks-config",
+                        "title": "Databricks Configuration",
+                        "description": "Configure your Databricks SQL warehouse connection"
+                    }
+                ]
+            }
+        }
+        
+        return create_success_response(data=field_configs)
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.post("", response_model=StandardAPIResponse)

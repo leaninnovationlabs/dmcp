@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 
 from .database import init_db
-from .routes import datasources, tools, execute, health
+from .routes import datasources, tools, execute, health, auth
 from .core.config import settings
 from .core.auth_middleware import BearerTokenMiddleware
 from .core.responses import create_error_response
@@ -56,10 +56,11 @@ app.add_middleware(
 )
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/auth", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")
+app.include_router(auth.router, prefix="/dbmcp")
 app.include_router(datasources.router, prefix="/dbmcp")
 app.include_router(tools.router, prefix="/dbmcp")
 app.include_router(execute.router, prefix="/dbmcp")

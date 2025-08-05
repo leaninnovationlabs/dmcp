@@ -1,0 +1,36 @@
+{
+  "name": "Generate JWT Token",
+  "method": "POST",
+  "url": "{{baseUrl}}/auth",
+  "headers": [
+    {
+      "name": "Content-Type",
+      "value": "application/json"
+    }
+  ],
+  "body": {
+    "mode": "json",
+    "json": {
+      "payload": {
+        "user_id": 123,
+        "username": "testuser",
+        "role": "admin",
+        "custom_field": "custom_value"
+      }
+    }
+  },
+  "tests": [
+    {
+      "type": "test",
+      "value": "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});"
+    },
+    {
+      "type": "test",
+      "value": "pm.test('Response has token', function () {\n    const response = pm.response.json();\n    pm.expect(response.data).to.have.property('token');\n    pm.expect(response.data.token).to.be.a('string');\n});"
+    },
+    {
+      "type": "test",
+      "value": "pm.test('Response has expiration info', function () {\n    const response = pm.response.json();\n    pm.expect(response.data).to.have.property('expires_in_minutes');\n    pm.expect(response.data.expires_in_minutes).to.be.a('number');\n});"
+    }
+  ]
+} 

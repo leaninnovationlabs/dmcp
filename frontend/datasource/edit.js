@@ -2,6 +2,7 @@ $(document).ready(function() {
     const API_BASE_URL = APP_CONFIG.API_BASE_URL;
     let isEditMode = false;
     let currentDatasourceId = null;
+    let fieldConfigs = null;
 
     // Get datasource ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,6 +19,9 @@ $(document).ready(function() {
         $('#saveBtn').text('Create Datasource');
         hideLoadingState();
     }
+
+    // Load field configurations from API
+    loadFieldConfigs();
 
     // Event listeners
     $('#backBtn, #cancelBtn').on('click', function() {
@@ -39,6 +43,11 @@ $(document).ready(function() {
         testConnection();
     });
 
+    // Database type change handler
+    $('#database_type').on('change', function() {
+        updateFormFields();
+    });
+
     // Auto-format JSON in additional_params field
     $('#additional_params').on('blur', function() {
         try {
@@ -52,6 +61,52 @@ $(document).ready(function() {
             $(this).removeClass('border-gray-300').addClass('border-red-300');
         }
     });
+
+    // Load field configurations from API
+    function loadFieldConfigs() {
+        makeApiRequest({
+            url: `${API_BASE_URL}/datasources/field-config`,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    fieldConfigs = response.data;
+                    // If we're in edit mode, we'll update the form after loading the datasource
+                    if (!isEditMode) {
+                        updateFormFields();
+                    }
+                } else {
+                    showNotification('Failed to load field configurations', 'error');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to load field configurations';
+                if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
+                    errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
+                }
+                showNotification(errorMessage, 'error');
+            }
+        });
+    }
+
+    // Update form fields based on database type
+    function updateFormFields() {
+        if (!fieldConfigs) return;
+        
+        const databaseType = $('#database_type').val();
+        
+        // Hide all configuration sections
+        $('.field-group').addClass('hidden');
+        
+        // Show relevant configuration based on database type
+        if (databaseType && fieldConfigs[databaseType]) {
+            const config = fieldConfigs[databaseType];
+            const sectionId = config.sections[0]?.id;
+            if (sectionId) {
+                $(`#${sectionId}`).removeClass('hidden');
+            }
+        }
+    }
 
     // Load existing datasource data
     function loadDatasource(id) {
@@ -88,16 +143,36 @@ $(document).ready(function() {
         $('#datasourceId').val(datasource.id);
         $('#name').val(datasource.name);
         $('#database_type').val(datasource.database_type);
-        $('#database').val(datasource.database);
-        $('#host').val(datasource.host || '');
-        $('#port').val(datasource.port || '');
-        $('#username').val(datasource.username || '');
+        
+        // Populate fields based on database type
+        switch (datasource.database_type) {
+            case 'sqlite':
+                $('#sqlite_database').val(datasource.database);
+                break;
+            case 'postgresql':
+            case 'mysql':
+                $('#host').val(datasource.host || '');
+                $('#port').val(datasource.port || '');
+                $('#database').val(datasource.database);
+                $('#username').val(datasource.username || '');
+                $('#ssl_mode').val(datasource.ssl_mode || '');
+                break;
+            case 'databricks':
+                $('#databricks_host').val(datasource.host || '');
+                $('#http_path').val(datasource.additional_params?.http_path || '');
+                $('#catalog').val(datasource.additional_params?.catalog || '');
+                $('#schema').val(datasource.additional_params?.schema || '');
+                break;
+        }
+        
         $('#connection_string').val(datasource.connection_string || '');
-        $('#ssl_mode').val(datasource.ssl_mode || '');
         
         // Format additional_params as pretty JSON
         const additionalParams = datasource.additional_params || {};
         $('#additional_params').val(JSON.stringify(additionalParams, null, 2));
+        
+        // Update form fields visibility
+        updateFormFields();
     }
 
     // Save datasource (create or update)
@@ -210,26 +285,58 @@ $(document).ready(function() {
         });
     }
 
-    // Get form data
+    // Get form data based on database type
     function getFormData() {
+        const databaseType = $('#database_type').val();
         const formData = {
             name: $('#name').val().trim(),
-            database_type: $('#database_type').val(),
-            database: $('#database').val().trim(),
-            host: $('#host').val().trim() || null,
-            port: $('#port').val() ? parseInt($('#port').val()) : null,
-            username: $('#username').val().trim() || null,
-            password: $('#password').val() || null,
-            connection_string: $('#connection_string').val().trim() || null,
-            ssl_mode: $('#ssl_mode').val() || null
+            database_type: databaseType
         };
 
-        // Parse additional_params JSON
-        try {
-            const additionalParamsValue = $('#additional_params').val().trim();
-            formData.additional_params = additionalParamsValue ? JSON.parse(additionalParamsValue) : {};
-        } catch (e) {
-            formData.additional_params = {};
+        // Add fields based on database type
+        switch (databaseType) {
+            case 'sqlite':
+                formData.database = $('#sqlite_database').val().trim();
+                break;
+            case 'postgresql':
+            case 'mysql':
+                formData.host = $('#host').val().trim() || null;
+                formData.port = $('#port').val() ? parseInt($('#port').val()) : null;
+                formData.database = $('#database').val().trim();
+                formData.username = $('#username').val().trim() || null;
+                formData.password = $('#password').val() || null;
+                formData.ssl_mode = $('#ssl_mode').val() || null;
+                break;
+            case 'databricks':
+                formData.host = $('#databricks_host').val().trim() || null;
+                formData.password = $('#databricks_token').val() || null;
+                formData.database = 'databricks'; // Default database name for Databricks
+                
+                // Build additional_params for Databricks
+                const additionalParams = {};
+                const httpPath = $('#http_path').val().trim();
+                const catalog = $('#catalog').val().trim();
+                const schema = $('#schema').val().trim();
+                
+                if (httpPath) additionalParams.http_path = httpPath;
+                if (catalog) additionalParams.catalog = catalog;
+                if (schema) additionalParams.schema = schema;
+                
+                formData.additional_params = additionalParams;
+                break;
+        }
+
+        // Add common fields
+        formData.connection_string = $('#connection_string').val().trim() || null;
+
+        // Parse additional_params JSON if not already set
+        if (!formData.additional_params) {
+            try {
+                const additionalParamsValue = $('#additional_params').val().trim();
+                formData.additional_params = additionalParamsValue ? JSON.parse(additionalParamsValue) : {};
+            } catch (e) {
+                formData.additional_params = {};
+            }
         }
 
         // Remove null/empty values for updates
@@ -244,14 +351,14 @@ $(document).ready(function() {
         return formData;
     }
 
-    // Form validation
+    // Form validation based on field configurations from API
     function validateForm(data) {
         let isValid = true;
         
         // Clear previous errors
         $('.border-red-300').removeClass('border-red-300').addClass('border-gray-300');
 
-        // Required fields
+        // Required fields for all types
         if (!data.name) {
             $('#name').removeClass('border-gray-300').addClass('border-red-300');
             isValid = false;
@@ -262,9 +369,18 @@ $(document).ready(function() {
             isValid = false;
         }
 
-        if (!data.database) {
-            $('#database').removeClass('border-gray-300').addClass('border-red-300');
-            isValid = false;
+        // Type-specific validation using field configurations
+        if (data.database_type && fieldConfigs && fieldConfigs[data.database_type]) {
+            const config = fieldConfigs[data.database_type];
+            config.fields.forEach(field => {
+                if (field.required) {
+                    const fieldValue = $(`#${field.name}`).val().trim();
+                    if (!fieldValue) {
+                        $(`#${field.name}`).removeClass('border-gray-300').addClass('border-red-300');
+                        isValid = false;
+                    }
+                }
+            });
         }
 
         // Validate JSON in additional_params
