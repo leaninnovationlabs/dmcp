@@ -6,6 +6,10 @@ hero:
   name: "DBMCP Server"
   text: "Build your tools with the power of SQL"
   tagline: Connect AI assistants to your data
+  image:
+    src: /icons/logo.png
+    width: 400
+    alt: DBMCP Logo
   actions:
     - theme: brand
       text: Introduction
