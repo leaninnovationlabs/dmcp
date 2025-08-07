@@ -10,7 +10,7 @@ DataSources are the foundation of DBMCP - they define the connections to your da
 
 A DataSource in DBMCP contains:
 - **Connection Information**: Host, port, database name, credentials
-- **Database Type**: PostgreSQL, MySQL, SQLite, or Databricks
+- **Database Type**: PostgreSQL, MySQL, Databricks or SQLite (more coming soon)
 - **Security Settings**: SSL configuration, connection pooling
 - **Additional Parameters**: Custom connection options
 
@@ -32,13 +32,13 @@ A DataSource in DBMCP contains:
 
 ### 4. Databricks
 - **Driver**: `databricks`
-- **Features**: Cloud data warehouse, OAuth authentication
+- **Features**: Cloud data warehouse
 
 ## Creating DataSources
 
 ### Via Web UI
 
-1. Navigate to http://localhost:8000/dbmcp/ui
+1. Navigate to http://localhost:8000/dbmcp/ui (when server is running)
 2. Click on "DataSources" in the sidebar
 3. Click "Add New DataSource"
 4. Fill in the connection details
@@ -210,17 +210,9 @@ For PostgreSQL and MySQL, you can specify SSL modes:
 ### Via API
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources/test \
+curl -X POST http://localhost:8000/dbmcp/datasources/{id}/test \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "database_type": "postgresql",
-    "host": "localhost",
-    "port": 5432,
-    "database": "testdb",
-    "username": "testuser",
-    "password": "testpass"
-  }'
+  -H "Content-Type: application/json" 
 ```
 
 ## Managing DataSources
@@ -284,34 +276,11 @@ curl -X DELETE http://localhost:8000/dbmcp/datasources/{id} \
 - Configure workspace access properly
 - Use appropriate warehouse sizes
 
-## Troubleshooting
-
-### Common Connection Issues
-
-#### 1. Connection Refused
-- Check if database server is running
-- Verify host and port are correct
-- Check firewall settings
-
-#### 2. Authentication Failed
-- Verify username and password
-- Check if user has proper permissions
-- Ensure database exists
-
-#### 3. SSL Issues
-- Check SSL certificate validity
-- Verify SSL mode configuration
-- Ensure client certificates are properly configured
-
-#### 4. Databricks Specific
-- Verify workspace URL is correct
-- Check if token has proper permissions
-- Ensure warehouse is running
 
 ### Debugging Tips
 
 1. **Enable Debug Logging**
-   ```env
+   ```bash
    LOG_LEVEL=DEBUG
    ```
 
