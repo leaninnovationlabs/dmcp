@@ -38,9 +38,33 @@ The MCP server supports two transport modes:
 
 ## Connecting AI Assistants
 
-### 1. Claude Desktop
+
+### 1. MCP Inspector
+
+MCP Inspector is a web-based tool for testing MCP servers.
+
+#### Setup
+
+1. Install MCP Inspector:
+```bash
+npm install -g @modelcontextprotocol/inspector
+```
+
+2. Launch the inspector:
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+3. Configure the connection:
+   - **URL**: `http://127.0.0.1:4200/dbmcp`
+   - **Header Name**: `Authorization`
+   - **Header Value**: `Bearer YOUR_TOKEN`
+
+
+### 2. Claude Desktop
 
 Claude Desktop is a popular AI assistant that supports MCP servers.
+**Note**: Claude Desktop right now supports only OAuth for http transport, you will have to use stdio transport for local development.
 
 #### Configuration
 
@@ -65,44 +89,7 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
-#### Usage Example
 
-Once connected, you can ask Claude to use your tools:
-
-```
-User: "Show me the total number of users in the system"
-Claude: I'll use the get_user_count tool to retrieve that information for you.
-
-[Claude executes the tool and returns the results]
-```
-
-### 2. MCP Inspector
-
-MCP Inspector is a web-based tool for testing MCP servers.
-
-#### Setup
-
-1. Install MCP Inspector:
-```bash
-npm install -g @modelcontextprotocol/inspector
-```
-
-2. Launch the inspector:
-```bash
-npx @modelcontextprotocol/inspector
-```
-
-3. Configure the connection:
-   - **URL**: `http://127.0.0.1:4200/dbmcp`
-   - **Header Name**: `Authorization`
-   - **Header Value**: `Bearer YOUR_TOKEN`
-
-#### Testing Tools
-
-1. Navigate to the "Tools" section
-2. Select a tool from the list
-3. Fill in the required parameters
-4. Click "Execute" to test the tool
 
 ### 3. Custom MCP Clients
 
@@ -110,13 +97,15 @@ You can build custom MCP clients using the MCP protocol specification.
 
 #### Python Example
 
+**stdio Transport (Local Development)**
+
 ```python
 import asyncio
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 async def main():
-    # Connect to DBMCP server
+    # Connect to DBMCP server via stdio
     server = StdioServerParameters(
         command="uv",
         args=["--directory", "/path/to/dbmcp", "run", "mcp_run.py"],
@@ -139,7 +128,42 @@ async def main():
 asyncio.run(main())
 ```
 
+**HTTP Transport (Remote/Web-based)**
+
+```python
+import asyncio
+import aiohttp
+from mcp import ClientSession
+from mcp.client.http import http_client
+
+async def main():
+    # Connect to DBMCP server via HTTP
+    server_url = "http://127.0.0.1:4200/dbmcp"
+    headers = {
+        "Authorization": "Bearer YOUR_TOKEN_HERE",
+        "Content-Type": "application/json"
+    }
+    
+    async with aiohttp.ClientSession() as http_session:
+        async with http_client(http_session, server_url, headers) as (read, write):
+            async with ClientSession(read, write) as session:
+                # List available tools
+                tools = await session.list_tools()
+                print("Available tools:", tools)
+                
+                # Execute a tool
+                result = await session.call_tool(
+                    name="get_user_count",
+                    arguments={}
+                )
+                print("Result:", result)
+
+asyncio.run(main())
+```
+
 #### JavaScript Example
+
+**stdio Transport (Local Development)**
 
 ```javascript
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -150,6 +174,38 @@ async function main() {
         command: 'uv',
         args: ['--directory', '/path/to/dbmcp', 'run', 'mcp_run.py'],
         env: { TRANSPORT: 'stdio' }
+    });
+    
+    const client = new Client(server);
+    await client.connect();
+    
+    // List tools
+    const tools = await client.listTools();
+    console.log('Available tools:', tools);
+    
+    // Execute tool
+    const result = await client.callTool('get_user_count', {});
+    console.log('Result:', result);
+    
+    await client.close();
+}
+
+main();
+```
+
+**HTTP Transport (Remote/Web-based)**
+
+```javascript
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { HttpServerParameters } from '@modelcontextprotocol/sdk/server/index.js';
+
+async function main() {
+    const server = new HttpServerParameters({
+        url: 'http://127.0.0.1:4200/dbmcp',
+        headers: {
+            'Authorization': 'Bearer YOUR_TOKEN_HERE',
+            'Content-Type': 'application/json'
+        }
     });
     
     const client = new Client(server);
@@ -281,43 +337,7 @@ Each tool includes metadata that helps AI assistants understand how to use it:
 }
 ```
 
-## Best Practices
 
-### 1. Tool Naming
-
-- Use descriptive, action-oriented names
-- Follow consistent naming conventions
-- Avoid technical jargon in tool names
-
-**Good Examples**:
-- `get_user_statistics`
-- `create_new_order`
-- `update_user_status`
-
-### 2. Descriptions
-
-Write clear descriptions that explain:
-- What the tool does
-- When to use it
-- What results to expect
-
-**Good Example**:
-```
-"Retrieves user statistics including total count, active users, and recent signups. Use this tool when you need an overview of user activity."
-```
-
-### 3. Parameter Design
-
-- Make parameters intuitive for AI assistants
-- Provide clear descriptions for each parameter
-- Use enums for constrained values
-- Include sensible defaults
-
-### 4. Error Handling
-
-- Design tools to handle common error cases
-- Provide meaningful error messages
-- Include validation for input parameters
 
 ## Troubleshooting
 
@@ -351,7 +371,7 @@ Write clear descriptions that explain:
    - Check error messages
 
 2. **Enable Debug Logging**
-   ```env
+   ```bash
    LOG_LEVEL=DEBUG
    ```
 
@@ -365,27 +385,6 @@ Write clear descriptions that explain:
    - Check for authentication errors
    - Monitor tool execution
 
-## Security Considerations
-
-### 1. Token Management
-- Rotate tokens regularly
-- Use environment variables for tokens
-- Never commit tokens to version control
-
-### 2. Network Security
-- Use HTTPS for remote connections
-- Restrict access to trusted IPs
-- Use VPN for remote access
-
-### 3. Database Security
-- Use read-only database users when possible
-- Limit database permissions
-- Monitor tool usage and access
-
-### 4. Production Deployment
-- Use proper SSL certificates
-- Implement rate limiting
-- Set up monitoring and alerting
 
 ## Advanced Configuration
 
@@ -419,26 +418,7 @@ uv run mcp_run.py --port 4201
 uv run mcp_run.py --port 4202
 ```
 
-### Monitoring
 
-Monitor your MCP server usage:
-
-```python
-# Add monitoring to your tools
-import time
-import logging
-
-async def monitored_tool_execution(tool_name, parameters):
-    start_time = time.time()
-    try:
-        result = await execute_tool(tool_name, parameters)
-        duration = time.time() - start_time
-        logging.info(f"Tool {tool_name} executed in {duration:.2f}s")
-        return result
-    except Exception as e:
-        logging.error(f"Tool {tool_name} failed: {e}")
-        raise
-```
 
 ## Next Steps
 

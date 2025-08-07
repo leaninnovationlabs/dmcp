@@ -14,7 +14,7 @@ Before installing DBMCP, ensure you have:
 - **uv package manager** (recommended) or pip
 - **Git** (for cloning the repository)
 
-### Installing uv (Recommended)
+### <i class="fas fa-download"></i> Installing uv (Recommended)
 
 uv is a fast Python package installer and resolver, written in Rust. It's the recommended way to manage dependencies for this project.
 
@@ -28,14 +28,14 @@ pip install uv
 
 ## Installation Steps
 
-### 1. Clone the Repository
+### <i class="fas fa-clone"></i> 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd dbmcp
 ```
 
-### 2. Install Dependencies
+### <i class="fas fa-box"></i> 2. Install Dependencies
 
 Using uv (recommended):
 ```bash
@@ -47,7 +47,7 @@ Or using pip:
 pip install -r requirements.txt
 ```
 
-### 3. Environment Configuration
+### <i class="fas fa-cog"></i> 3. Environment Configuration
 
 Create a `.env` file in the project root:
 
@@ -57,13 +57,18 @@ cp env.example .env
 
 Edit the `.env` file with your configuration:
 
-```env
+```bash
 # Database Configuration
 DATABASE_URL=sqlite+aiosqlite:///./dbmcp.db
 
-# Security (IMPORTANT: Change these in production!)
+# Security
 SECRET_KEY=your-secret-key-here-change-this-in-production
+
+# JWT Configuration
 JWT_SECRET_KEY=jwt-secret-key-change-this-in-production
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=60
+
 
 # Server Configuration
 HOST=0.0.0.0
@@ -73,17 +78,24 @@ DEBUG=true
 # Logging
 LOG_LEVEL=INFO
 
-# CORS (add your frontend URLs)
+# CORS, add your frontend url here if its served from a different port and domain
 ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:8000"]
+
+# MCP Server Configuration
+MCP_TRANSPORT=stdio
+MCP_HOST=127.0.0.1
+MCP_PORT=4200
+MCP_PATH=/dbmcp
+MCP_LOG_LEVEL=debug
 ```
 
-### 4. Initialize the Database
+### <i class="fas fa-database"></i> 4. Initialize the Database
 
 ```bash
 uv run alembic upgrade head
 ```
 
-### 5. Generate Authentication Token
+### <i class="fas fa-key"></i> 5. Generate Authentication Token
 
 Create a token for API access:
 
@@ -93,7 +105,8 @@ uv run scripts/apptoken.py
 
 This will output a token that you'll use for authentication.
 
-### 6. Start the Server
+### <i class="fas fa-server"></i> 6. Start the Server
+
 
 #### API Server
 ```bash
@@ -101,11 +114,14 @@ uv run api_run.py
 ```
 
 The API server will be available at:
-- **API Documentation**: http://localhost:8000/dbmcp/docs
-- **Web UI**: http://localhost:8000/dbmcp/ui
-- **Health Check**: http://localhost:8000/dbmcp/health
+- **API Documentation**: http://localhost:8000/dbmcp/docs (when server is running)
+- **Web UI**: http://localhost:8000/dbmcp/ui (when server is running)
+- **Health Check**: http://localhost:8000/dbmcp/health (when server is running)
 
-#### MCP Server (Optional)
+
+#### MCP Server
+Once you setup the datasources and tools, you can start the MCP server to connect to the DBMCP server.
+
 ```bash
 uv run mcp_run.py
 ```
@@ -114,7 +130,7 @@ The MCP server runs on port 4200 by default.
 
 ## Verification
 
-### 1. Check API Health
+### <i class="fas fa-heartbeat"></i> 1. Check API Health
 
 ```bash
 curl http://localhost:8000/dbmcp/health
@@ -128,72 +144,38 @@ Expected response:
 }
 ```
 
-### 2. Test Authentication
+### <i class="fas fa-lock"></i> 2. Test Authentication
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
      http://localhost:8000/dbmcp/datasources
 ```
 
-### 3. Access Web UI
+### <i class="fas fa-desktop"></i> 3. Access Web UI
 
 Open http://localhost:8000/dbmcp/ui in your browser and enter your authentication token when prompted.
 
 ## Development Setup
 
-### Installing Development Dependencies
+### <i class="fas fa-code"></i> Installing Development Dependencies
 
 ```bash
 uv sync --group dev
 ```
 
-### Running Tests
+### <i class="fas fa-vial"></i> Running Tests
 
 ```bash
 uv run pytest
 ```
 
-### Code Formatting
 
-```bash
-uv run black .
-uv run isort .
-```
-
-### Type Checking
-
-```bash
-uv run mypy .
-```
-
-## Database Management
-
-### Creating Migrations
-
-When you modify the database schema:
-
-```bash
-uv run alembic revision --autogenerate -m "Description of changes"
-```
-
-### Applying Migrations
-
-```bash
-uv run alembic upgrade head
-```
-
-### Checking Migration Status
-
-```bash
-uv run alembic current
-uv run alembic history
-```
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### 1. Port Already in Use
+#### <i class="fas fa-exclamation-triangle"></i> 1. Port Already in Use
 If you get a "port already in use" error:
 
 ```bash
@@ -204,29 +186,20 @@ lsof -i :8000
 kill -9 <PID>
 ```
 
-#### 2. Database Connection Issues
+#### <i class="fas fa-database"></i> 2. Database Connection Issues
 - Ensure your database is running
 - Check connection parameters in your datasource configuration
 - Verify network connectivity
 
-#### 3. Authentication Problems
+#### <i class="fas fa-key"></i> 3. Authentication Problems
 - Regenerate your token: `uv run scripts/apptoken.py`
 - Ensure you're using the correct token format: `Bearer <token>`
 - Check that your JWT_SECRET_KEY is set correctly
 
-#### 4. MCP Server Issues
+#### <i class="fas fa-plug"></i> 4. MCP Server Issues
 - Ensure the MCP server is running on the correct port
 - Check that your MCP client is configured correctly
 - Verify authentication tokens are being passed correctly
-
-### Getting Help
-
-If you encounter issues:
-
-1. Check the logs for error messages
-2. Verify your environment configuration
-3. Ensure all dependencies are installed correctly
-4. Check the [API documentation](http://localhost:8000/dbmcp/docs) for endpoint details
 
 ## Next Steps
 

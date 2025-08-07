@@ -37,7 +37,7 @@ A Tool in DBMCP consists of:
 
 ### Via Web UI
 
-1. Navigate to http://localhost:8000/dbmcp/ui
+1. Navigate to http://localhost:8000/dbmcp/ui (when server is running)
 2. Click on "Tools" in the sidebar
 3. Click "Add New Tool"
 4. Fill in the tool details:

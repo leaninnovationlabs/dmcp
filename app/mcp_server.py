@@ -276,17 +276,17 @@ class MCPServer:
 
     def run(self) -> None:
         """Start the MCP server."""
-        # Support running both in stio and http based on a parameter
-        if settings.transport == "http":
+        # Support running both in stdio and http based on a parameter
+        if settings.mcp_transport == "stdio" :
+            self.mcp.run()
+        else:
             mcp.run(
                 transport="http",
-                host="127.0.0.1",
-                port=4200,
-                path="/dbmcp",
-                log_level="debug",
+                host=settings.mcp_host,
+                port=settings.mcp_port,
+                path=settings.mcp_path,
+                log_level=settings.mcp_log_level,
             )
-        else:
-            self.mcp.run()
 
     @mcp.prompt
     def example_prompt() -> str:

@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60
     
-    # Server
+    # API Server
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = True
@@ -33,8 +33,14 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
     
-    # Transport
-    transport: str = "stdio"
+    # MCP Transport
+    mcp_transport: str = "stdio"
+    
+    # MCP Server Configuration
+    mcp_host: str = "127.0.0.1"
+    mcp_port: int = 4200
+    mcp_path: str = "/dbmcp"
+    mcp_log_level: str = "debug"
     
     model_config = ConfigDict(env_file=".env", case_sensitive=False)
 
