@@ -11,17 +11,17 @@ import inspect
 import sys
 import traceback
 from typing import Any, Callable, Dict, List, Optional
-from fastmcp.server.dependencies import get_http_headers
 from fastmcp import Context, FastMCP
+from fastmcp.server.dependencies import get_http_headers
 from sqlalchemy import true
 
-from app.core.jwt_validator import jwt_validator
 from app.database import get_db
 from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
 from app.core.config import settings
 from app.mcp.middleware.logging import LoggingMiddleware
-from app.mcp.middleware.auth import AuthMiddleware
+from app.core.jwt_validator import jwt_validator
+from app.core.exceptions import AuthenticationError
 
 # Constants
 PYTHON_RESERVED_KEYWORDS = {
@@ -49,7 +49,6 @@ DEFAULT_ERROR_RESPONSE = {
 mcp = FastMCP(name="DBMCP")
 # Add middlewares
 mcp.add_middleware(LoggingMiddleware())
-mcp.add_middleware(AuthMiddleware())
 
 
 class MCPServer:
@@ -90,8 +89,12 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def ping(self, ctx: Context, name: str = "World") -> Dict[str, Any]:
+    def ping(self, ctx: Context, name: str = "World", authorization: str = "") -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
+        
+        # Authenticate if authorization is provided
+        if authorization:
+            self._authenticate_bearer_token(authorization)
 
         headers = get_http_headers()
         # # Get authorization header, which holds the key
@@ -112,6 +115,19 @@ class MCPServer:
         
         # Return the string equqivalent of data object
         return data
+    
+    def _authenticate_bearer_token(self, authorization: str) -> None:
+        """Extract and validate JWT from authorization header"""
+        if not authorization or not authorization.startswith("Bearer "):
+            raise Exception("Authentication required. Please provide a valid Bearer token.")
+        
+        token = authorization.replace("Bearer ", "")
+        try:
+            # Validate JWT token
+            jwt_validator.validate_token(authorization)
+        except AuthenticationError as e:
+            self._log_error(f"Authentication failed: {e.message}")
+            raise Exception("Invalid or expired authentication token")
     
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
@@ -137,8 +153,17 @@ class MCPServer:
         param_names = [param['name'] for param in parameters]
         valid_param_names, param_mapping = self._sanitize_parameter_names(param_names)
         
+        # Add authorization parameter
+        valid_param_names.append("authorization")
+        param_mapping["authorization"] = "authorization"
+        
         def tool_function(**kwargs):
             """Dynamic tool function with parameters."""
+            # Handle authentication
+            authorization = kwargs.pop("authorization", "")
+            if authorization:
+                self._authenticate_bearer_token(authorization)
+                
             parameters = self._map_parameters(kwargs, param_mapping)
             return self.execute_tool_by_id(tool_id, parameters)
         
@@ -152,11 +177,15 @@ class MCPServer:
         description: str
     ) -> Callable:
         """Create a tool function without parameters."""
-        def tool_function():
+        def tool_function(authorization: str = ""):
             """Dynamic tool function without parameters."""
+            # Handle authentication
+            if authorization:
+                self._authenticate_bearer_token(authorization)
+                
             return self.execute_tool_by_id(tool_id, {})
         
-        self._set_function_metadata(tool_function, tool_name, description)
+        self._set_function_metadata(tool_function, tool_name, description, ["authorization"])
         return tool_function
     
     def _sanitize_parameter_names(
@@ -187,7 +216,7 @@ class MCPServer:
         """Map sanitized parameter names back to original names."""
         parameters = {}
         for sanitized_name, value in kwargs.items():
-            if value is not None and sanitized_name in param_mapping:
+            if value is not None and sanitized_name in param_mapping and sanitized_name != "authorization":
                 original_name = param_mapping[sanitized_name]
                 parameters[original_name] = value
         return parameters
@@ -209,14 +238,24 @@ class MCPServer:
     def _set_function_signature(self, func: Callable, param_names: List[str]) -> None:
         """Set the function signature with the given parameter names."""
         sig = inspect.signature(func)
-        new_params = [
-            inspect.Parameter(
-                param_name, 
-                inspect.Parameter.POSITIONAL_OR_KEYWORD, 
-                default=None
-            )
-            for param_name in param_names
-        ]
+        new_params = []
+        
+        for param_name in param_names:
+            if param_name == "authorization":
+                # Authorization parameter should default to empty string
+                param = inspect.Parameter(
+                    param_name, 
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD, 
+                    default=""
+                )
+            else:
+                # Other parameters can be None
+                param = inspect.Parameter(
+                    param_name, 
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD, 
+                    default=None
+                )
+            new_params.append(param)
         
         func.__signature__ = sig.replace(parameters=new_params)
         self._log_debug(f"Tool function signature: {func.__signature__}")
@@ -276,11 +315,10 @@ class MCPServer:
 
     def run(self) -> None:
         """Start the MCP server."""
-        # Support running both in stdio and http based on a parameter
-        if settings.mcp_transport == "stdio" :
+        if settings.mcp_transport == "stdio":
             self.mcp.run()
         else:
-            mcp.run(
+            self.mcp.run(
                 transport="http",
                 host=settings.mcp_host,
                 port=settings.mcp_port,

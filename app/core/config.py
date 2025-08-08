@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     db_max_overflow: int = 20
     
     # MCP Transport
-    mcp_transport: str = "stdio"
+    mcp_transport: str = "http"
     
     # MCP Server Configuration
     mcp_host: str = "127.0.0.1"
