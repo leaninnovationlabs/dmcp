@@ -10,12 +10,7 @@ import json
 import uvicorn
 
 from fastmcp import FastMCP
-from starlette.applications import Starlette
-from starlette.routing import Mount, Route
-from starlette.staticfiles import StaticFiles
-from starlette.responses import JSONResponse, RedirectResponse
-from starlette.middleware import Middleware
-from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
 from app.core.config import settings
 from app.database import init_db
@@ -27,9 +22,7 @@ from app.database import get_db
 
 
 mcp = FastMCP(name="DBMCP")
-server = MCPServer()
-
-
+server = MCPServer(mcp)
 
 def api_response(data=None, success=True, errors=None):
     """Universal API response envelope."""
@@ -273,37 +266,29 @@ async def startup():
     await init_db()
 
 
-def main():
+async def main():
     """Main entry point."""
-    asyncio.run(startup())
+    await startup()
     
-    fastmcp_app = mcp.http_app()
-    
-    async def redirect_to_ui(request):
-        return RedirectResponse(url="/ui/", status_code=301)
-    
-    app = Starlette(
-        routes=[
-            Mount("/ui", app=StaticFiles(directory="frontend", html=True), name="ui"),
-            Route("/", redirect_to_ui),
-            Mount("/", app=fastmcp_app),
-        ],
-        middleware=[
-            Middleware(CORSMiddleware, 
-                      allow_origins=["*"], 
-                      allow_methods=["*"], 
-                      allow_headers=["*"])
-        ],
-        lifespan=fastmcp_app.lifespan
-    )
-    
-    uvicorn.run(
-        app,
+    # Use FastMCP's native HTTP transport like jira server
+    await mcp.run_async(
+        transport="http",
         host=settings.mcp_host,
         port=settings.mcp_port,
-        log_level=settings.mcp_log_level.lower(),
+        path="/mcp",
+        stateless_http=True
     )
 
 
+def main_sync():
+    """Synchronous entry point."""
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Shutting down...")
+    except Exception as e:
+        print(f"Application error: {e}")
+        raise
+
 if __name__ == "__main__":
-    main()
+    main_sync()

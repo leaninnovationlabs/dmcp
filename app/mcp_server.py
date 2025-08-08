@@ -46,19 +46,19 @@ DEFAULT_ERROR_RESPONSE = {
 # token = jwt_validator.create_token(payload)
 # print(f"+++++++ Token: {token}")
 
-mcp = FastMCP(name="DBMCP")
-# Add middlewares
-mcp.add_middleware(LoggingMiddleware())
+# Don't create mcp instance here - use the one from main
 
 
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
     
-    def __init__(self, name: str = "DB MCP"):
+    def __init__(self, mcp_instance, name: str = "DB MCP"):
         """Initialize the MCP server with the given name."""
-        self.mcp = mcp
+        self.mcp = mcp_instance
         self.mcp.tool(self.ping)
-        self._register_database_tools()
+        self.mcp.tool(self.execute_database_tool)
+        self.mcp.tool(self.list_database_tools)
+        self.mcp.prompt(self.example_prompt)
 
         # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
@@ -115,6 +115,54 @@ class MCPServer:
         
         # Return the string equqivalent of data object
         return data
+    
+    def list_database_tools(self, ctx: Context, authorization: str = "") -> Dict[str, Any]:
+        """List all available database tools"""
+        if authorization:
+            self._authenticate_bearer_token(authorization)
+            
+        try:
+            tools = self._list_tools()
+            return {
+                "success": True,
+                "tools": [{"id": t["id"], "name": t["name"], "description": t.get("description", "")} for t in tools]
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def execute_database_tool(self, ctx: Context, tool_name: str, parameters: Dict[str, Any] = None, authorization: str = "") -> Dict[str, Any]:
+        """Execute a database tool by name"""
+        if authorization:
+            self._authenticate_bearer_token(authorization)
+        
+        if parameters is None:
+            parameters = {}
+            
+        try:
+            # Find tool by name
+            tools = self._list_tools()
+            tool = None
+            for t in tools:
+                if t["name"] == tool_name:
+                    tool = t
+                    break
+            
+            if not tool:
+                return {"success": False, "error": f"Tool '{tool_name}' not found"}
+            
+            # Execute the tool
+            result = self.execute_tool_by_id(tool["id"], parameters)
+            return result
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def example_prompt(self) -> str:
+        """Example prompt for the MCP server"""
+        return """
+        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
+        You can start by saying hello or asking me to execute any of the available database tools.
+        """
     
     def _authenticate_bearer_token(self, authorization: str) -> None:
         """Extract and validate JWT from authorization header"""
@@ -296,7 +344,18 @@ class MCPServer:
     
     def _list_tools(self) -> List[Dict[str, Any]]:
         """Get list of tools from database using sync wrapper."""
-        return asyncio.run(self._list_tools_async())
+        # Run in a new event loop to avoid conflicts with the main event loop
+        def run_in_new_loop():
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                return new_loop.run_until_complete(self._list_tools_async())
+            finally:
+                new_loop.close()
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(run_in_new_loop)
+            return future.result()
     
     async def _list_tools_async(self) -> List[Dict[str, Any]]:
         """Get list of tools from database asynchronously."""
@@ -324,11 +383,7 @@ class MCPServer:
                 port=settings.mcp_port,
                 path=settings.mcp_path,
                 log_level=settings.mcp_log_level,
+                stateless_http=True
             )
 
-    @mcp.prompt
-    def example_prompt() -> str:
-        return """
-        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
-        You can start by saying hello or asking me to execute any of the available database tools.
-        """
+    # Example prompt moved to MCPServer class since mcp instance is not global anymore
