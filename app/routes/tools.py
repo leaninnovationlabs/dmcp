@@ -20,7 +20,7 @@ class ToolsRouter:
         async def list_tools(request):
 
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
 
                 """List all tools."""
                 async for db in get_db():
@@ -36,7 +36,7 @@ class ToolsRouter:
         async def create_tool(request):
             """Create a new tool."""
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 body = await request.body()
                 data = json.loads(body) if body else {}
                 
@@ -57,7 +57,7 @@ class ToolsRouter:
             """Get specific tool."""
 
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 tool_id = int(request.path_params.get("tool_id"))
                 async for db in get_db():
                     service = ToolService(db)
@@ -74,7 +74,7 @@ class ToolsRouter:
         async def execute_named_tool(request):
             """Execute a named tool with parameters and pagination."""
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 body = await request.body()
                 execution_request = json.loads(body) if body else {}
                 print(f"+++++++ From the execute_named_tool Request: {execution_request}")

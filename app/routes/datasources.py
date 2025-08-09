@@ -91,7 +91,7 @@ class DatasourcesRouter:
 
             """Create a new datasource."""
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 body = await request.body()
                 data = json.loads(body) if body else {}
                 
@@ -134,7 +134,7 @@ class DatasourcesRouter:
             """List all datasources."""
 
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 async for db in get_db():
                     service = DatasourceService(db)
                     result = await service.list_datasources()
@@ -150,7 +150,7 @@ class DatasourcesRouter:
             """Get specific datasource."""
 
             try:
-                payload = await get_payload(request.headers.get("authorization"))
+                payload = await get_payload(request)
                 datasource_id = int(request.path_params.get("datasource_id"))
                 
                 async for db in get_db():

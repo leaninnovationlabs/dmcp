@@ -1,20 +1,25 @@
 from typing import Optional, Dict, Any
-from fastapi import Header, HTTPException
+from fastapi import HTTPException
 
 from .jwt_validator import jwt_validator
 from .responses import create_error_response
 from .exceptions import AuthenticationError
 
 
-async def get_payload(authorization: Optional[str] = Header(default=None)) -> Optional[Dict[str, Any]]:
+async def get_payload(request: Any) -> Optional[Dict[str, Any]]:
     """
-    FastAPI dependency that validates a Bearer token from the Authorization header
-    and returns its decoded payload if present.
+    Extract the Authorization header from the given request, validate the token,
+    and return the decoded payload.
 
-    - If the header is missing, returns None (so routes can be optionally public).
-    - If the header is present but malformed/invalid, raises HTTP 401.
+    Raises HTTP 401 if the header is missing or malformed, or if validation fails.
     """
-    if not authorization:
+    authorization: Optional[str] = None
+
+    if request is not None and hasattr(request, "headers") and request.headers is not None:
+        # Some frameworks provide case-insensitive headers mapping
+        authorization = request.headers.get("authorization")
+
+    if not authorization or not isinstance(authorization, str) or not authorization.strip():
         raise HTTPException(
             status_code=401,
             detail=create_error_response([
@@ -33,18 +38,18 @@ async def get_payload(authorization: Optional[str] = Header(default=None)) -> Op
     try:
         payload = jwt_validator.validate_token(authorization)
         return payload
-    except AuthenticationError as e:
+    except AuthenticationError:
         raise HTTPException(
             status_code=401,
             detail=create_error_response([
-                f"Authentication failed: Invalid or expired token provided"
+                "Authentication failed: Invalid or expired token provided"
             ]).model_dump(),
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=401,
             detail=create_error_response([
-                f"Authentication failed: Invalid or expired token provided"
+                "Authentication failed: Invalid or expired token provided"
             ]).model_dump(),
         )
 
