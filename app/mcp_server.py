@@ -199,6 +199,10 @@ class MCPServer:
             # Get authorization header, which holds the key
             auth_header = headers.get("authorization", "")
             is_bearer = auth_header.startswith("Bearer ")
+
+            print(f"+++++++ From the _create_simple_tool_function is_bearer: {is_bearer}")
+            print(f"+++++++ From the _create_simple_tool_function auth_header: {auth_header}")
+
             if is_bearer:
                 self._authenticate_bearer_token(auth_header)
             else:

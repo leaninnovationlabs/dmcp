@@ -1,5 +1,8 @@
 from typing import Any, List, Optional
 from ..models.schemas import StandardAPIResponse
+from starlette.responses import JSONResponse
+from datetime import datetime
+import json
 
 
 def create_success_response(data: Any = None, warnings: Optional[List[dict]] = None) -> StandardAPIResponse:
@@ -44,3 +47,19 @@ def raise_http_error(status_code: int, detail: str, errors: List[str] = None):
         detail = {"success": False, "detail": detail}
     
     raise HTTPException(status_code=status_code, detail=detail) 
+
+
+def api_response(data: Any = None, success: bool = True, errors: Optional[List[str]] = None) -> JSONResponse:
+    """Universal HTTP JSON response envelope with datetime serialization."""
+    def json_serializer(obj: Any):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+    content = {
+        "success": success,
+        "data": data,
+        "errors": errors or []
+    }
+
+    return JSONResponse(content=json.loads(json.dumps(content, default=json_serializer)))
