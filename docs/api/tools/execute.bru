@@ -10,9 +10,14 @@ post {
   auth: none
 }
 
+headers {
+  Authorization: Bearer {{token}}
+}
+
 body:json {
   {
     "parameters": {
+      "test": 123
     },
     "pagination" : {}
   }

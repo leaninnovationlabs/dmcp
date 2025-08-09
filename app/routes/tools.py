@@ -2,7 +2,9 @@ import json
 import traceback
 
 from fastapi import HTTPException
+from app.core.exceptions import AuthenticationError
 from app.core.responses import api_response, create_success_response, raise_http_error
+from app.core.token_processor import get_payload
 from app.models.schemas import ToolExecutionRequest
 from app.services.tool_execution_service import ToolExecutionService
 from app.services.tool_service import ToolService
@@ -17,17 +19,24 @@ class ToolsRouter:
         @self.mcp.custom_route("/tools", methods=["GET"])
         async def list_tools(request):
 
-            """List all tools."""
-            async for db in get_db():
-                service = ToolService(db)
-                result = await service.list_tools()
-                return api_response([tool.model_dump() for tool in result])
+            try:
+                payload = await get_payload(request.headers.get("authorization"))
 
+                """List all tools."""
+                async for db in get_db():
+                    service = ToolService(db)
+                    result = await service.list_tools()
+                    return api_response([tool.model_dump() for tool in result])
+            except AuthenticationError as e:
+                return api_response(None, False, [f"Authentication failed: {e.message}"])
+            except Exception as e:
+                return api_response(None, False, [f"Failed to list tools: {str(e)}"])
 
         @self.mcp.custom_route("/tools", methods=["POST"])
         async def create_tool(request):
             """Create a new tool."""
             try:
+                payload = await get_payload(request.headers.get("authorization"))
                 body = await request.body()
                 data = json.loads(body) if body else {}
                 
@@ -37,6 +46,8 @@ class ToolsRouter:
                     tool_data = ToolCreate(**data)
                     result = await service.create_tool(tool_data)
                     return api_response(result.model_dump())
+            except AuthenticationError as e:
+                return api_response(None, False, [f"Authentication failed: {e.message}"])
             except Exception as e:
                 return api_response(None, False, [f"Failed to create tool: {str(e)}"])
 
@@ -44,18 +55,26 @@ class ToolsRouter:
         @self.mcp.custom_route("/tools/{tool_id}", methods=["GET"])
         async def get_tool(request):
             """Get specific tool."""
-            tool_id = int(request.path_params.get("tool_id"))
-            async for db in get_db():
-                service = ToolService(db)
-                tool = await service.get_tool(tool_id)
-                if not tool:
-                    return api_response(None, False, ["Tool not found"])
-                return api_response(tool.model_dump())
+
+            try:
+                payload = await get_payload(request.headers.get("authorization"))
+                tool_id = int(request.path_params.get("tool_id"))
+                async for db in get_db():
+                    service = ToolService(db)
+                    tool = await service.get_tool(tool_id)
+                    if not tool:
+                        return api_response(None, False, ["Tool not found"])
+                        return api_response(tool.model_dump())
+            except AuthenticationError as e:
+                return api_response(None, False, [f"Authentication failed: {e.message}"])
+            except Exception as e:
+                return api_response(None, False, [f"Failed to get tool: {str(e)}"])
 
         @self.mcp.custom_route("/tools/execute/{tool_id}", methods=["POST"])
         async def execute_named_tool(request):
             """Execute a named tool with parameters and pagination."""
             try:
+                payload = await get_payload(request.headers.get("authorization"))
                 body = await request.body()
                 execution_request = json.loads(body) if body else {}
                 print(f"+++++++ From the execute_named_tool Request: {execution_request}")
@@ -71,6 +90,8 @@ class ToolsRouter:
                     if result.error:
                         raise_http_error(400, "Tool execution failed", [result.error])
                     return api_response(result.model_dump())
+            except AuthenticationError as e:
+                return api_response(None, False, [f"Authentication failed: {e.message}"])
             except HTTPException:
                 raise
             except Exception as e:

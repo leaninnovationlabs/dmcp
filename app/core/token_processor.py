@@ -15,7 +15,12 @@ async def get_payload(authorization: Optional[str] = Header(default=None)) -> Op
     - If the header is present but malformed/invalid, raises HTTP 401.
     """
     if not authorization:
-        return None
+        raise HTTPException(
+            status_code=401,
+            detail=create_error_response([
+                "Invalid authorization header format. Use 'Bearer <token>'"
+            ]).model_dump(),
+        )
 
     if not authorization.startswith("Bearer "):
         raise HTTPException(

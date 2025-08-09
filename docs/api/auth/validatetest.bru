@@ -1,11 +1,11 @@
 meta {
-  name: list
+  name: validatetest
   type: http
-  seq: 1
+  seq: 3
 }
 
-get {
-  url: {{server}}/tools
+options {
+  url: {{server}}/auth/validate
   body: none
   auth: none
 }

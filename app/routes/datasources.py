@@ -148,14 +148,21 @@ class DatasourcesRouter:
         @self.mcp.custom_route("/datasources/{datasource_id}", methods=["GET"])
         async def get_datasource(request):
             """Get specific datasource."""
-            datasource_id = int(request.path_params.get("datasource_id"))
-            
-            async for db in get_db():
-                service = DatasourceService(db)
-                datasource = await service.get_datasource(datasource_id)
-                if not datasource:
-                    return api_response(None, False, ["Datasource not found"])
-                return api_response(datasource.model_dump())
+
+            try:
+                payload = await get_payload(request.headers.get("authorization"))
+                datasource_id = int(request.path_params.get("datasource_id"))
+                
+                async for db in get_db():
+                    service = DatasourceService(db)
+                    datasource = await service.get_datasource(datasource_id)
+                    if not datasource:
+                        return api_response(None, False, ["Datasource not found"])
+                    return api_response(datasource.model_dump())
+            except AuthenticationError as e:
+                return api_response(None, False, [f"Authentication failed: {e.message}"])
+            except Exception as e:
+                return api_response(None, False, [f"Failed to get datasource: {str(e)}"])
 
 
 

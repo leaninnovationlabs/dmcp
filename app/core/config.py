@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     
     # CORS
-    allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:8000", "http://localhost:4200", "http://127.0.0.1:5500"]
     
     # Database Connection Pool
     db_pool_size: int = 10

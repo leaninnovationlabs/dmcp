@@ -9,29 +9,33 @@ import json
 import uvicorn
 
 from fastmcp import FastMCP
-from starlette.responses import JSONResponse
-
+from starlette.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.exceptions import AuthenticationError
-from app.core.token_processor import get_payload
 from app.database import init_db
+from app.mcp.middleware.auth import AuthMiddleware
 from app.mcp_server import MCPServer
 from app.routes.auth import AuthRouter
 from app.routes.health import HealthRouter
-from app.core.responses import api_response
-from app.services.auth_service import AuthService
-from app.services.datasource_service import DatasourceService
-from app.services.tool_service import ToolService
-from app.database import get_db
 from app.routes.datasources import DatasourcesRouter
 from app.routes.tools import ToolsRouter
 import json
-from datetime import datetime
-
 
 mcp = FastMCP(name="DBMCP")
 server = MCPServer(mcp)
 
+auth_middleware = AuthMiddleware()
+cors_middleware = CORSMiddleware(
+    app=mcp,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+
+# TODO: Middleware is not working as expected, need to fix it
+# mcp.add_middleware(auth_middleware)
+# mcp.add_middleware(cors_middleware)
 
 # Register routes
 health_router = HealthRouter(mcp)
@@ -57,7 +61,7 @@ async def main():
     """Main entry point."""
     await startup()
     
-    # Use FastMCP's native HTTP transport like jira server
+    # Start FastMCP HTTP server with CORS middleware
     await mcp.run_async(
         transport="http",
         host=settings.mcp_host,
