@@ -4,7 +4,6 @@ DBMCP Server - FastMCP Implementation
 
 Enterprise-grade database MCP server using FastMCP 2.10 with custom routes.
 """
-
 import asyncio
 import json
 import uvicorn
@@ -13,12 +12,16 @@ from fastmcp import FastMCP
 from starlette.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.exceptions import AuthenticationError
+from app.core.token_processor import get_payload
 from app.database import init_db
 from app.mcp_server import MCPServer
 from app.services.auth_service import AuthService
 from app.services.datasource_service import DatasourceService
 from app.services.tool_service import ToolService
 from app.database import get_db
+import json
+from datetime import datetime
 
 
 mcp = FastMCP(name="DBMCP")
@@ -26,9 +29,6 @@ server = MCPServer(mcp)
 
 def api_response(data=None, success=True, errors=None):
     """Universal API response envelope."""
-    import json
-    from datetime import datetime
-    
     def json_serializer(obj):
         if isinstance(obj, datetime):
             return obj.isoformat()
@@ -162,8 +162,10 @@ async def get_datasource_field_config(request):
 
 @mcp.custom_route("/datasources", methods=["POST"])
 async def create_datasource(request):
+
     """Create a new datasource."""
     try:
+        payload = await get_payload(request.headers.get("authorization"))
         body = await request.body()
         data = json.loads(body) if body else {}
         
@@ -204,10 +206,17 @@ async def create_datasource(request):
 @mcp.custom_route("/datasources", methods=["GET"])
 async def list_datasources(request):
     """List all datasources."""
-    async for db in get_db():
-        service = DatasourceService(db)
-        result = await service.list_datasources()
-        return api_response([ds.model_dump() for ds in result])
+
+    try:
+        payload = await get_payload(request.headers.get("authorization"))
+        async for db in get_db():
+            service = DatasourceService(db)
+            result = await service.list_datasources()
+            return api_response([ds.model_dump() for ds in result])
+    except AuthenticationError as e:
+        return api_response(None, False, [f"Authentication failed: {e.message}"])
+    except Exception as e:
+        return api_response(None, False, [f"Failed to list datasources: {str(e)}"])
 
 
 @mcp.custom_route("/datasources/{datasource_id}", methods=["GET"])
@@ -225,6 +234,7 @@ async def get_datasource(request):
 
 @mcp.custom_route("/tools", methods=["GET"])
 async def list_tools(request):
+    
     """List all tools."""
     async for db in get_db():
         service = ToolService(db)

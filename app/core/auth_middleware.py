@@ -35,6 +35,9 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         Returns:
             Response from the next handler or error response
         """
+
+        print(f"+++++++ From the middleware Request: {request.url.path}")
+
         # Skip authentication for health endpoint and other excluded paths
         if any(request.url.path.startswith(path) for path in self.excluded_paths):
             return await call_next(request)
