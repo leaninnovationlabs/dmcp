@@ -4,7 +4,7 @@ from typing import Dict, Any
 from pydantic import BaseModel, Field
 
 from app.core.jwt_validator import jwt_validator
-from app.core.responses import create_success_response, create_error_response
+from app.core.responses import create_success_response, create_error_response, raise_http_error
 from app.core.exceptions import AuthenticationError
 
 router = APIRouter()
@@ -46,12 +46,7 @@ async def generate_token(request: AuthRequest):
         )
         
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=create_error_response(
-                errors=[f"Token generation failed: {str(e)}"]
-            ).model_dump()
-        )
+        raise_http_error(500, "Token generation failed", [str(e)])
 
 
 @router.get("/auth/validate")
@@ -103,4 +98,4 @@ async def validate_token(request: Request):
             content=create_error_response(
                 errors=[f"Token validation error: {str(e)}"]
             ).model_dump()
-        ) 
+        )

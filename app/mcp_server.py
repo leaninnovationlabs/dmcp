@@ -56,9 +56,8 @@ class MCPServer:
         """Initialize the MCP server with the given name."""
         self.mcp = mcp_instance
         self.mcp.tool(self.ping)
-        self.mcp.tool(self.execute_database_tool)
-        self.mcp.tool(self.list_database_tools)
         self.mcp.prompt(self.example_prompt)
+        self._register_database_tools()
 
         # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
@@ -89,13 +88,9 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def ping(self, ctx: Context, name: str = "World", authorization: str = "") -> Dict[str, Any]:
+    def ping(self, ctx: Context, name: str = "World") -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
         
-        # Authenticate if authorization is provided
-        if authorization:
-            self._authenticate_bearer_token(authorization)
-
         headers = get_http_headers()
         # # Get authorization header, which holds the key
         auth_header = headers.get("authorization", "")
@@ -116,11 +111,12 @@ class MCPServer:
         # Return the string equqivalent of data object
         return data
     
-    def list_database_tools(self, ctx: Context, authorization: str = "") -> Dict[str, Any]:
+    def list_database_tools(self, ctx: Context) -> Dict[str, Any]:
         """List all available database tools"""
-        if authorization:
-            self._authenticate_bearer_token(authorization)
-            
+        headers = get_http_headers()
+        authorization = headers.get("authorization", "")
+        self._authenticate_bearer_token(authorization)
+     
         try:
             tools = self._list_tools()
             return {
@@ -128,34 +124,8 @@ class MCPServer:
                 "tools": [{"id": t["id"], "name": t["name"], "description": t.get("description", "")} for t in tools]
             }
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            return {"success": False, "errors": [{"msg": str(e)}]}
     
-    def execute_database_tool(self, ctx: Context, tool_name: str, parameters: Dict[str, Any] = None, authorization: str = "") -> Dict[str, Any]:
-        """Execute a database tool by name"""
-        if authorization:
-            self._authenticate_bearer_token(authorization)
-        
-        if parameters is None:
-            parameters = {}
-            
-        try:
-            # Find tool by name
-            tools = self._list_tools()
-            tool = None
-            for t in tools:
-                if t["name"] == tool_name:
-                    tool = t
-                    break
-            
-            if not tool:
-                return {"success": False, "error": f"Tool '{tool_name}' not found"}
-            
-            # Execute the tool
-            result = self.execute_tool_by_id(tool["id"], parameters)
-            return result
-            
-        except Exception as e:
-            return {"success": False, "error": str(e)}
     
     def example_prompt(self) -> str:
         """Example prompt for the MCP server"""
@@ -175,7 +145,7 @@ class MCPServer:
             jwt_validator.validate_token(authorization)
         except AuthenticationError as e:
             self._log_error(f"Authentication failed: {e.message}")
-            raise Exception("Invalid or expired authentication token")
+            raise Exception("Authentication required. Please provide a valid Bearer token.")
     
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
@@ -201,17 +171,10 @@ class MCPServer:
         param_names = [param['name'] for param in parameters]
         valid_param_names, param_mapping = self._sanitize_parameter_names(param_names)
         
-        # Add authorization parameter
-        valid_param_names.append("authorization")
-        param_mapping["authorization"] = "authorization"
         
         def tool_function(**kwargs):
             """Dynamic tool function with parameters."""
-            # Handle authentication
-            authorization = kwargs.pop("authorization", "")
-            if authorization:
-                self._authenticate_bearer_token(authorization)
-                
+
             parameters = self._map_parameters(kwargs, param_mapping)
             return self.execute_tool_by_id(tool_id, parameters)
         
@@ -225,15 +188,26 @@ class MCPServer:
         description: str
     ) -> Callable:
         """Create a tool function without parameters."""
-        def tool_function(authorization: str = ""):
+        def tool_function():
             """Dynamic tool function without parameters."""
-            # Handle authentication
-            if authorization:
-                self._authenticate_bearer_token(authorization)
-                
+
+            # # Handle authentication
+            # if authorization:
+            #     self._authenticate_bearer_token(authorization)
+
+            headers = get_http_headers()
+            # Get authorization header, which holds the key
+            auth_header = headers.get("authorization", "")
+            is_bearer = auth_header.startswith("Bearer ")
+            if is_bearer:
+                self._authenticate_bearer_token(auth_header)
+            else:
+                raise Exception("Authentication required. Please provide a valid Bearer token.")                
+            
+            # Passed the token validation, now execute the tool
             return self.execute_tool_by_id(tool_id, {})
         
-        self._set_function_metadata(tool_function, tool_name, description, ["authorization"])
+        self._set_function_metadata(tool_function, tool_name, description, [])
         return tool_function
     
     def _sanitize_parameter_names(
@@ -264,7 +238,7 @@ class MCPServer:
         """Map sanitized parameter names back to original names."""
         parameters = {}
         for sanitized_name, value in kwargs.items():
-            if value is not None and sanitized_name in param_mapping and sanitized_name != "authorization":
+            if value is not None and sanitized_name in param_mapping:
                 original_name = param_mapping[sanitized_name]
                 parameters[original_name] = value
         return parameters
@@ -286,24 +260,14 @@ class MCPServer:
     def _set_function_signature(self, func: Callable, param_names: List[str]) -> None:
         """Set the function signature with the given parameter names."""
         sig = inspect.signature(func)
-        new_params = []
-        
-        for param_name in param_names:
-            if param_name == "authorization":
-                # Authorization parameter should default to empty string
-                param = inspect.Parameter(
-                    param_name, 
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD, 
-                    default=""
-                )
-            else:
-                # Other parameters can be None
-                param = inspect.Parameter(
-                    param_name, 
-                    inspect.Parameter.POSITIONAL_OR_KEYWORD, 
-                    default=None
-                )
-            new_params.append(param)
+        new_params = [
+            inspect.Parameter(
+                param_name, 
+                inspect.Parameter.POSITIONAL_OR_KEYWORD, 
+                default=None
+            )
+            for param_name in param_names
+        ]
         
         func.__signature__ = sig.replace(parameters=new_params)
         self._log_debug(f"Tool function signature: {func.__signature__}")
@@ -319,6 +283,7 @@ class MCPServer:
         except Exception as e:
             self._log_error(f"Failed to execute tool {tool_id}: {e}")
             traceback.print_exc(file=sys.stderr)
+            # Preserve the response envelope expected by MCP clients
             return {**DEFAULT_ERROR_RESPONSE, "error": str(e)}
     
     def _execute_tool_async(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:

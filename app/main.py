@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -46,6 +47,25 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content=error_response.model_dump()
     )
 
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle request validation errors and return StandardAPIResponse format."""
+    # Flatten validation errors into readable messages
+    errors = []
+    for err in exc.errors():
+        loc = ".".join([str(p) for p in err.get("loc", [])])
+        msg = err.get("msg", "Invalid value")
+        errors.append(f"{loc}: {msg}" if loc else msg)
+
+    error_response = create_error_response(errors, data=None)
+    return JSONResponse(status_code=422, content=error_response.model_dump())
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Catch-all handler to ensure consistent error envelope."""
+    error_response = create_error_response(["Internal server error", str(exc)])
+    return JSONResponse(status_code=500, content=error_response.model_dump())
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -56,7 +76,17 @@ app.add_middleware(
 )
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/auth", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
+app.add_middleware(
+    BearerTokenMiddleware,
+    excluded_paths=[
+        "/dbmcp/health",
+        "/dbmcp/auth",
+        "/dbmcp/docs",
+        "/dbmcp/redoc",
+        "/dbmcp/openapi.json",
+        "/dbmcp/ui",
+    ],
+)
 
 # Include routers with /dbmcp prefix
 app.include_router(health.router, prefix="/dbmcp")
