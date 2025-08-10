@@ -456,7 +456,7 @@ $(document).ready(function() {
         $executeBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Executing...').prop('disabled', true);
 
         makeApiRequest({
-            url: `${API_BASE_URL}/tools/execute/${currentToolId}`,
+            url: `${API_BASE_URL}/tools/${currentToolId}/execute`,
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ parameters: parameters }),

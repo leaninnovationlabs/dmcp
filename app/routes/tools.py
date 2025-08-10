@@ -1,107 +1,117 @@
-import json
-import traceback
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from fastapi import HTTPException
-from app.core.exceptions import AuthenticationError
-from app.core.responses import api_response, create_success_response, raise_http_error
-from app.core.token_processor import get_payload
-from app.models.schemas import ToolExecutionRequest
 from app.services.tool_execution_service import ToolExecutionService
-from app.services.tool_service import ToolService
-from app.database import get_db
 
-class ToolsRouter:
-    def __init__(self, mcp):
-        self.mcp = mcp
+from ..models.schemas import ToolCreate, ToolExecutionRequest, ToolUpdate, ToolResponse, StandardAPIResponse
+from ..database import get_db
+from ..services.tool_service import ToolService
+from ..core.exceptions import handle_dbmcp_exception
+from ..core.responses import create_success_response, create_error_response, raise_http_error
 
-    def register_routes(self):
-
-        @self.mcp.custom_route("/tools", methods=["GET"])
-        async def list_tools(request):
-
-            try:
-                payload = await get_payload(request)
-
-                """List all tools."""
-                async for db in get_db():
-                    service = ToolService(db)
-                    result = await service.list_tools()
-                    return api_response([tool.model_dump() for tool in result])
-            except AuthenticationError as e:
-                return api_response(None, False, [f"Authentication failed: {e.message}"])
-            except Exception as e:
-                return api_response(None, False, [f"Failed to list tools: {str(e)}"])
-
-        @self.mcp.custom_route("/tools", methods=["POST"])
-        async def create_tool(request):
-            """Create a new tool."""
-            try:
-                payload = await get_payload(request)
-                body = await request.body()
-                data = json.loads(body) if body else {}
-                
-                async for db in get_db():
-                    service = ToolService(db)
-                    from app.models.schemas import ToolCreate
-                    tool_data = ToolCreate(**data)
-                    result = await service.create_tool(tool_data)
-                    return api_response(result.model_dump())
-            except AuthenticationError as e:
-                return api_response(None, False, [f"Authentication failed: {e.message}"])
-            except Exception as e:
-                return api_response(None, False, [f"Failed to create tool: {str(e)}"])
+router = APIRouter(prefix="/tools", tags=["tools"])
 
 
-        @self.mcp.custom_route("/tools/{tool_id}", methods=["GET"])
-        async def get_tool(request):
-            """Get specific tool."""
+@router.post("", response_model=StandardAPIResponse)
+async def create_tool(
+    tool: ToolCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a new named tool with parameter support."""
+    try:
+        service = ToolService(db)
+        result = await service.create_tool(tool)
+        return create_success_response(data=result)
+    except ValueError as e:
+        raise_http_error(400, "Invalid tool data", [str(e)])
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
 
-            try:
-                print(f"+++++++ From the get_tool Request: {request}")
-                # payload = await get_payload(request)
-                tool_id = int(request.path_params.get("tool_id"))
-                print(f"+++++++ From the get_tool tool_id: {tool_id}")
-                async for db in get_db():
-                    service = ToolService(db)
-                    tool = await service.get_tool(tool_id)
-                    print(f"+++++++ From the get_tool tool: {tool}")
-                    if not tool:
-                        return api_response(None, False, ["Tool not found"])
-                    print(f"+++++++ From the get_tool tool.model_dump(): {tool.model_dump()}")
-                    return api_response(tool.model_dump()) 
-                        
-            except AuthenticationError as e:
-                return api_response(None, False, [f"Authentication failed: {e.message}"])
-            except Exception as e:
-                return api_response(None, False, [f"Failed to get tool: {str(e)}"])
 
-        @self.mcp.custom_route("/tools/execute/{tool_id}", methods=["POST"])
-        async def execute_named_tool(request):
-            """Execute a named tool with parameters and pagination."""
-            try:
-                payload = await get_payload(request)
-                body = await request.body()
-                execution_request = json.loads(body) if body else {}
-                tool_id = int(request.path_params.get("tool_id"))
+@router.get("", response_model=StandardAPIResponse)
+async def list_tools(db: AsyncSession = Depends(get_db)):
+    """List all available named tools."""
+    try:
+        service = ToolService(db)
+        result = await service.list_tools()
+        return create_success_response(data=result)
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
 
-                async for db in get_db():   
-                    service = ToolExecutionService(db)
 
-                    if "pagination" not in execution_request:
-                        execution_request["pagination"] = None
+@router.get("/{tool_id}", response_model=StandardAPIResponse)
+async def get_tool(
+    tool_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a specific named tool by ID."""
+    try:
+        service = ToolService(db)
+        tool = await service.get_tool(tool_id)
+        if not tool:
+            raise_http_error(404, "Tool not found")
+        return create_success_response(data=tool)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
 
-                    result = await service.execute_named_tool(
-                        tool_id, execution_request["parameters"], execution_request["pagination"]
-                    )
 
-                    if result.error:
-                        raise_http_error(400, "Tool execution failed", [result.error])
-                    return api_response(result.model_dump())
-            except AuthenticationError as e:
-                return api_response(None, False, [f"Authentication failed: {e.message}"])
-            except HTTPException:
-                raise
-            except Exception as e:
-                print(e)
-                print(traceback.format_exc())
-                raise_http_error(500, "Internal server error", [str(e)])
+@router.put("/{tool_id}", response_model=StandardAPIResponse)
+async def update_tool(
+    tool_id: int,
+    tool_update: ToolUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update an existing named tool by ID."""
+    try:
+        service = ToolService(db)
+        result = await service.update_tool(tool_id, tool_update)
+        return create_success_response(data=result)
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise_http_error(400, "Invalid tool data", [str(e)])
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
+
+
+@router.delete("/{tool_id}", response_model=StandardAPIResponse)
+async def delete_tool(
+    tool_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a named tool by ID."""
+    try:
+        service = ToolService(db)
+        success = await service.delete_tool(tool_id)
+        if not success:
+            raise_http_error(404, "Tool not found")
+        return create_success_response(data={"message": "Tool deleted successfully"})
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)]) 
+
+
+
+@router.post("/{tool_id}/execute", response_model=StandardAPIResponse)
+async def execute_named_tool(
+    tool_id: int,
+    execution_request: ToolExecutionRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute a named tool with parameters and pagination."""
+    try:
+        service = ToolExecutionService(db)
+        result = await service.execute_named_tool(
+            tool_id, execution_request.parameters, execution_request.pagination
+        )
+        if result.error:
+            raise_http_error(400, "Tool execution failed", [result.error])
+        return create_success_response(data=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])

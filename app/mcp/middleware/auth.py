@@ -16,8 +16,6 @@ class AuthMiddleware(Middleware):
     
     async def on_message(self, context: MiddlewareContext, call_next):
 
-        print(f"+++++++ From the AuthMiddleware on_message: {context}")
-
         try:
             result = await call_next(context)
             logger.info(f"Completed {context}")

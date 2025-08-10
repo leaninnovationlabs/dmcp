@@ -8,26 +8,24 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.mcp_server import MCPServer
-from app.routes.health import HealthRouter
-from app.routes.auth import AuthRouter
-from app.routes.datasources import DatasourcesRouter
-from app.routes.tools import ToolsRouter
+from app.routes import auth, datasources, health, tools
+from app.core.auth_middleware import BearerTokenMiddleware
 
 mcp = FastMCP("DBMCP")
 server = MCPServer(mcp)
 
 # Register routes
-health_router = HealthRouter(mcp)
-health_router.register_routes()
+# health_router = HealthRouter(mcp)
+# health_router.register_routes()
 
-auth_router = AuthRouter(mcp)
-auth_router.register_routes()
+# auth_router = AuthRouter(mcp)
+# auth_router.register_routes()
 
-datasources_router = DatasourcesRouter(mcp)
-datasources_router.register_routes()
+# datasources_router = DatasourcesRouter(mcp)
+# datasources_router.register_routes()
 
-tools_router = ToolsRouter(mcp)
-tools_router.register_routes()
+# tools_router = ToolsRouter(mcp)
+# tools_router.register_routes()
 
 # Build MCP ASGI app and mount it under FastAPI
 mcp_app = mcp.http_app(path="/mcp")
@@ -55,7 +53,14 @@ app.add_middleware(
 @app.get("/dbmcp/api/test")
 async def test(request: Request):
     return JSONResponse({"status": "healthy", "message": "DBMCP server is running"})
-    
+
+app.include_router(health.router, prefix="/dbmcp")
+app.include_router(auth.router, prefix="/dbmcp")
+app.include_router(datasources.router, prefix="/dbmcp")
+app.include_router(tools.router, prefix="/dbmcp")
+
+# Add Bearer token authentication middleware
+app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/auth", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
 
 app.mount("/", starlette)
 

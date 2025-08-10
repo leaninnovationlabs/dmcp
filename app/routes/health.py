@@ -1,12 +1,11 @@
-from app.core.responses import api_response
+from fastapi import APIRouter
+from ..core.responses import create_success_response
+from ..models.schemas import StandardAPIResponse
 
-class HealthRouter:
-    def __init__(self, mcp):
-        self.mcp = mcp
+router = APIRouter(tags=["health"])
 
-    def register_routes(self):
-        @self.mcp.custom_route("/health", methods=["GET"])
-        async def health_check(request):
-            """Health check endpoint."""
-            return api_response({"status": "healthy", "message": "DBMCP server is running"})
-
+@router.get("/health", response_model=StandardAPIResponse)
+async def health_check():
+    """Health check endpoint to verify server status."""
+    data = {"status": "healthy", "message": "DBMCP server is running"}
+    return create_success_response(data=data) 
