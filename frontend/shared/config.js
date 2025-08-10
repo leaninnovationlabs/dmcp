@@ -4,7 +4,7 @@ const APP_CONFIG = {
     CONTEXT_PATH: '/dbmcp/ui',
     
     // API configuration
-    API_BASE_URL: 'http://127.0.0.1:8000',
+    API_BASE_URL: 'http://127.0.0.1:8000/dbmcp',
     
     // Helper functions for path generation
     getPath: function(path) {

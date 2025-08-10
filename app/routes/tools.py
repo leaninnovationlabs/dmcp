@@ -82,7 +82,6 @@ class ToolsRouter:
                 payload = await get_payload(request)
                 body = await request.body()
                 execution_request = json.loads(body) if body else {}
-                print(f"+++++++ From the execute_named_tool Request: {execution_request}")
                 tool_id = int(request.path_params.get("tool_id"))
 
                 async for db in get_db():   
@@ -95,7 +94,6 @@ class ToolsRouter:
                         tool_id, execution_request["parameters"], execution_request["pagination"]
                     )
 
-                    print(f"+++++++ From the execute_named_tool Result: {result}")
                     if result.error:
                         raise_http_error(400, "Tool execution failed", [result.error])
                     return api_response(result.model_dump())

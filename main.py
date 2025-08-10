@@ -32,8 +32,8 @@ tools_router.register_routes()
 # Build MCP ASGI app and mount it under FastAPI
 mcp_app = mcp.http_app(path="/mcp")
 
-starlette = Starlette(routes=[Mount("/", app=mcp_app)], lifespan=mcp_app.lifespan)
-mcp_app.mount("/dbmcp/ui", StaticFiles(directory="frontend", html=True), name="static")
+starlette = Starlette(routes=[Mount("/dbmcp", app=mcp_app)], lifespan=mcp_app.lifespan)
+mcp_app.mount("/ui", StaticFiles(directory="frontend", html=True), name="static")
 
 app = FastAPI(
     title="DBMCP - Database Backend Server",
@@ -51,6 +51,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/dbmcp/api/test")
+async def test(request: Request):
+    return JSONResponse({"status": "healthy", "message": "DBMCP server is running"})
+    
 
 app.mount("/", starlette)
 
