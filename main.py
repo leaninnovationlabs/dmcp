@@ -7,6 +7,7 @@ from starlette.routing import Mount
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
+from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
 from app.routes import auth, datasources, health, tools
 from app.core.auth_middleware import BearerTokenMiddleware
@@ -20,6 +21,7 @@ server = MCPServer(mcp)
 # Add middlewares
 mcp.add_middleware(LoggingMiddleware())
 mcp.add_middleware(AuthMiddleware())
+mcp.add_middleware(CustomizeToolsList())
 
 # Build MCP ASGI app and mount it under FastAPI
 mcp_app = mcp.http_app(path="/mcp")
@@ -44,8 +46,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/dbmcp/api/test")
+@app.get("/dbmcp/tools/refresh")
 async def test(request: Request):
+    server._register_database_tools()
     return JSONResponse({"status": "healthy", "message": "DBMCP server is running"})
 
 app.include_router(health.router, prefix=f"{settings.mcp_path}")

@@ -81,7 +81,7 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def ping(self, ctx: Context, name: str = "World") -> Dict[str, Any]:
+    def ping(self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]) -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
         
         headers = get_http_headers()

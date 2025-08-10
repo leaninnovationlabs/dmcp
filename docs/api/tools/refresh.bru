@@ -1,0 +1,15 @@
+meta {
+  name: refresh
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{server}}/tools/refresh
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
