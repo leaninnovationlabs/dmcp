@@ -15,37 +15,32 @@ class AuthMiddleware(Middleware):
     """Middleware that checks for authentication."""
     
     async def on_message(self, context: MiddlewareContext, call_next):
+        """Called for all MCP messages."""
 
-        try:
+        print(f"+++++++ From the AuthMiddleware on_message: {context}")
+
+
+        # Skip authentication in stdio mode (used by Claude Desktop)
+        if settings.mcp_transport == "stdio":
             result = await call_next(context)
-            logger.info(f"Completed {context}")
+            logger.info(f"Completed {context.method} (stdio mode - auth bypassed)")
             return result
-        except Exception as e:
-            logger.error(f"Error in AuthMiddleware: {e}")
-            return {"error": True}
-
-        # """Called for all MCP messages."""
-        # # Skip authentication in stdio mode (used by Claude Desktop)
-        # if settings.transport == "stdio":
-        #     result = await call_next(context)
-        #     logger.info(f"Completed {context.method} (stdio mode - auth bypassed)")
-        #     return result
             
-        # headers = get_http_headers()
+        headers = get_http_headers()
 
-        # # # Get authorization header, which holds the key
-        # auth_header = headers.get("authorization", "")
+        # # Get authorization header, which holds the key
+        auth_header = headers.get("authorization", "")
 
-        # # Skip the authentication check for the tools/list method
-        # if context.method != 'tools/list' :
-        #     try:
-        #         decoded_payload = jwt_validator.validate_token(auth_header)
-        #         logger.debug(f"User ID: {decoded_payload}")
-        #     except AuthenticationError as e:
-        #         logger.warning(f"Authentication failed: {e.message}")
-        #         return {"error": True}
+        # Skip the authentication check for the tools/list method
+        if context.method != 'tools/list' :
+            try:
+                decoded_payload = jwt_validator.validate_token(auth_header)
+                logger.debug(f"User ID: {decoded_payload}")
+            except AuthenticationError as e:
+                logger.warning(f"Authentication failed: {e.message}")
+                return {"error": True}
             
-        # result = await call_next(context)
+        result = await call_next(context)
         
-        # logger.info(f"Completed {context.method}")
-        # return result
+        logger.info(f"Completed {context.method}")
+        return result

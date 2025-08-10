@@ -10,22 +10,16 @@ from app.core.config import settings
 from app.mcp_server import MCPServer
 from app.routes import auth, datasources, health, tools
 from app.core.auth_middleware import BearerTokenMiddleware
+from app.mcp.middleware.auth import AuthMiddleware
+from app.mcp.middleware.logging import LoggingMiddleware
 
 mcp = FastMCP("DBMCP")
 server = MCPServer(mcp)
 
-# Register routes
-# health_router = HealthRouter(mcp)
-# health_router.register_routes()
 
-# auth_router = AuthRouter(mcp)
-# auth_router.register_routes()
-
-# datasources_router = DatasourcesRouter(mcp)
-# datasources_router.register_routes()
-
-# tools_router = ToolsRouter(mcp)
-# tools_router.register_routes()
+# Add middlewares
+mcp.add_middleware(LoggingMiddleware())
+mcp.add_middleware(AuthMiddleware())
 
 # Build MCP ASGI app and mount it under FastAPI
 mcp_app = mcp.http_app(path="/mcp")

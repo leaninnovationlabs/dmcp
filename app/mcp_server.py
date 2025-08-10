@@ -108,7 +108,6 @@ class MCPServer:
         """List all available database tools"""
         headers = get_http_headers()
         authorization = headers.get("authorization", "")
-        self._authenticate_bearer_token(authorization)
      
         try:
             tools = self._list_tools()
@@ -126,20 +125,7 @@ class MCPServer:
         Hello! I'm a database tool assistant. I can help you execute database queries and tools.
         You can start by saying hello or asking me to execute any of the available database tools.
         """
-    
-    def _authenticate_bearer_token(self, authorization: str) -> None:
-        """Extract and validate JWT from authorization header"""
-        if not authorization or not authorization.startswith("Bearer "):
-            raise Exception("Authentication required. Please provide a valid Bearer token.")
         
-        token = authorization.replace("Bearer ", "")
-        try:
-            # Validate JWT token
-            jwt_validator.validate_token(authorization)
-        except AuthenticationError as e:
-            self._log_error(f"Authentication failed: {e.message}")
-            raise Exception("Authentication required. Please provide a valid Bearer token.")
-    
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
         tool_id = tool_data['id']
@@ -182,21 +168,7 @@ class MCPServer:
     ) -> Callable:
         """Create a tool function without parameters."""
         def tool_function():
-            """Dynamic tool function without parameters."""
-
-            # # Handle authentication
-            # if authorization:
-            #     self._authenticate_bearer_token(authorization)
-
-            headers = get_http_headers()
-            # Get authorization header, which holds the key
-            auth_header = headers.get("authorization", "")
-            is_bearer = auth_header.startswith("Bearer ")
-
-            if is_bearer:
-                self._authenticate_bearer_token(auth_header)
-            else:
-                raise Exception("Authentication required. Please provide a valid Bearer token.")                
+            """Dynamic tool function without parameters."""              
             
             # Passed the token validation, now execute the tool
             return self.execute_tool_by_id(tool_id, {})
