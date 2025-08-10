@@ -152,10 +152,11 @@ All routes are automatically documented in the OpenAPI schema and available at:
 
 
 # TODO
+Bugs:
+- Not detecting the new tools from the inspector, see how to list out the get tools
+
+Cleanup:
 - Fix the error message response from the MCP server
-- CORS issue with the MCP server, not able to serve from the UI
-- Consolidate the token validation to the middleware rather than doing at the controller level
 - Make sure we are not throwing the sql in the errors {{server}}/datasources create is doing this
 - Tool with param not working from inspector
-- Not detecting the new tools from the inspector, see how to list out the get tools
 - No proper error handling when the response does not have valid results or errors out

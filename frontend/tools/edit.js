@@ -220,7 +220,7 @@ $(document).ready(function() {
                     // Trigger tools refresh API
                     makeApiRequest({
                         url: `${API_BASE_URL}/tools/refresh`,
-                        method: 'POST',
+                        method: 'GET',
                         dataType: 'json',
                         success: function(refreshResponse) {
                             if (refreshResponse.success) {
