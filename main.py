@@ -24,16 +24,16 @@ mcp.add_middleware(AuthMiddleware())
 # Build MCP ASGI app and mount it under FastAPI
 mcp_app = mcp.http_app(path="/mcp")
 
-starlette = Starlette(routes=[Mount("/dbmcp", app=mcp_app)], lifespan=mcp_app.lifespan)
+starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
 mcp_app.mount("/ui", StaticFiles(directory="frontend", html=True), name="static")
 
 app = FastAPI(
     title="DBMCP - Database Backend Server",
     description="A FastAPI server for managing database connections and executing queries",
     version="0.1.0",
-    docs_url="/dbmcp/docs",
-    redoc_url="/dbmcp/redoc",
-    openapi_url="/dbmcp/openapi.json",
+    docs_url=f"{settings.mcp_path}/docs",
+    redoc_url=f"{settings.mcp_path}/redoc",
+    openapi_url=f"{settings.mcp_path}/openapi.json",
     lifespan=mcp_app.lifespan)
 
 app.add_middleware(
@@ -48,13 +48,18 @@ app.add_middleware(
 async def test(request: Request):
     return JSONResponse({"status": "healthy", "message": "DBMCP server is running"})
 
-app.include_router(health.router, prefix="/dbmcp")
-app.include_router(auth.router, prefix="/dbmcp")
-app.include_router(datasources.router, prefix="/dbmcp")
-app.include_router(tools.router, prefix="/dbmcp")
+app.include_router(health.router, prefix=f"{settings.mcp_path}")
+app.include_router(auth.router, prefix=f"{settings.mcp_path}")
+app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
+app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, ["/dbmcp/health", "/dbmcp/auth", "/dbmcp/docs", "/dbmcp/redoc", "/dbmcp/openapi.json", "/dbmcp/ui"])
+app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
+    f"{settings.mcp_path}/auth", 
+    f"{settings.mcp_path}/docs", 
+    f"{settings.mcp_path}/redoc", 
+    f"{settings.mcp_path}/openapi.json", 
+    f"{settings.mcp_path}/ui"])
 
 app.mount("/", starlette)
 

@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     
     # MCP Server Configuration
     mcp_host: str = "127.0.0.1"
-    mcp_port: int = 4200
+    mcp_port: int = 8000
     mcp_path: str = "/dbmcp"
     mcp_log_level: str = "debug"
     
