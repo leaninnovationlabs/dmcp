@@ -87,6 +87,10 @@ class ToolsRouter:
 
                 async for db in get_db():   
                     service = ToolExecutionService(db)
+
+                    if "pagination" not in execution_request:
+                        execution_request["pagination"] = None
+
                     result = await service.execute_named_tool(
                         tool_id, execution_request["parameters"], execution_request["pagination"]
                     )

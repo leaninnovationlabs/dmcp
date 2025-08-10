@@ -1,66 +1,20 @@
-#!/usr/bin/env python3
-"""
-DBMCP Server - FastMCP Implementation
-
-Enterprise-grade database MCP server using FastMCP 2.10 with custom routes.
-"""
-import asyncio
-import json
-import uvicorn
-
 from fastmcp import FastMCP
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
-from starlette.routing import Mount
 from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Mount
+from fastapi.staticfiles import StaticFiles
+
 from app.core.config import settings
-from app.database import init_db
-from app.mcp.middleware.auth import AuthMiddleware
 from app.mcp_server import MCPServer
-from app.routes.auth import AuthRouter
 from app.routes.health import HealthRouter
+from app.routes.auth import AuthRouter
 from app.routes.datasources import DatasourcesRouter
 from app.routes.tools import ToolsRouter
-import json
 
-mcp = FastMCP(name="DBMCP")
+mcp = FastMCP("DBMCP")
 server = MCPServer(mcp)
-
-
-mcp_app = mcp.http_app(path="/mcp")
-
-# Mount MCP functionality
-starlette_app = Starlette(routes=[ Mount("/", app=mcp_app) ], lifespan=mcp_app.lifespan)
-
-app = FastAPI(lifespan=mcp_app.lifespan)
-
-# Configure CORS settings
-origins = ["http://localhost:3000", "http://localhost:8000", "http://localhost:4200", "http://127.0.0.1:5500"]  # Adjust for your frontend origin
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-auth_middleware = AuthMiddleware()
-cors_middleware = CORSMiddleware(
-    app=mcp,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-    expose_headers=["*"]
-)
-
-
-# TODO: Middleware is not working as expected, need to fix it
-mcp.add_middleware(auth_middleware)
-mcp.add_middleware(cors_middleware)
 
 # Register routes
 health_router = HealthRouter(mcp)
@@ -75,36 +29,31 @@ datasources_router.register_routes()
 tools_router = ToolsRouter(mcp)
 tools_router.register_routes()
 
+# Build MCP ASGI app and mount it under FastAPI
+mcp_app = mcp.http_app(path="/mcp")
 
+starlette = Starlette(routes=[Mount("/", app=mcp_app)], lifespan=mcp_app.lifespan)
+mcp_app.mount("/dbmcp/ui", StaticFiles(directory="frontend", html=True), name="static")
 
-async def startup():
-    """Initialize database on startup."""
-    await init_db()
+app = FastAPI(
+    title="DBMCP - Database Backend Server",
+    description="A FastAPI server for managing database connections and executing queries",
+    version="0.1.0",
+    docs_url="/dbmcp/docs",
+    redoc_url="/dbmcp/redoc",
+    openapi_url="/dbmcp/openapi.json",
+    lifespan=mcp_app.lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-async def main():
-    """Main entry point."""
-    await startup()
-    
-    # Start FastMCP HTTP server with CORS middleware
-    await mcp.run_async(
-        transport="http",
-        host=settings.mcp_host,
-        port=settings.mcp_port,
-        path="/mcp",
-        stateless_http=True
-    )
-
-
-def main_sync():
-    """Synchronous entry point."""
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("Shutting down...")
-    except Exception as e:
-        print(f"Application error: {e}")
-        raise
+app.mount("/", starlette)
 
 if __name__ == "__main__":
-    main_sync()
+    import uvicorn
+    uvicorn.run(app, host=settings.mcp_host, port=settings.mcp_port)
