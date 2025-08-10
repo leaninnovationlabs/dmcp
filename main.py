@@ -10,6 +10,10 @@ import uvicorn
 
 from fastmcp import FastMCP
 from starlette.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Mount
+from starlette.applications import Starlette
 from app.core.config import settings
 from app.database import init_db
 from app.mcp.middleware.auth import AuthMiddleware
@@ -23,6 +27,26 @@ import json
 mcp = FastMCP(name="DBMCP")
 server = MCPServer(mcp)
 
+
+mcp_app = mcp.http_app(path="/mcp")
+
+# Mount MCP functionality
+starlette_app = Starlette(routes=[ Mount("/", app=mcp_app) ], lifespan=mcp_app.lifespan)
+
+app = FastAPI(lifespan=mcp_app.lifespan)
+
+# Configure CORS settings
+origins = ["http://localhost:3000", "http://localhost:8000", "http://localhost:4200", "http://127.0.0.1:5500"]  # Adjust for your frontend origin
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 auth_middleware = AuthMiddleware()
 cors_middleware = CORSMiddleware(
     app=mcp,
@@ -30,12 +54,13 @@ cors_middleware = CORSMiddleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 
 # TODO: Middleware is not working as expected, need to fix it
-# mcp.add_middleware(auth_middleware)
-# mcp.add_middleware(cors_middleware)
+mcp.add_middleware(auth_middleware)
+mcp.add_middleware(cors_middleware)
 
 # Register routes
 health_router = HealthRouter(mcp)

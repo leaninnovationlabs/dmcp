@@ -1,0 +1,15 @@
+meta {
+  name: get
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{server}}/tools/2
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}

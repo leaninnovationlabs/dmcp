@@ -57,14 +57,19 @@ class ToolsRouter:
             """Get specific tool."""
 
             try:
-                payload = await get_payload(request)
+                print(f"+++++++ From the get_tool Request: {request}")
+                # payload = await get_payload(request)
                 tool_id = int(request.path_params.get("tool_id"))
+                print(f"+++++++ From the get_tool tool_id: {tool_id}")
                 async for db in get_db():
                     service = ToolService(db)
                     tool = await service.get_tool(tool_id)
+                    print(f"+++++++ From the get_tool tool: {tool}")
                     if not tool:
                         return api_response(None, False, ["Tool not found"])
-                        return api_response(tool.model_dump())
+                    print(f"+++++++ From the get_tool tool.model_dump(): {tool.model_dump()}")
+                    return api_response(tool.model_dump()) 
+                        
             except AuthenticationError as e:
                 return api_response(None, False, [f"Authentication failed: {e.message}"])
             except Exception as e:

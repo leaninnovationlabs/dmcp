@@ -16,16 +16,16 @@ class AuthMiddleware(Middleware):
     
     async def on_message(self, context: MiddlewareContext, call_next):
 
-        print(f"+++++++ From the AuthMiddleware on_message: {context.method}")
-
+        print(f"+++++++ From the AuthMiddleware on_message: {context}")
 
         try:
             result = await call_next(context)
-            logger.info(f"Completed {context.method}")
+            logger.info(f"Completed {context}")
             return result
         except Exception as e:
             logger.error(f"Error in AuthMiddleware: {e}")
             return {"error": True}
+
         # """Called for all MCP messages."""
         # # Skip authentication in stdio mode (used by Claude Desktop)
         # if settings.transport == "stdio":
