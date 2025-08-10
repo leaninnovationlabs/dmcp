@@ -23,9 +23,9 @@ uv sync
 uv run alembic upgrade head
 ```
 
-3. Run the API server:
+3. Run the API server, MCP server and UI:
 ```bash
-uv run api_run.py
+uv run main.py
 ```
 
 4. Access the API documentation at: http://localhost:8000/dbmcp/docs
@@ -33,22 +33,15 @@ uv run api_run.py
 5. Access the UI at: http://localhost:8000/dbmcp/ui
 
 ## MCP Server Setup
-This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants. By default MCP server runs on port 4200 with /dbmcp/mcp prefix
+This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants. By default MCP server runs on port 8000 with /dbmcp/mcp prefix
 
-1. Starting the MCP Server
-
-```bash
-# Start the MCP server
-uv run mcp_run.py
-```
-
-2. Launch MCP Inspector:
+1. Launch MCP Inspector:
 
 ```bash
 npx @modelcontextprotocol/inspector
 ```
 
-- Provide the URL as http://127.0.0.1:4200/dbmcp
+- Provide the URL as http://127.0.0.1:8000/dbmcp
 - Set the Header Name as Authorization
 - Set the Header Value as Bearer <token> (replace <token> with the token you generated in Token Handling section)
 
