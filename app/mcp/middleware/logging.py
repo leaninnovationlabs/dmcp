@@ -10,10 +10,5 @@ class LoggingMiddleware(Middleware):
     
     async def on_message(self, context: MiddlewareContext, call_next):
         """Called for all MCP messages."""
-        # print(f"+++++++ Processing {context.method} from {context.source}")
-        
         result = await call_next(context)
-        
-        print(f"Completed {context.method}")
-        # print(f"+++++++ From the LoggingMiddleware on_message: {result}")
         return result 
