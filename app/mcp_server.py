@@ -11,17 +11,17 @@ import inspect
 import sys
 import traceback
 from typing import Any, Callable, Dict, List, Optional
-from fastmcp.server.dependencies import get_http_headers
 from fastmcp import Context, FastMCP
+from fastmcp.server.dependencies import get_http_headers
 from sqlalchemy import true
 
-from app.core.jwt_validator import jwt_validator
 from app.database import get_db
 from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
 from app.core.config import settings
 from app.mcp.middleware.logging import LoggingMiddleware
-from app.mcp.middleware.auth import AuthMiddleware
+from app.core.jwt_validator import jwt_validator
+from app.core.exceptions import AuthenticationError
 
 # Constants
 PYTHON_RESERVED_KEYWORDS = {
@@ -41,24 +41,15 @@ DEFAULT_ERROR_RESPONSE = {
     "error": ""
 }
 
-# Create a token
-# payload = {"user_id": 123, "username": "john_doe"}
-# token = jwt_validator.create_token(payload)
-# print(f"+++++++ Token: {token}")
-
-mcp = FastMCP(name="DBMCP")
-# Add middlewares
-mcp.add_middleware(LoggingMiddleware())
-mcp.add_middleware(AuthMiddleware())
-
 
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
     
-    def __init__(self, name: str = "DB MCP"):
+    def __init__(self, mcp_instance, name: str = "DB MCP"):
         """Initialize the MCP server with the given name."""
-        self.mcp = mcp
+        self.mcp = mcp_instance
         self.mcp.tool(self.ping)
+        self.mcp.prompt(self.example_prompt)
         self._register_database_tools()
 
         # Example to add prompts, seem to be working only based on the annoation
@@ -90,9 +81,9 @@ class MCPServer:
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
     
-    def ping(self, ctx: Context, name: str = "World") -> Dict[str, Any]:
+    def ping(self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]) -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
-
+        
         headers = get_http_headers()
         # # Get authorization header, which holds the key
         auth_header = headers.get("authorization", "")
@@ -113,6 +104,28 @@ class MCPServer:
         # Return the string equqivalent of data object
         return data
     
+    def list_database_tools(self, ctx: Context) -> Dict[str, Any]:
+        """List all available database tools"""
+        headers = get_http_headers()
+        authorization = headers.get("authorization", "")
+     
+        try:
+            tools = self._list_tools()
+            return {
+                "success": True,
+                "tools": [{"id": t["id"], "name": t["name"], "description": t.get("description", "")} for t in tools]
+            }
+        except Exception as e:
+            return {"success": False, "errors": [{"msg": str(e)}]}
+    
+    
+    def example_prompt(self) -> str:
+        """Example prompt for the MCP server"""
+        return """
+        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
+        You can start by saying hello or asking me to execute any of the available database tools.
+        """
+        
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
         tool_id = tool_data['id']
@@ -137,8 +150,10 @@ class MCPServer:
         param_names = [param['name'] for param in parameters]
         valid_param_names, param_mapping = self._sanitize_parameter_names(param_names)
         
+        
         def tool_function(**kwargs):
             """Dynamic tool function with parameters."""
+
             parameters = self._map_parameters(kwargs, param_mapping)
             return self.execute_tool_by_id(tool_id, parameters)
         
@@ -153,10 +168,12 @@ class MCPServer:
     ) -> Callable:
         """Create a tool function without parameters."""
         def tool_function():
-            """Dynamic tool function without parameters."""
+            """Dynamic tool function without parameters."""              
+            
+            # Passed the token validation, now execute the tool
             return self.execute_tool_by_id(tool_id, {})
         
-        self._set_function_metadata(tool_function, tool_name, description)
+        self._set_function_metadata(tool_function, tool_name, description, [])
         return tool_function
     
     def _sanitize_parameter_names(
@@ -232,6 +249,7 @@ class MCPServer:
         except Exception as e:
             self._log_error(f"Failed to execute tool {tool_id}: {e}")
             traceback.print_exc(file=sys.stderr)
+            # Preserve the response envelope expected by MCP clients
             return {**DEFAULT_ERROR_RESPONSE, "error": str(e)}
     
     def _execute_tool_async(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
@@ -257,7 +275,18 @@ class MCPServer:
     
     def _list_tools(self) -> List[Dict[str, Any]]:
         """Get list of tools from database using sync wrapper."""
-        return asyncio.run(self._list_tools_async())
+        # Run in a new event loop to avoid conflicts with the main event loop
+        def run_in_new_loop():
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            try:
+                return new_loop.run_until_complete(self._list_tools_async())
+            finally:
+                new_loop.close()
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(run_in_new_loop)
+            return future.result()
     
     async def _list_tools_async(self) -> List[Dict[str, Any]]:
         """Get list of tools from database asynchronously."""
@@ -276,21 +305,16 @@ class MCPServer:
 
     def run(self) -> None:
         """Start the MCP server."""
-        # Support running both in stdio and http based on a parameter
-        if settings.mcp_transport == "stdio" :
+        if settings.mcp_transport == "stdio":
             self.mcp.run()
         else:
-            mcp.run(
+            self.mcp.run(
                 transport="http",
                 host=settings.mcp_host,
                 port=settings.mcp_port,
                 path=settings.mcp_path,
                 log_level=settings.mcp_log_level,
+                stateless_http=True
             )
 
-    @mcp.prompt
-    def example_prompt() -> str:
-        return """
-        Hello! I'm a database tool assistant. I can help you execute database queries and tools.
-        You can start by saying hello or asking me to execute any of the available database tools.
-        """
+    # Example prompt moved to MCPServer class since mcp instance is not global anymore

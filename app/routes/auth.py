@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
-from typing import Dict, Any
+from typing import Dict, Any, Union
 from pydantic import BaseModel, Field
 
 from app.core.jwt_validator import jwt_validator
@@ -12,7 +12,7 @@ router = APIRouter()
 
 class AuthRequest(BaseModel):
     """Request model for JWT token generation."""
-    payload: Dict[str, Any] = Field(..., description="Dynamic payload to include in JWT token")
+    config: Union[str, Dict[str, Any]] = Field(..., description="Config from tidd personas - can be string or object")
 
 
 class AuthResponse(BaseModel):
@@ -24,20 +24,21 @@ class AuthResponse(BaseModel):
 @router.post("/auth", response_model=AuthResponse)
 async def generate_token(request: AuthRequest):
     """
-    Generate a new JWT token with the provided dynamic payload.
+    Generate a new JWT token with the provided config.
     
-    This endpoint accepts any JSON payload and creates a JWT token containing
-    that payload along with standard JWT claims (exp, iat).
+    This endpoint accepts a config from tidd personas and creates a JWT token 
+    for dbmcp access. We just generate an empty token since we don't need 
+    the actual config data.
     
     Args:
-        request: AuthRequest containing the dynamic payload
+        request: AuthRequest containing the config
         
     Returns:
         AuthResponse with the generated token and expiration information
     """
     try:
-        # Create token with the provided payload
-        token = jwt_validator.create_token(request.payload)
+        # Create token with empty payload - we don't need the config data
+        token = jwt_validator.create_token({})
         
         # Return the token with expiration info
         return AuthResponse(

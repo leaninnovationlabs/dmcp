@@ -27,18 +27,22 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     
     # CORS
-    allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    allowed_origins: List[str] = ["http://localhost:3000",
+     "http://127.0.0.1:8000",
+      "http://localhost:8000",
+       "http://localhost:4200", 
+       "http://127.0.0.1:5500"]
     
     # Database Connection Pool
     db_pool_size: int = 10
     db_max_overflow: int = 20
     
     # MCP Transport
-    mcp_transport: str = "stdio"
+    mcp_transport: str = "http"
     
     # MCP Server Configuration
     mcp_host: str = "127.0.0.1"
-    mcp_port: int = 4200
+    mcp_port: int = 8000
     mcp_path: str = "/dbmcp"
     mcp_log_level: str = "debug"
     

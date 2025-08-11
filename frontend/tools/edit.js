@@ -216,6 +216,24 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     showNotification(isEditMode ? 'Tool updated successfully' : 'Tool created successfully', 'success');
+                    
+                    // Trigger tools refresh API
+                    makeApiRequest({
+                        url: `${API_BASE_URL}/tools/refresh`,
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(refreshResponse) {
+                            if (refreshResponse.success) {
+                                console.log('Tools refreshed successfully');
+                            } else {
+                                console.warn('Tools refresh failed:', refreshResponse.errors?.[0]?.msg || 'Unknown error');
+                            }
+                        },
+                        error: function() {
+                            console.warn('Tools refresh request failed');
+                        }
+                    });
+                    
                     setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 1500);
                 } else {
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
@@ -456,7 +474,7 @@ $(document).ready(function() {
         $executeBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Executing...').prop('disabled', true);
 
         makeApiRequest({
-            url: `${API_BASE_URL}/execute/${currentToolId}`,
+            url: `${API_BASE_URL}/tools/${currentToolId}/execute`,
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({ parameters: parameters }),

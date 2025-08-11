@@ -113,9 +113,9 @@ class AuthManager {
         // Set token temporarily for validation
         this.setToken(token);
         
-        // Test the token with a simple API call
+        // Test the token with the auth validate endpoint
         this.makeAuthenticatedRequest({
-            url: `${APP_CONFIG.API_BASE_URL}/health`,
+            url: `${APP_CONFIG.API_BASE_URL}/auth/validate`,
             method: 'GET',
             success: () => {
                 // Token is valid

@@ -110,7 +110,7 @@ This will output a token that you'll use for authentication.
 
 #### API Server
 ```bash
-uv run api_run.py
+uv run main.py
 ```
 
 The API server will be available at:
@@ -119,14 +119,7 @@ The API server will be available at:
 - **Health Check**: http://localhost:8000/dbmcp/health (when server is running)
 
 
-#### MCP Server
-Once you setup the datasources and tools, you can start the MCP server to connect to the DBMCP server.
-
-```bash
-uv run mcp_run.py
-```
-
-The MCP server runs on port 4200 by default.
+The MCP server runs on port 8000 by default.
 
 ## Verification
 

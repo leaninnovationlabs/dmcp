@@ -2,7 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse, StandardAPIResponse
+from app.services.tool_execution_service import ToolExecutionService
+
+from ..models.schemas import ToolCreate, ToolExecutionRequest, ToolUpdate, ToolResponse, StandardAPIResponse
 from ..database import get_db
 from ..services.tool_service import ToolService
 from ..core.exceptions import handle_dbmcp_exception
@@ -91,3 +93,25 @@ async def delete_tool(
         raise
     except Exception as e:
         raise_http_error(500, "Internal server error", [str(e)]) 
+
+
+
+@router.post("/{tool_id}/execute", response_model=StandardAPIResponse)
+async def execute_named_tool(
+    tool_id: int,
+    execution_request: ToolExecutionRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Execute a named tool with parameters and pagination."""
+    try:
+        service = ToolExecutionService(db)
+        result = await service.execute_named_tool(
+            tool_id, execution_request.parameters, execution_request.pagination
+        )
+        if result.error:
+            raise_http_error(400, "Tool execution failed", [result.error])
+        return create_success_response(data=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
