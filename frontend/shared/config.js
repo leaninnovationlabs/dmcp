@@ -1,21 +1,23 @@
-// Application Configuration
+// Updated config.js
 const APP_CONFIG = {
-    // Base context path for the application
+    // Use the same origin as the frontend
     CONTEXT_PATH: '/dbmcp/ui',
     
-    // API configuration
-    API_BASE_URL: 'http://127.0.0.1:8000/dbmcp',
+    // Use localhost if frontend is on localhost, or use relative URLs
+    API_BASE_URL: window.location.hostname === 'localhost' 
+        ? 'http://localhost:8000/dbmcp' 
+        : 'http://127.0.0.1:8000/dbmcp',
     
-    // Helper functions for path generation
+    // Alternative: use relative URLs if frontend and backend are on same server
+    // API_BASE_URL: '/api/dbmcp',
+    
     getPath: function(path) {
-        // Ensure path starts with /
         if (!path.startsWith('/')) {
             path = '/' + path;
         }
         return this.CONTEXT_PATH + path;
     },
     
-    // Generate full URLs for navigation
     urls: {
         home: function() { return APP_CONFIG.getPath('/index.html'); },
         datasource: function() { return APP_CONFIG.getPath('/datasource/'); },
@@ -29,5 +31,4 @@ const APP_CONFIG = {
     }
 };
 
-// Make it globally available
-window.APP_CONFIG = APP_CONFIG; 
+window.APP_CONFIG = APP_CONFIG;
