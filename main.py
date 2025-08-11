@@ -23,8 +23,8 @@ mcp.add_middleware(LoggingMiddleware())
 mcp.add_middleware(AuthMiddleware())
 mcp.add_middleware(CustomizeToolsList())
 
-# Build MCP ASGI app and mount it under FastAPI
-mcp_app = mcp.http_app(path="/mcp")
+# Build MCP ASGI app and mount it under FastAPI (stateless for compatibility with tidd)
+mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
 
 starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
 mcp_app.mount("/ui", StaticFiles(directory="frontend", html=True), name="static")
