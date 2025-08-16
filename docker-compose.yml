@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  dbmcp:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # environment:
+    #   - HOST=0.0.0.0
+    #   - PORT=8000
+    volumes:
+      # Persist database file
+      - ./dbmcp.db:/app/dbmcp.db
+    restart: unless-stopped

@@ -5,3 +5,6 @@ __pycache__/
 *.db-journal
 tests/*.db
 tests/.test.env
+docs/node_modules
+docs/manual/.vitepress/cache
+docs/manual/.vitepress/dist

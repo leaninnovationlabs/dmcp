@@ -1,7 +1,7 @@
 import os
 from typing import List
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 
 
 class Settings(BaseSettings):
@@ -11,30 +11,62 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./dbmcp.db"
     
     # Security
-    secret_key: str = "your-secret-key-here-change-this-in-production"
-    
-    # JWT Settings
-    jwt_secret_key: str = "jwt-secret-key-change-this-in-production"
+    secret_key: str
     jwt_algorithm: str = "HS256"
-    jwt_expiration_minutes: int = 60
+    jwt_expiration_minutes: int = 600000
     
-    # Server
-    host: str = "0.0.0.0"
-    port: int = 8000
     debug: bool = True
     
     # Logging
     log_level: str = "INFO"
     
     # CORS
-    allowed_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
+    allowed_origins: List[str] = []
     
     # Database Connection Pool
     db_pool_size: int = 10
     db_max_overflow: int = 20
     
-    # Transport
-    transport: str = "stdio"
+    # MCP Transport
+    mcp_transport: str = "http"
+    
+    # MCP Server Configuration
+    mcp_host: str = "0.0.0.0"
+    mcp_port: int = 8000
+    mcp_path: str = "/dbmcp"
+    mcp_log_level: str = "debug"
+    
+    @field_validator('secret_key')
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
+        """Validate that SECRET_KEY is properly set and not the default placeholder."""
+        if not v or v.strip() == "":
+            raise ValueError("SECRET_KEY must be set and cannot be empty")
+        
+        # Check for common placeholder values
+        placeholder_values = [
+            "your-secret-key-here-change-this-in-production",
+            "change-this-in-production",
+            "your-secret-key-here",
+            "secret-key-placeholder",
+            "default-secret-key"
+        ]
+        
+        if v.strip() in placeholder_values:
+            raise ValueError(
+                "SECRET_KEY must be set to a secure value. "
+                "Please set a proper SECRET_KEY in your environment variables or .env file. "
+                "Do not use placeholder values."
+            )
+        
+        # Ensure minimum length for security
+        if len(v.strip()) < 32:
+            raise ValueError(
+                "SECRET_KEY must be at least 32 characters long for security. "
+                f"Current length: {len(v.strip())}"
+            )
+        
+        return v
     
     model_config = ConfigDict(env_file=".env", case_sensitive=False)
 

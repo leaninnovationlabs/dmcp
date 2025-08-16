@@ -4,7 +4,6 @@ from ..models.schemas import StandardAPIResponse
 
 router = APIRouter(tags=["health"])
 
-
 @router.get("/health", response_model=StandardAPIResponse)
 async def health_check():
     """Health check endpoint to verify server status."""

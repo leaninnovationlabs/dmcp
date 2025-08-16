@@ -79,11 +79,13 @@ class AuthenticationError(DBMCPException):
 
 
 def handle_dbmcp_exception(exc: DBMCPException) -> HTTPException:
-    """Convert DBMCP exceptions to FastAPI HTTP exceptions."""
+    """Convert DBMCP exceptions to FastAPI HTTP exceptions using standardized error detail."""
+    # Shape detail so global handler can produce StandardAPIResponse
     return HTTPException(
         status_code=exc.status_code,
         detail={
-            "message": exc.message,
-            "details": exc.details
+            "success": False,
+            "errors": [{"msg": exc.message}],
+            "details": exc.details,
         }
-    ) 
+    )
