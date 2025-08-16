@@ -3,13 +3,13 @@
 layout: home
 
 hero:
-  name: "DBMCP Server"
+  name: "Opsloom DBMCP"
   text: "Build your tools with the power of SQL"
   tagline: Connect AI assistants to your data
   image:
     src: /icons/logo.png
     width: 400
-    alt: DBMCP Logo
+    alt: Opsloom DBMCP Logo
   actions:
     - theme: brand
       text: Introduction
