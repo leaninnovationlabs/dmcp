@@ -17,7 +17,7 @@ The Model Context Protocol (MCP) is a standard that enables AI assistants to int
 DBMCP provides an MCP server that exposes your tools to AI assistants:
 
 ```bash
-uv run mcp_run.py
+uv run main.py
 ```
 
 By default, the MCP server runs on port 8000 with the `/dbmcp/mcp` prefix.
@@ -30,11 +30,6 @@ The MCP server supports two transport modes:
 - **URL**: `http://127.0.0.1:8000/dbmcp`
 - **Authentication**: Bearer token required
 - **Use Case**: Web-based MCP clients, remote connections
-
-#### 2. stdio Transport
-- **Transport**: Standard input/output
-- **Authentication**: Disabled (development only)
-- **Use Case**: Local AI assistants like Claude Desktop
 
 ## Connecting AI Assistants
 
