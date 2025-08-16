@@ -2,6 +2,8 @@
 
 A Python backend server built with FastAPI that can connect to various databases and run queries. The server provides APIs for managing datasources, creating named queries, and executing queries with parameter support and pagination.
 
+You can find the documentation [here](https://dev-dbmcp.opsloom.io/)
+
 ## Features
 - **Datasource Management**: Ability to connect to various databases
 - **Named Queries**: Store and manage parameterized queries with jinja template support
