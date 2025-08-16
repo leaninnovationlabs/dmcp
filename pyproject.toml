@@ -24,6 +24,7 @@ dependencies = [
     "pyjwt>=2.8.0",
     "databricks-sql-connector>=2.9.0",
     "fastapi>=0.116.1",
+    "greenlet>=3.0.3",
 ]
 
 [project.optional-dependencies]

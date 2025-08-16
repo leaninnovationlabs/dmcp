@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version < '3.11'",
@@ -421,6 +421,7 @@ dependencies = [
     { name = "databricks-sql-connector" },
     { name = "fastapi" },
     { name = "fastmcp" },
+    { name = "greenlet" },
     { name = "jinja2" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
@@ -460,6 +461,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.116.1" },
     { name = "fastmcp", specifier = ">=2.11" },
     { name = "flake8", marker = "extra == 'dev'", specifier = ">=6.0.0" },
+    { name = "greenlet", specifier = ">=3.0.3" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12.0" },
     { name = "jinja2", specifier = ">=3.1.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.5.0" },
