@@ -18,12 +18,25 @@ A Python backend server built with FastAPI that can connect to various databases
 uv sync
 ```
 
-2. Initialize the database:
+2. **Configure SECRET_KEY** (Required):
+   The application requires a secure SECRET_KEY to be set. This is used for JWT token signing and other security features.
+   
+   **Option A: Environment Variable**
+   ```bash
+   export SECRET_KEY="your-secure-secret-key-here"
+   ```
+   
+   **Important**: The SECRET_KEY must be:
+   - At least 32 characters long
+   - Not a placeholder value
+   - Kept secret and secure
+
+3. Initialize the database:
 ```bash
 uv run alembic upgrade head
 ```
 
-3. Run the API server, MCP server and UI:
+4. Run the API server, MCP server and UI:
 ```bash
 uv run main.py
 ```
