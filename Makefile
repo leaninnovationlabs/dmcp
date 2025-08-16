@@ -33,11 +33,19 @@ stop:
 docker-build:
 	docker build -t dbmcp:latest .
 
-docker-run: docker-build
-	docker-compose up -d
+docker-run:
+	docker run \
+		--name dbmcp \
+		--env-file .env \
+		-p 8000:8000 \
+		-v $(PWD)/dbmcp.db:/app/dbmcp.db \
+		dbmcp:latest
+
+docker-build-run: docker-build docker-run
 
 docker-stop:
-	docker-compose down
+	docker stop dbmcp || true
+	docker rm dbmcp || true
 
 docker-clean: docker-stop
 	docker rmi dbmcp:latest || true
