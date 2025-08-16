@@ -2,7 +2,7 @@
 
 A Python backend server built with FastAPI that can connect to various databases and run queries. The server provides APIs for managing datasources, creating named queries, and executing queries with parameter support and pagination.
 
-You can find the documentation [here](https://dev-dbmcp.opsloom.io/)
+You can find the documentation [here](https://dbmcp.opsloom.io/)
 
 ## Features
 - **Datasource Management**: Ability to connect to various databases
@@ -32,20 +32,26 @@ uv sync
    - At least 32 characters long
    - Not a placeholder value
    - Kept secret and secure
+ 
+  **Option B: .env File**
+  Copy `env.example` to `.env` and set MCP_TRANSPORT to `stdio` or `http`
+  ```bash
+  cp env.example .env
+  ```
+
 
 3. Initialize the database:
 ```bash
-uv run alembic upgrade head
+  uv run alembic upgrade head
 ```
 
 4. Run the API server, MCP server and UI:
 ```bash
-uv run main.py
+  uv run main.py
 ```
 
-4. Access the API documentation at: http://localhost:8000/dbmcp/docs
+4. Access the UI at: http://localhost:8000/dbmcp/ui
 
-5. Access the UI at: http://localhost:8000/dbmcp/ui
 
 ## MCP Server Setup
 This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants. By default MCP server runs on port 8000 with /dbmcp/mcp prefix
@@ -137,12 +143,12 @@ The `docker-compose.yml` file is already configured with environment variables:
 docker-compose up -d
 
 # Or override with custom port
-docker-compose up -d -e PORT=7000
+docker-compose up -d -e PORT=8000
 ```
 
 ## Environment Variables
 
-Create a `.env` file with required variables. Checkout `.env.example` file for reference. Here are all the available configuration options:
+Create a `.env` file with required variables. Checkout `.env.example` file for reference. Only SECRET_KEY is required. Here are all the available configuration options:
 
 ### Database Configuration
 - `DATABASE_URL`: Database connection string (default: `sqlite+aiosqlite:///./dbmcp.db`)
@@ -195,8 +201,6 @@ SECRET_KEY=your-super-secret-key-here
 HOST=0.0.0.0
 PORT=8000
 DEBUG=false
-
-# Logging
 LOG_LEVEL=INFO
 
 # CORS
