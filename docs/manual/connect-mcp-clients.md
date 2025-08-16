@@ -20,14 +20,14 @@ DBMCP provides an MCP server that exposes your tools to AI assistants:
 uv run mcp_run.py
 ```
 
-By default, the MCP server runs on port 4200 with the `/dbmcp/mcp` prefix.
+By default, the MCP server runs on port 8000 with the `/dbmcp/mcp` prefix.
 
 ### Server Configuration
 
 The MCP server supports two transport modes:
 
 #### 1. HTTP Transport (Default)
-- **URL**: `http://127.0.0.1:4200/dbmcp`
+- **URL**: `http://127.0.0.1:8000/dbmcp`
 - **Authentication**: Bearer token required
 - **Use Case**: Web-based MCP clients, remote connections
 
@@ -56,40 +56,32 @@ npx @modelcontextprotocol/inspector
 ```
 
 3. Configure the connection:
-   - **URL**: `http://127.0.0.1:4200/dbmcp`
+   - **URL**: `http://127.0.0.1:8000/dbmcp`
    - **Header Name**: `Authorization`
    - **Header Value**: `Bearer YOUR_TOKEN`
 
 
-### 2. Claude Desktop
+### 2. Cursor
 
-Claude Desktop is a popular AI assistant that supports MCP servers.
-**Note**: Claude Desktop right now supports only OAuth for http transport, you will have to use stdio transport for local development.
-
-#### Configuration
-
-Add the following to your `claude_desktop_config.json`:
+Navigate to the Cursor settings and add the following:
 
 ```json
 {
   "mcpServers": {
     "dbmcp": {
-      "command": "/path/to/uv",
-      "args": [
-        "--directory",
-        "/path/to/dbmcp",
-        "run",
-        "mcp_run.py"
-      ],
-      "env": {
-        "TRANSPORT": "stdio"
+      "url": "http://127.0.0.1:8000/dbmcp/mcp",
+      "description": "Database MCP Server",
+      "name": "dbmcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer token"
       }
     }
   }
 }
 ```
 
-
+Now you can use the DBMMCP server in Cursor chat window.
 
 ### 3. Custom MCP Clients
 
@@ -97,36 +89,6 @@ You can build custom MCP clients using the MCP protocol specification.
 
 #### Python Example
 
-**stdio Transport (Local Development)**
-
-```python
-import asyncio
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
-
-async def main():
-    # Connect to DBMCP server via stdio
-    server = StdioServerParameters(
-        command="uv",
-        args=["--directory", "/path/to/dbmcp", "run", "mcp_run.py"],
-        env={"TRANSPORT": "stdio"}
-    )
-    
-    async with stdio_client(server) as (read, write):
-        async with ClientSession(read, write) as session:
-            # List available tools
-            tools = await session.list_tools()
-            print("Available tools:", tools)
-            
-            # Execute a tool
-            result = await session.call_tool(
-                name="get_user_count",
-                arguments={}
-            )
-            print("Result:", result)
-
-asyncio.run(main())
-```
 
 **HTTP Transport (Remote/Web-based)**
 
@@ -138,7 +100,7 @@ from mcp.client.http import http_client
 
 async def main():
     # Connect to DBMCP server via HTTP
-    server_url = "http://127.0.0.1:4200/dbmcp"
+    server_url = "http://127.0.0.1:8000/dbmcp"
     headers = {
         "Authorization": "Bearer YOUR_TOKEN_HERE",
         "Content-Type": "application/json"
@@ -163,35 +125,6 @@ asyncio.run(main())
 
 #### JavaScript Example
 
-**stdio Transport (Local Development)**
-
-```javascript
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioServerParameters } from '@modelcontextprotocol/sdk/server/index.js';
-
-async function main() {
-    const server = new StdioServerParameters({
-        command: 'uv',
-        args: ['--directory', '/path/to/dbmcp', 'run', 'mcp_run.py'],
-        env: { TRANSPORT: 'stdio' }
-    });
-    
-    const client = new Client(server);
-    await client.connect();
-    
-    // List tools
-    const tools = await client.listTools();
-    console.log('Available tools:', tools);
-    
-    // Execute tool
-    const result = await client.callTool('get_user_count', {});
-    console.log('Result:', result);
-    
-    await client.close();
-}
-
-main();
-```
 
 **HTTP Transport (Remote/Web-based)**
 
@@ -201,7 +134,7 @@ import { HttpServerParameters } from '@modelcontextprotocol/sdk/server/index.js'
 
 async function main() {
     const server = new HttpServerParameters({
-        url: 'http://127.0.0.1:4200/dbmcp',
+        url: 'http://127.0.0.1:8000/dbmcp',
         headers: {
             'Authorization': 'Bearer YOUR_TOKEN_HERE',
             'Content-Type': 'application/json'
@@ -242,7 +175,7 @@ Include the token in your request headers:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://127.0.0.1:4200/dbmcp/tools
+     http://127.0.0.1:8000/dbmcp/tools
 ```
 
 #### stdio Transport
@@ -384,40 +317,6 @@ Each tool includes metadata that helps AI assistants understand how to use it:
    - Watch for connection attempts
    - Check for authentication errors
    - Monitor tool execution
-
-
-## Advanced Configuration
-
-### Custom MCP Server
-
-You can customize the MCP server configuration:
-
-```python
-# Custom server configuration
-import os
-from app.mcp_server import create_mcp_server
-
-# Set custom environment
-os.environ["MCP_HOST"] = "0.0.0.0"
-os.environ["MCP_PORT"] = "4200"
-os.environ["MCP_PREFIX"] = "/custom/mcp"
-
-# Create and run server
-server = create_mcp_server()
-server.run()
-```
-
-### Load Balancing
-
-For high-traffic scenarios, you can run multiple MCP server instances:
-
-```bash
-# Start multiple instances
-uv run mcp_run.py --port 4200
-uv run mcp_run.py --port 4201
-uv run mcp_run.py --port 4202
-```
-
 
 
 ## Next Steps

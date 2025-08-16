@@ -58,29 +58,6 @@ npx @modelcontextprotocol/inspector
 - Set the Header Name as Authorization
 - Set the Header Value as Bearer <token> (replace <token> with the token you generated in Token Handling section)
 
-3. Using with MCP Clients with stdio transport
-This will disable the authentication and allow the MCP client to access the APIs directly. 
-**Do not use this in production.**
-
-**Claude Desktop**: Add the following to your `claude_desktop_config.json`:
-```json
-{
-    "mcpServers": {
-        "dbmcp": {
-            "command": "<uv_path>",
-            "args": [
-                "--directory",
-                "<source_path>/dbmcp",
-                "run",
-                "mcp_run.py"
-            ],
-            "env": {
-                "TRANSPORT": "stdio"
-            }
-        }
-    }
-}
-```
 
 ## Token Handling
 
@@ -200,7 +177,7 @@ Create a `.env` file with required variables. Checkout `.env.example` file for r
 - `MCP_TRANSPORT`: MCP transport type (default: `stdio`)
   - Options: `stdio` (for local MCP clients), `http` (for remote clients)
 - `MCP_HOST`: MCP server host (default: `127.0.0.1`)
-- `MCP_PORT`: MCP server port (default: `4200`)
+- `MCP_PORT`: MCP server port (default: `8000`)
 - `MCP_PATH`: MCP server path prefix (default: `/dbmcp`)
 - `MCP_LOG_LEVEL`: MCP server logging level (default: `debug`)
 
@@ -226,7 +203,7 @@ ALLOWED_ORIGINS=["http://localhost:3000", "https://yourdomain.com"]
 # MCP Server
 MCP_TRANSPORT=http
 MCP_HOST=0.0.0.0
-MCP_PORT=4200
+MCP_PORT=8000
 ```
 
 ## API Endpoints

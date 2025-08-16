@@ -302,19 +302,3 @@ class MCPServer:
     def _log_error(self, message: str) -> None:
         """Log error message to stderr."""
         print(f"[DBMCP ERROR] {message}", file=sys.stderr)
-
-    def run(self) -> None:
-        """Start the MCP server."""
-        if settings.mcp_transport == "stdio":
-            self.mcp.run()
-        else:
-            self.mcp.run(
-                transport="http",
-                host=settings.mcp_host,
-                port=settings.mcp_port,
-                path=settings.mcp_path,
-                log_level=settings.mcp_log_level,
-                stateless_http=True
-            )
-
-    # Example prompt moved to MCPServer class since mcp instance is not global anymore
