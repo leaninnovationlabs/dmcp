@@ -12,7 +12,7 @@ class JWTValidator:
     
     def __init__(self):
         """Initialize JWT validator with settings from config."""
-        self.secret_key = settings.jwt_secret_key
+        self.secret_key = settings.secret_key
         self.algorithm = settings.jwt_algorithm
         self.expiration_minutes = settings.jwt_expiration_minutes
     

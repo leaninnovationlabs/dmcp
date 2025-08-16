@@ -12,26 +12,16 @@ class Settings(BaseSettings):
     
     # Security
     secret_key: str = "your-secret-key-here-change-this-in-production"
-    
-    # JWT Settings
-    jwt_secret_key: str = "jwt-secret-key-change-this-in-production"
     jwt_algorithm: str = "HS256"
-    jwt_expiration_minutes: int = 60
+    jwt_expiration_minutes: int = 600000
     
-    # API Server
-    host: str = "0.0.0.0"
-    port: int = 8000
     debug: bool = True
     
     # Logging
     log_level: str = "INFO"
     
     # CORS
-    allowed_origins: List[str] = ["http://localhost:3000",
-     "http://127.0.0.1:8000",
-      "http://localhost:8000",
-       "http://localhost:4200", 
-       "http://127.0.0.1:5500"]
+    allowed_origins: List[str] = []
     
     # Database Connection Pool
     db_pool_size: int = 10
@@ -41,7 +31,7 @@ class Settings(BaseSettings):
     mcp_transport: str = "http"
     
     # MCP Server Configuration
-    mcp_host: str = "127.0.0.1"
+    mcp_host: str = "0.0.0.0"
     mcp_port: int = 8000
     mcp_path: str = "/dbmcp"
     mcp_log_level: str = "debug"
