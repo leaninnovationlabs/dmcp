@@ -1,4 +1,4 @@
-# DBMCP - Database Backend Server
+# Opsloom DBMCP - Database Backend Server
 
 A Python backend server built with FastAPI that can connect to various databases and run queries. The server provides APIs for managing datasources, creating named queries, and executing queries with parameter support and pagination.
 
