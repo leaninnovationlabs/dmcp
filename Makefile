@@ -1,5 +1,8 @@
 .PHONY: help install migrate start stop docker-build docker-run docker-stop docker-clean
 
+# Default port if not specified
+PORT ?= 8000
+
 help:
 	@echo "Available targets:"
 	@echo "  help         - Show this help message"
@@ -11,6 +14,9 @@ help:
 	@echo "  docker-run   - Build and run Docker container"
 	@echo "  docker-stop  - Stop and remove Docker container"
 	@echo "  docker-clean - Stop container and remove image"
+	@echo ""
+	@echo "Environment variables:"
+	@echo "  PORT         - Port to use (default: 8000)"
 
 install:
 	uv sync
@@ -28,15 +34,10 @@ docker-build:
 	docker build -t dbmcp:latest .
 
 docker-run: docker-build
-	docker run -d \
-		--name dbmcp \
-		-p 8000:8000 \
-		-v $(PWD)/dbmcp.db:/app/dbmcp.db \
-		dbmcp:latest
+	docker-compose up -d
 
 docker-stop:
-	docker stop dbmcp || true
-	docker rm dbmcp || true
+	docker-compose down
 
 docker-clean: docker-stop
 	docker rmi dbmcp:latest || true

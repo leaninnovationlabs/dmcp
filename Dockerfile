@@ -40,11 +40,14 @@ COPY --from=builder --chown=appuser:appuser /app/frontend ./frontend
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Set default values for host and port
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
 USER appuser
 
-EXPOSE 8000
+# Use environment variable for EXPOSE
+EXPOSE ${PORT}
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/dbmcp/health')"
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use environment variables for host and port in CMD
+CMD ["sh", "-c", "uvicorn main:app --host ${HOST} --port ${PORT}"]

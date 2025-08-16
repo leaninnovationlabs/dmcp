@@ -109,6 +109,62 @@ The current schema includes:
 
 See `app/models/database.py` for the complete model definitions.
 
+## Docker
+
+### Quick Start with Docker
+
+Build and run the container:
+
+```bash
+# Build the image
+make docker-build
+
+# Run on default port 8000
+make docker-run
+
+# Or run with custom port
+PORT=9000 make docker-run
+```
+
+### Configurable Port and Host
+
+The Docker container now supports configurable ports and hosts through environment variables:
+
+```bash
+# Run on custom port 9000
+docker run -d --name dbmcp-custom \
+  -p 9000:9000 \
+  -e PORT=9000 \
+  -e HOST=0.0.0.0 \
+  dbmcp:latest
+
+# Run on port 3000 with custom host
+docker run -d --name dbmcp-dev \
+  -p 3000:3000 \
+  -e PORT=3000 \
+  -e HOST=127.0.0.1 \
+  dbmcp:latest
+```
+
+### Using Docker Compose
+
+The `docker-compose.yml` file is already configured with environment variables:
+
+```bash
+# Start with default settings
+docker-compose up -d
+
+# Or override with custom port
+docker-compose up -d -e PORT=7000
+```
+
+### Environment Variables
+
+- `PORT`: Server port (default: 8000)
+- `HOST`: Server host binding (default: 0.0.0.0)
+
+For more examples, see `scripts/docker-run-examples.sh`.
+
 ## API Endpoints
 
 - `POST /datasources` - Create a new datasource
@@ -136,7 +192,6 @@ SECRET_KEY=your-secret-key-here-change-this-in-production
 - The `SECRET_KEY` is used for database password encryption. Make sure to use a strong, unique secret key in production and keep it secure.
 - The `JWT_SECRET_KEY` is used for JWT token generation. Make sure to use a strong, unique secret key in production and keep it secure.
 
-
 ## API Documentation
 
 All routes are automatically documented in the OpenAPI schema and available at:
@@ -144,12 +199,10 @@ All routes are automatically documented in the OpenAPI schema and available at:
 - **ReDoc**: http://localhost:8000/dbmcp/redoc
 - **OpenAPI JSON**: http://localhost:8000/dbmcp/openapi.json 
 
-
 **Authentication Usage:**
 - **Web UI**: Enter the generated token in the authentication modal when prompted
 - **API Client**: Include the token in your request headers or authentication settings
 - **MCP Inspector**: Specify the token in the "Bearer Token" field in the authentication section
-
 
 # TODO
 Bugs:
