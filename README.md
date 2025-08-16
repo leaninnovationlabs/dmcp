@@ -122,29 +122,19 @@ make docker-build
 # Run on default port 8000
 make docker-run
 
-# Or run with custom port
-PORT=9000 make docker-run
-```
+or 
 
-### Configurable Port and Host
-
-The Docker container now supports configurable ports and hosts through environment variables:
-
-```bash
-# Run on custom port 9000
-docker run -d --name dbmcp-custom \
-  -p 9000:9000 \
-  -e PORT=9000 \
-  -e HOST=0.0.0.0 \
+docker run -d \
+  --name dbmcp \
+  -p 8000:8000 \
+  -e DATABASE_URL="sqlite+aiosqlite:///./dbmcp.db" \
+  -e SECRET_KEY="your-secret-key" \
+  -e LOG_LEVEL="WARNING" \
+  -v $(pwd)/dbmcp.db:/app/dbmcp.db \
   dbmcp:latest
 
-# Run on port 3000 with custom host
-docker run -d --name dbmcp-dev \
-  -p 3000:3000 \
-  -e PORT=3000 \
-  -e HOST=127.0.0.1 \
-  dbmcp:latest
 ```
+
 
 ### Using Docker Compose
 
@@ -158,12 +148,73 @@ docker-compose up -d
 docker-compose up -d -e PORT=7000
 ```
 
-### Environment Variables
+## Environment Variables
 
-- `PORT`: Server port (default: 8000)
-- `HOST`: Server host binding (default: 0.0.0.0)
+Create a `.env` file with required variables. Checkout `.env.example` file for reference. Here are all the available configuration options:
 
-For more examples, see `scripts/docker-run-examples.sh`.
+### Database Configuration
+- `DATABASE_URL`: Database connection string (default: `sqlite+aiosqlite:///./dbmcp.db`)
+  - Supports SQLite, PostgreSQL, MySQL, and other databases
+  - Format: `postgresql://user:password@host:port/database` or `mysql://user:password@host:port/database`
+
+### Security
+- `SECRET_KEY`: Secret key for database password encryption (required)
+  - **Important**: Use a strong, unique secret key in production and keep it secure
+  - Used for encrypting sensitive datasource credentials
+
+### JWT Configuration
+- `JWT_SECRET_KEY`: Secret key for JWT token generation (required)
+  - **Important**: Use a strong, unique secret key in production and keep it secure
+  - Should be different from the main SECRET_KEY
+- `JWT_ALGORITHM`: JWT signing algorithm (default: `HS256`)
+- `JWT_EXPIRATION_MINUTES`: Token expiration time in minutes (default: `60`)
+
+### Server Configuration
+- `HOST`: Server host address (default: `0.0.0.0`)
+- `PORT`: Server port number (default: `8000`)
+- `DEBUG`: Enable debug mode (default: `true`)
+
+### Logging
+- `LOG_LEVEL`: Logging level (default: `INFO`)
+  - Options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
+
+### CORS Configuration
+- `ALLOWED_ORIGINS`: List of allowed origins for CORS (default: `["http://localhost:3000", "http://localhost:8000"]`)
+  - Add your frontend URL if served from a different port/domain
+  - Format: JSON array of URLs
+
+### MCP Server Configuration
+- `MCP_TRANSPORT`: MCP transport type (default: `stdio`)
+  - Options: `stdio` (for local MCP clients), `http` (for remote clients)
+- `MCP_HOST`: MCP server host (default: `127.0.0.1`)
+- `MCP_PORT`: MCP server port (default: `4200`)
+- `MCP_PATH`: MCP server path prefix (default: `/dbmcp`)
+- `MCP_LOG_LEVEL`: MCP server logging level (default: `debug`)
+
+### Example .env file
+```bash
+# Database Configuration
+DATABASE_URL=postgresql://user:password@localhost:5432/dbmcp
+
+# Security
+SECRET_KEY=your-super-secret-key-here
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+DEBUG=false
+
+# Logging
+LOG_LEVEL=INFO
+
+# CORS
+ALLOWED_ORIGINS=["http://localhost:3000", "https://yourdomain.com"]
+
+# MCP Server
+MCP_TRANSPORT=http
+MCP_HOST=0.0.0.0
+MCP_PORT=4200
+```
 
 ## API Endpoints
 
@@ -179,18 +230,6 @@ For more examples, see `scripts/docker-run-examples.sh`.
 
 - `POST /execute/{query_id}` - Execute a named query with parameters
 - `POST /execute/raw` - Execute a raw SQL query
-
-## Environment Variables
-
-Create a `.env` file with required variables. Checkout .env.example file for reference:
-```
-DATABASE_URL=sqlite:///./dbmcp.db
-SECRET_KEY=your-secret-key-here-change-this-in-production
-```
-
-**Important**: 
-- The `SECRET_KEY` is used for database password encryption. Make sure to use a strong, unique secret key in production and keep it secure.
-- The `JWT_SECRET_KEY` is used for JWT token generation. Make sure to use a strong, unique secret key in production and keep it secure.
 
 ## API Documentation
 
