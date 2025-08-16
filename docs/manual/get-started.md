@@ -84,7 +84,7 @@ ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:8000"]
 # MCP Server Configuration
 MCP_TRANSPORT=stdio
 MCP_HOST=127.0.0.1
-MCP_PORT=4200
+MCP_PORT=8000
 MCP_PATH=/dbmcp
 MCP_LOG_LEVEL=debug
 ```

@@ -6,7 +6,7 @@ server = FastMCP("TestServer")
 client = Client(server)
 
 # HTTP server
-client = Client("http://127.0.0.1:4200/dbmcp")
+client = Client("http://127.0.0.1:8000/dbmcp")
 
 async def main():
     async with client:
