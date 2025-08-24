@@ -3,7 +3,7 @@ name = "dbmcp"
 version = "0.1.0"
 description = "Database backend server with FastAPI and MCP support"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Suresh Thalluri", email = "suresh@leaninnovations.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10"

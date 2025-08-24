@@ -1,0 +1,303 @@
+# Contributing to DBMCP
+
+Thank you for your interest in contributing to DBMCP! This document provides guidelines and information for contributors.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Setup](#development-setup)
+- [Making Changes](#making-changes)
+- [Testing](#testing)
+- [Submitting Changes](#submitting-changes)
+- [Code Style](#code-style)
+- [Documentation](#documentation)
+- [Reporting Issues](#reporting-issues)
+- [Feature Requests](#feature-requests)
+- [Questions and Discussion](#questions-and-discussion)
+
+## Code of Conduct
+
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
+## Getting Started
+
+1. **Fork the repository** on GitHub
+2. **Clone your fork** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/dbmcp.git
+   cd dbmcp
+   ```
+3. **Add the upstream remote**:
+   ```bash
+   git remote add upstream https://github.com/ORIGINAL_OWNER/dbmcp.git
+   ```
+
+## Development Setup
+
+### Prerequisites
+
+- Python 3.10 or higher
+- [uv](https://github.com/astral-sh/uv) package manager
+- Git
+
+### Installation
+
+1. **Install dependencies**:
+   ```bash
+   uv sync
+   ```
+
+2. **Set up environment variables**:
+   ```bash
+   cp env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. **Initialize the database**:
+   ```bash
+   uv run alembic upgrade head
+   ```
+
+4. **Run tests** to verify setup:
+   ```bash
+   uv run pytest
+   ```
+
+## Making Changes
+
+### Branch Strategy
+
+- Create a new branch for each feature or bugfix
+- Use descriptive branch names: `feature/add-mysql-support`, `fix/connection-pool-issue`
+- Keep branches focused and small
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+### Commit Messages
+
+Follow conventional commit format:
+
+```
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+Examples:
+- `feat(datasource): add MongoDB support`
+- `fix(auth): resolve JWT token validation issue`
+- `docs(api): update endpoint documentation`
+
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/test_datasource_api.py
+
+# Run with coverage
+uv run pytest --cov=app
+
+# Run with verbose output
+uv run pytest -v
+```
+
+### Writing Tests
+
+- Write tests for all new functionality
+- Follow the existing test patterns in the `tests/` directory
+- Use descriptive test names
+- Test both success and failure cases
+- Mock external dependencies appropriately
+
+### Test Structure
+
+```python
+def test_feature_name():
+    """Test description."""
+    # Arrange
+    # Act
+    # Assert
+```
+
+## Submitting Changes
+
+### Pull Request Process
+
+1. **Ensure your code follows the style guidelines**
+2. **Update documentation** if needed
+3. **Add tests** for new functionality
+4. **Update the changelog** if applicable
+5. **Submit a pull request** with a clear description
+
+### Pull Request Template
+
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Documentation update
+
+## Testing
+- [ ] Tests pass locally
+- [ ] Added tests for new functionality
+- [ ] Updated existing tests
+
+## Checklist
+- [ ] Code follows style guidelines
+- [ ] Self-review completed
+- [ ] Documentation updated
+- [ ] No breaking changes (or documented)
+```
+
+## Code Style
+
+### Python
+
+- Follow [PEP 8](https://pep8.org/) style guidelines
+- Use type hints where appropriate
+- Maximum line length: 88 characters (Black default)
+- Use Black for code formatting
+- Use isort for import sorting
+
+### Formatting
+
+```bash
+# Format code
+uv run black .
+
+# Sort imports
+uv run isort .
+
+# Check code style
+uv run flake8 .
+
+# Type checking
+uv run mypy .
+```
+
+### Pre-commit Hooks
+
+Consider setting up pre-commit hooks:
+
+```bash
+# Install pre-commit
+uv add --dev pre-commit
+
+# Install hooks
+uv run pre-commit install
+```
+
+## Documentation
+
+### Code Documentation
+
+- Use docstrings for all public functions and classes
+- Follow Google or NumPy docstring format
+- Include examples for complex functions
+
+### API Documentation
+
+- Update OpenAPI schemas when adding new endpoints
+- Include example requests and responses
+- Document error codes and messages
+
+### README Updates
+
+- Update README.md for new features
+- Add usage examples
+- Update installation instructions if needed
+
+## Reporting Issues
+
+### Bug Reports
+
+When reporting bugs, please include:
+
+- **Description**: Clear description of the problem
+- **Steps to reproduce**: Detailed steps to reproduce the issue
+- **Expected behavior**: What you expected to happen
+- **Actual behavior**: What actually happened
+- **Environment**: OS, Python version, dependencies
+- **Logs**: Relevant error messages or logs
+
+### Issue Template
+
+```markdown
+## Bug Description
+Brief description of the bug
+
+## Steps to Reproduce
+1. Step 1
+2. Step 2
+3. Step 3
+
+## Expected Behavior
+What should happen
+
+## Actual Behavior
+What actually happens
+
+## Environment
+- OS: [e.g., macOS 14.0]
+- Python: [e.g., 3.11.0]
+- DBMCP Version: [e.g., 0.1.0]
+
+## Additional Information
+Any other context, logs, or screenshots
+```
+
+## Feature Requests
+
+For feature requests:
+
+- **Describe the problem** you're trying to solve
+- **Explain why** this feature would be useful
+- **Provide examples** of how it would work
+- **Consider alternatives** that might already exist
+
+## Questions and Discussion
+
+- **GitHub Issues**: For bugs, feature requests, and questions
+- **GitHub Discussions**: For general questions and community discussion
+- **Pull Requests**: For code contributions
+
+## Getting Help
+
+If you need help:
+
+1. Check the [documentation](https://dbmcp.opsloom.io/)
+2. Search existing [issues](https://github.com/ORIGINAL_OWNER/dbmcp/issues)
+3. Create a new issue with your question
+4. Join community discussions
+
+## Recognition
+
+Contributors will be recognized in:
+
+- The project README
+- Release notes
+- The project's contributors page
+
+## License
+
+By contributing to DBMCP, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
+
+---
+
+Thank you for contributing to DBMCP! Your contributions help make this project better for everyone.
