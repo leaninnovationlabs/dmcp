@@ -17,12 +17,6 @@ class AuthMiddleware(Middleware):
     async def on_message(self, context: MiddlewareContext, call_next):
         """Called for all MCP messages."""
 
-        # Skip authentication in stdio mode (used by Claude Desktop)
-        if settings.mcp_transport == "stdio":
-            result = await call_next(context)
-            logger.info(f"Completed {context.method} (stdio mode - auth bypassed)")
-            return result
-            
         headers = get_http_headers()
 
         # # Get authorization header, which holds the key
