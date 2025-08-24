@@ -38,7 +38,11 @@ async def generate_token(request: AuthRequest):
     """
     try:
         # Create token with empty payload - we don't need the config data
-        token = jwt_validator.create_token({})
+        # Check if request.config is present or not
+        if request.config:
+            token = jwt_validator.create_token(request.config)
+        else:
+            token = jwt_validator.create_token({})
         
         # Return the token with expiration info
         return AuthResponse(
