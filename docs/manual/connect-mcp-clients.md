@@ -173,9 +173,6 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
      http://127.0.0.1:8000/dbmcp/tools
 ```
 
-#### stdio Transport
-For local development, authentication is disabled when using stdio transport.
-
 ## Tool Discovery
 
 ### Listing Available Tools
