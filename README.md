@@ -150,66 +150,13 @@ docker-compose up -d -e PORT=8000
 
 Create a `.env` file with required variables. Checkout `.env.example` file for reference. Only SECRET_KEY is required. Here are all the available configuration options:
 
-### Database Configuration
-- `DATABASE_URL`: Database connection string (default: `sqlite+aiosqlite:///./dbmcp.db`)
-  - Supports SQLite, PostgreSQL, MySQL, and other databases
-  - Format: `postgresql://user:password@host:port/database` or `mysql://user:password@host:port/database`
-
-### Security
-- `SECRET_KEY`: Secret key for database password encryption (required)
-  - **Important**: Use a strong, unique secret key in production and keep it secure
-  - Used for encrypting sensitive datasource credentials
-
-### JWT Configuration
-- `JWT_SECRET_KEY`: Secret key for JWT token generation (required)
-  - **Important**: Use a strong, unique secret key in production and keep it secure
-  - Should be different from the main SECRET_KEY
-- `JWT_ALGORITHM`: JWT signing algorithm (default: `HS256`)
-- `JWT_EXPIRATION_MINUTES`: Token expiration time in minutes (default: `60`)
-
-### Server Configuration
-- `HOST`: Server host address (default: `0.0.0.0`)
-- `PORT`: Server port number (default: `8000`)
-- `DEBUG`: Enable debug mode (default: `true`)
-
-### Logging
-- `LOG_LEVEL`: Logging level (default: `INFO`)
-  - Options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
-
-### CORS Configuration
-- `ALLOWED_ORIGINS`: List of allowed origins for CORS (default: `["http://localhost:3000", "http://localhost:8000"]`)
-  - Add your frontend URL if served from a different port/domain
-  - Format: JSON array of URLs
-
-### MCP Server Configuration
-- `MCP_TRANSPORT`: MCP transport type (default: `stdio`)
-  - Options: `stdio` (for local MCP clients), `http` (for remote clients)
-- `MCP_HOST`: MCP server host (default: `127.0.0.1`)
-- `MCP_PORT`: MCP server port (default: `8000`)
-- `MCP_PATH`: MCP server path prefix (default: `/dbmcp`)
-- `MCP_LOG_LEVEL`: MCP server logging level (default: `debug`)
-
 ### Example .env file
 ```bash
 # Database Configuration
-DATABASE_URL=postgresql://user:password@localhost:5432/dbmcp
+DATABASE_URL=sqlite+aiosqlite:///./dbmcp.db
 
 # Security
 SECRET_KEY=your-super-secret-key-here
-
-# Server Configuration
-HOST=0.0.0.0
-PORT=8000
-DEBUG=false
-LOG_LEVEL=INFO
-
-# CORS
-ALLOWED_ORIGINS=["http://localhost:3000", "https://yourdomain.com"]
-
-# MCP Server
-MCP_TRANSPORT=http
-MCP_HOST=0.0.0.0
-MCP_PORT=8000
 ```
 
 ## API Endpoints
@@ -225,7 +172,6 @@ MCP_PORT=8000
 - `DELETE /queries/{id}` - Delete a query
 
 - `POST /execute/{query_id}` - Execute a named query with parameters
-- `POST /execute/raw` - Execute a raw SQL query
 
 ## API Documentation
 
@@ -238,13 +184,3 @@ All routes are automatically documented in the OpenAPI schema and available at:
 - **Web UI**: Enter the generated token in the authentication modal when prompted
 - **API Client**: Include the token in your request headers or authentication settings
 - **MCP Inspector**: Specify the token in the "Bearer Token" field in the authentication section
-
-# TODO
-Bugs:
-- Not detecting the new tools from the inspector, see how to list out the get tools
-
-Cleanup:
-- Fix the error message response from the MCP server
-- Make sure we are not throwing the sql in the errors {{server}}/datasources create is doing this
-- Tool with param not working from inspector
-- No proper error handling when the response does not have valid results or errors out
