@@ -3,13 +3,13 @@
 layout: home
 
 hero:
-  name: "Opsloom DBMCP"
-  text: "Build your tools with the power of SQL"
+  name: "DMCP"
+  text: "Connect to any data source via query, API, or code"
   tagline: Connect AI assistants to your data
   image:
     src: /icons/logo.png
     width: 400
-    alt: Opsloom DBMCP Logo
+    alt: DMCP Logo
   actions:
     - theme: brand
       text: Introduction
@@ -19,14 +19,14 @@ hero:
       link: /get-started
 
 features:
-  - title: Multi-Database Support
-    details: Connect to PostgreSQL, MySQL, Databricks, and more with unified interface
+  - title: Multi-Data Source Support
+    details: Connect to PostgreSQL, MySQL, Databricks, APIs, and more with unified interface
     icon: 🗄️
   - title: MCP Integration
-    details: Expose database operations as tools for AI assistants using the Model Context Protocol
+    details: Expose data operations as tools for AI assistants using the Model Context Protocol
     icon: 🤖
   - title: Jinja Templating
-    details: Dynamic SQL queries with parameter support and conditional logic
+    details: Dynamic queries with parameter support and conditional logic
     icon: 📝
   - title: Web Interface
     details: Intuitive UI for managing datasources, tools, and testing connections

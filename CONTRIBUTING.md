@@ -1,6 +1,6 @@
-# Contributing to DBMCP
+# Contributing to DMCP
 
-Thank you for your interest in contributing to DBMCP! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to DMCP! This document provides guidelines and information for contributors.
 
 ## Table of Contents
 
@@ -25,12 +25,12 @@ This project and everyone participating in it is governed by our [Code of Conduc
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/dbmcp.git
-   cd dbmcp
+   git clone https://github.com/YOUR_USERNAME/dmcp.git
+   cd dmcp
    ```
 3. **Add the upstream remote**:
    ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/dbmcp.git
+   git remote add upstream https://github.com/ORIGINAL_OWNER/dmcp.git
    ```
 
 ## Development Setup
@@ -256,7 +256,7 @@ What actually happens
 ## Environment
 - OS: [e.g., macOS 14.0]
 - Python: [e.g., 3.11.0]
-- DBMCP Version: [e.g., 0.1.0]
+- DMCP Version: [e.g., 0.1.0]
 
 ## Additional Information
 Any other context, logs, or screenshots
@@ -281,8 +281,8 @@ For feature requests:
 
 If you need help:
 
-1. Check the [documentation](https://dbmcp.opsloom.io/)
-2. Search existing [issues](https://github.com/ORIGINAL_OWNER/dbmcp/issues)
+1. Check the [documentation](https://dmcp.opsloom.io/)
+2. Search existing [issues](https://github.com/ORIGINAL_OWNER/dmcp/issues)
 3. Create a new issue with your question
 4. Join community discussions
 
@@ -296,8 +296,8 @@ Contributors will be recognized in:
 
 ## License
 
-By contributing to DBMCP, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
+By contributing to DMCP, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
 
 ---
 
-Thank you for contributing to DBMCP! Your contributions help make this project better for everyone.
+Thank you for contributing to DMCP! Your contributions help make this project better for everyone.

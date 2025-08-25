@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # Database
-    database_url: str = "sqlite+aiosqlite:///./dbmcp.db"
+    database_url: str = "sqlite+aiosqlite:///./dmcp.db"
     
     # Security
     secret_key: str
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # MCP Server Configuration
     mcp_host: str = "0.0.0.0"
     mcp_port: int = 8000
-    mcp_path: str = "/dbmcp"
+    mcp_path: str = "/dmcp"
     mcp_log_level: str = "debug"
     
     @field_validator('secret_key')

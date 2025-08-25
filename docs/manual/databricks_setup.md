@@ -1,10 +1,10 @@
 # Databricks Datasource Configuration
 
-This document explains how to configure and use Databricks as a datasource in DBMCP.
+This document explains how to configure and use Databricks as a datasource in DMCP.
 
 ## Overview
 
-Databricks is a cloud-based data engineering platform that provides a unified analytics platform. DBMCP supports connecting to Databricks SQL warehouses using the Databricks SQL Connector.
+Databricks is a cloud-based data engineering platform that provides a unified analytics platform. DMCP supports connecting to Databricks SQL warehouses using the Databricks SQL Connector.
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ The following parameters should be provided in the `additional_params` field:
 
 1. Navigate to the Datasources page
 2. Click "Add Datasource"
-3. Select "Databricks" from the database type dropdown
+3. Select "Databricks" from the data source type dropdown
 4. Fill in the required fields:
    - **Name**: A descriptive name for your datasource
    - **Host**: Your Databricks workspace URL

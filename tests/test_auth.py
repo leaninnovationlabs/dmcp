@@ -48,7 +48,7 @@ def print_curl_examples(token):
     print("CURL EXAMPLES FOR TESTING")
     print("="*60)
     
-    base_url = "http://localhost:8000/dbmcp"
+    base_url = "http://localhost:8000/dmcp"
     
     print("\n🏥 1. Test health endpoint (should work WITHOUT token):")
     print(f'curl -X GET "{base_url}/health"')
@@ -88,10 +88,10 @@ def main():
         print("\n" + "="*60)
         print("EXPECTED BEHAVIOR:")
         print("="*60)
-        print("✅ /dbmcp/health - Should work without token")
-        print("❌ /dbmcp/tools - Should return 401 without token")
-        print("❌ /dbmcp/datasources - Should return 401 without token") 
-        print("❌ /dbmcp/execute/* - Should return 401 without token")
+        print("✅ /dmcp/health - Should work without token")
+        print("❌ /dmcp/tools - Should return 401 without token")
+        print("❌ /dmcp/datasources - Should return 401 without token") 
+        print("❌ /dmcp/execute/* - Should return 401 without token")
         print("✅ All endpoints - Should work with valid Bearer token")
         print("\n💡 Start your server with: python -m uvicorn app.main:app --reload")
         print("💡 Then test the endpoints using the curl examples above")

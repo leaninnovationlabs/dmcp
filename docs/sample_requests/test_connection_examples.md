@@ -1,4 +1,4 @@
-# Sample cURL Requests for Testing Database Connections
+# Sample cURL Requests for Testing Data Source Connections
 
 ## Test Connection by Datasource ID
 
@@ -23,7 +23,7 @@ curl -X POST "http://localhost:8000/datasources/1/test" \
 ```json
 {
   "success": false,
-  "message": "Failed to connect to database",
+  "message": "Failed to connect to data source",
   "connection_time_ms": 5.2,
   "error": "Connection refused: database './invalid.db' not found"
 }
@@ -42,9 +42,9 @@ curl -X POST "http://localhost:8000/datasources/1/test" \
 - The endpoint performs a simple `SELECT 1` query to verify the connection
 - Connection time is measured in milliseconds
 - The test is safe and doesn't modify any data
-- Works with all supported database types (SQLite, PostgreSQL, MySQL)
+- Works with all supported data source types (SQLite, PostgreSQL, MySQL, Databricks)
 
-## Testing Different Database Types
+## Testing Different Data Source Types
 
 ### SQLite
 ```bash
@@ -63,7 +63,7 @@ curl -X POST "http://localhost:8000/datasources/3/test"
 
 ## Use Cases
 
-1. **Validate datasource configuration** before creating queries
-2. **Troubleshoot connection issues** when queries fail
-3. **Monitor database availability** in production environments
+1. **Validate datasource configuration** before creating operations
+2. **Troubleshoot connection issues** when operations fail
+3. **Monitor data source availability** in production environments
 4. **Test credentials** and connection parameters 

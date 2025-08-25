@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..models.schemas import DatasourceCreate, DatasourceUpdate, DatasourceResponse, StandardAPIResponse, DatabaseType, FieldDefinition, DatasourceFieldConfig
 from ..database import get_db
 from ..services.datasource_service import DatasourceService
-from ..core.exceptions import handle_dbmcp_exception
+from ..core.exceptions import handle_dmcp_exception
 from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 

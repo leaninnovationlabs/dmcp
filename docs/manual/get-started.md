@@ -4,11 +4,11 @@ outline: deep
 
 # Installation & Setup
 
-This guide will walk you through installing and setting up DBMCP on your system.
+This guide will walk you through installing and setting up DMCP on your system.
 
 ## Prerequisites
 
-Before installing DBMCP, ensure you have:
+Before installing DMCP, ensure you have:
 
 - **Python 3.10 or higher**
 - **uv package manager** (recommended) or pip
@@ -32,7 +32,7 @@ pip install uv
 
 ```bash
 git clone <repository-url>
-cd dbmcp
+cd dmcp
 ```
 
 ### <i class="fas fa-box"></i> 2. Install Dependencies
@@ -59,7 +59,7 @@ Edit the `.env` file with your configuration:
 
 ```bash
 # Database Configuration
-DATABASE_URL=sqlite+aiosqlite:///./dbmcp.db
+DATABASE_URL=sqlite+aiosqlite:///./dmcp.db
 
 # Security
 SECRET_KEY=your-secret-key-here-change-this-in-production
@@ -85,7 +85,7 @@ ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:8000"]
 MCP_TRANSPORT=stdio
 MCP_HOST=127.0.0.1
 MCP_PORT=8000
-MCP_PATH=/dbmcp
+MCP_PATH=/dmcp
 MCP_LOG_LEVEL=debug
 ```
 
@@ -114,9 +114,9 @@ uv run main.py
 ```
 
 The API server will be available at:
-- **API Documentation**: http://localhost:8000/dbmcp/docs (when server is running)
-- **Web UI**: http://localhost:8000/dbmcp/ui (when server is running)
-- **Health Check**: http://localhost:8000/dbmcp/health (when server is running)
+- **API Documentation**: http://localhost:8000/dmcp/docs (when server is running)
+- **Web UI**: http://localhost:8000/dmcp/ui (when server is running)
+- **Health Check**: http://localhost:8000/dmcp/health (when server is running)
 
 
 The MCP server runs on port 8000 by default.
@@ -126,7 +126,7 @@ The MCP server runs on port 8000 by default.
 ### <i class="fas fa-heartbeat"></i> 1. Check API Health
 
 ```bash
-curl http://localhost:8000/dbmcp/health
+curl http://localhost:8000/dmcp/health
 ```
 
 Expected response:
@@ -141,12 +141,12 @@ Expected response:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8000/dbmcp/datasources
+     http://localhost:8000/dmcp/datasources
 ```
 
 ### <i class="fas fa-desktop"></i> 3. Access Web UI
 
-Open http://localhost:8000/dbmcp/ui in your browser and enter your authentication token when prompted.
+Open http://localhost:8000/dmcp/ui in your browser and enter your authentication token when prompted.
 
 ## Development Setup
 
@@ -179,8 +179,8 @@ lsof -i :8000
 kill -9 <PID>
 ```
 
-#### <i class="fas fa-database"></i> 2. Database Connection Issues
-- Ensure your database is running
+#### <i class="fas fa-database"></i> 2. Data Source Connection Issues
+- Ensure your data source is running
 - Check connection parameters in your datasource configuration
 - Verify network connectivity
 
@@ -196,10 +196,10 @@ kill -9 <PID>
 
 ## Next Steps
 
-Now that you have DBMCP installed and running, you can:
+Now that you have DMCP installed and running, you can:
 
-1. **[Configure DataSources](./configure-datasources.md)** - Set up your database connections
-2. **[Create Tools](./create-tools.md)** - Build MCP tools from your queries
+1. **[Configure DataSources](./configure-datasources.md)** - Set up your data source connections
+2. **[Create Tools](./create-tools.md)** - Build MCP tools from your queries and operations
 3. **[Connect MCP Clients](./connect-mcp-clients.md)** - Integrate with AI assistants
 
 Ready to configure your first datasource? Let's move on to the [DataSource Configuration Guide](./configure-datasources.md)!

@@ -80,7 +80,7 @@ class TestDatasourceAPI:
         try:
             # Make API request
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -120,7 +120,7 @@ class TestDatasourceAPI:
         
         try:
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data
             )
             
@@ -141,7 +141,7 @@ class TestDatasourceAPI:
         
         try:
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=invalid_data,
                 headers=self.headers
             )
@@ -160,7 +160,7 @@ class TestDatasourceAPI:
         """Test listing all datasources."""
         try:
             response = self.client.get(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 headers=self.headers
             )
             
@@ -178,7 +178,7 @@ class TestDatasourceAPI:
     def test_list_datasources_without_auth(self):
         """Test listing datasources without authentication should fail."""
         try:
-            response = self.client.get(f"{self.base_url}/dbmcp/datasources")
+            response = self.client.get(f"{self.base_url}/dmcp/datasources")
             
             assert response.status_code == 401
             
@@ -203,7 +203,7 @@ class TestDatasourceAPI:
         
         try:
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -214,7 +214,7 @@ class TestDatasourceAPI:
             
             # Now get the datasource by ID
             response = self.client.get(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}",
                 headers=self.headers
             )
             
@@ -233,7 +233,7 @@ class TestDatasourceAPI:
         """Test getting a datasource that doesn't exist."""
         try:
             response = self.client.get(
-                f"{self.base_url}/dbmcp/datasources/99999",
+                f"{self.base_url}/dmcp/datasources/99999",
                 headers=self.headers
             )
             
@@ -263,7 +263,7 @@ class TestDatasourceAPI:
         
         try:
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -274,7 +274,7 @@ class TestDatasourceAPI:
             
             # Test the connection
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}/test",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}/test",
                 headers=self.headers
             )
             
@@ -303,7 +303,7 @@ class TestDatasourceAPI:
         """Test testing connection for a datasource that doesn't exist."""
         try:
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/99999/test",
+                f"{self.base_url}/dmcp/datasources/99999/test",
                 headers=self.headers
             )
             
@@ -333,7 +333,7 @@ class TestDatasourceAPI:
         
         try:
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -349,7 +349,7 @@ class TestDatasourceAPI:
             }
             
             response = self.client.put(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}",
                 json=update_data,
                 headers=self.headers
             )
@@ -381,7 +381,7 @@ class TestDatasourceAPI:
         
         try:
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -392,7 +392,7 @@ class TestDatasourceAPI:
             
             # Delete the datasource
             response = self.client.delete(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}",
                 headers=self.headers
             )
             
@@ -404,7 +404,7 @@ class TestDatasourceAPI:
             
             # Verify the datasource is deleted
             get_response = self.client.get(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}",
                 headers=self.headers
             )
             
@@ -422,7 +422,7 @@ class TestDatasourceAPI:
         """Test deleting a datasource that doesn't exist."""
         try:
             response = self.client.delete(
-                f"{self.base_url}/dbmcp/datasources/99999",
+                f"{self.base_url}/dmcp/datasources/99999",
                 headers=self.headers
             )
             
@@ -492,7 +492,7 @@ class TestDatasourceConnection:
         try:
             # Create the datasource
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -506,7 +506,7 @@ class TestDatasourceConnection:
             
             # Step 2: Test the connection to the created datasource
             test_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}/test",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}/test",
                 headers=self.headers
             )
             
@@ -551,7 +551,7 @@ class TestDatasourceConnection:
         try:
             # Create datasource with invalid credentials
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -564,7 +564,7 @@ class TestDatasourceConnection:
             
             # Test connection (should fail)
             test_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}/test",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}/test",
                 headers=self.headers
             )
             

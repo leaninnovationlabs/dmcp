@@ -5,7 +5,7 @@
 ### Basic Example
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth" \
+curl -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -19,7 +19,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth" \
 ### Complex Payload Example
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth" \
+curl -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -44,7 +44,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth" \
 ### Minimal Payload Example
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth" \
+curl -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -59,7 +59,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth" \
 
 ```bash
 # First, generate a token
-TOKEN=$(curl -s -X POST "http://localhost:8000/dbmcp/auth" \
+TOKEN=$(curl -s -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -69,7 +69,7 @@ TOKEN=$(curl -s -X POST "http://localhost:8000/dbmcp/auth" \
   }' | jq -r '.data.token')
 
 # Then validate it
-curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
+curl -X POST "http://localhost:8000/dmcp/auth/validate" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json"
 ```
@@ -77,7 +77,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
 ### Invalid Token Example
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
+curl -X POST "http://localhost:8000/dmcp/auth/validate" \
   -H "Authorization: Bearer invalid_token_here" \
   -H "Content-Type: application/json"
 ```
@@ -85,7 +85,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
 ### Missing Authorization Header
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
+curl -X POST "http://localhost:8000/dmcp/auth/validate" \
   -H "Content-Type: application/json"
 ```
 
@@ -96,7 +96,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
 
 # Step 1: Generate a token
 echo "Generating JWT token..."
-RESPONSE=$(curl -s -X POST "http://localhost:8000/dbmcp/auth" \
+RESPONSE=$(curl -s -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -115,7 +115,7 @@ echo "Generated token: ${TOKEN:0:50}..."
 
 # Step 2: Validate the token
 echo -e "\nValidating token..."
-VALIDATION_RESPONSE=$(curl -s -X POST "http://localhost:8000/dbmcp/auth/validate" \
+VALIDATION_RESPONSE=$(curl -s -X POST "http://localhost:8000/dmcp/auth/validate" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json")
 
@@ -123,7 +123,7 @@ echo "Validation response: $VALIDATION_RESPONSE"
 
 # Step 3: Use token for authenticated request
 echo -e "\nUsing token for authenticated request..."
-AUTH_RESPONSE=$(curl -s -X GET "http://localhost:8000/dbmcp/health" \
+AUTH_RESPONSE=$(curl -s -X GET "http://localhost:8000/dmcp/health" \
   -H "Authorization: Bearer $TOKEN")
 
 echo "Authenticated request response: $AUTH_RESPONSE"
@@ -136,7 +136,7 @@ import requests
 import json
 
 # Base URL
-BASE_URL = "http://localhost:8000/dbmcp"
+BASE_URL = "http://localhost:8000/dmcp"
 
 # Generate token
 def generate_token(payload):
@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
 ```javascript
 // Base URL
-const BASE_URL = 'http://localhost:8000/dbmcp';
+const BASE_URL = 'http://localhost:8000/dmcp';
 
 // Generate token
 async function generateToken(payload) {
