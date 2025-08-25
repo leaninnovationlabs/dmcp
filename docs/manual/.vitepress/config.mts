@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Opsloom DBMCP",
+  title: "Opsloom DMCP",
   description: "Database Backend Server with MCP Support - Connect AI assistants to your databases through natural language",
   head: [
     ['link', { rel: 'stylesheet', href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css' }]
@@ -51,7 +51,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/leaninnovationlabs/dbmcp' }
+      { icon: 'github', link: 'https://github.com/leaninnovationlabs/dmcp' }
     ]
   }
 })

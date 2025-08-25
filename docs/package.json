@@ -1,7 +1,7 @@
 {
-  "name": "dbmcp-docs",
+  "name": "dmcp-docs",
   "version": "1.0.0",
-  "description": "Documentation for DBMCP Server",
+  "description": "Documentation for DMCP Server",
   "scripts": {
     "docs:dev": "vitepress dev manual",
     "docs:build": "vitepress build manual",

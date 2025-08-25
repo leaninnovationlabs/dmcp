@@ -297,8 +297,8 @@ class MCPServer:
         
     def _log_debug(self, message: str) -> None:
         """Log debug message to stderr."""
-        print(f"[DBMCP DEBUG] {message}", file=sys.stderr)
+        print(f"[DMCP DEBUG] {message}", file=sys.stderr)
     
     def _log_error(self, message: str) -> None:
         """Log error message to stderr."""
-        print(f"[DBMCP ERROR] {message}", file=sys.stderr)
+        print(f"[DMCP ERROR] {message}", file=sys.stderr)

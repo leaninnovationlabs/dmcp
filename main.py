@@ -14,7 +14,7 @@ from app.core.auth_middleware import BearerTokenMiddleware
 from app.mcp.middleware.auth import AuthMiddleware
 from app.mcp.middleware.logging import LoggingMiddleware
 
-mcp = FastMCP("DBMCP")
+mcp = FastMCP("DMCP")
 server = MCPServer(mcp)
 
 
@@ -30,7 +30,7 @@ starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=m
 mcp_app.mount("/ui", StaticFiles(directory="frontend", html=True), name="static")
 
 app = FastAPI(
-    title="DBMCP - Database Backend Server",
+    title="DMCP - Database Backend Server",
     description="A FastAPI server for managing database connections and executing queries",
     version="0.1.0",
     docs_url=f"{settings.mcp_path}/docs",
@@ -46,10 +46,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/dbmcp/tools/refresh")
+@app.get("/dmcp/tools/refresh")
 async def test(request: Request):
     server._register_database_tools()
-    return JSONResponse({"status": "healthy", "message": "DBMCP server is running"})
+    return JSONResponse({"status": "healthy", "message": "DMCP server is running"})
 
 app.include_router(health.router, prefix=f"{settings.mcp_path}")
 app.include_router(auth.router, prefix=f"{settings.mcp_path}")

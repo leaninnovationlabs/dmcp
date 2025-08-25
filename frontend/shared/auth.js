@@ -1,7 +1,7 @@
 // Authentication Management Module
 class AuthManager {
     constructor() {
-        this.tokenKey = 'dbmcp_bearer_token';
+        this.tokenKey = 'dmcp_bearer_token';
         this.init();
     }
 

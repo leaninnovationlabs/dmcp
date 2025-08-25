@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pytest configuration and fixtures for DBMCP tests.
+Pytest configuration and fixtures for DMCP tests.
 Simplified for real HTTP testing against http://localhost:8000
 """
 
@@ -90,7 +90,7 @@ def databricks_config():
 def server_health_check(api_base_url, http_client):
     """Check if the API server is running."""
     try:
-        response = http_client.get(f"{api_base_url}/dbmcp/health")
+        response = http_client.get(f"{api_base_url}/dmcp/health")
         return response.status_code == 200
     except httpx.ConnectError:
         return False

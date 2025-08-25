@@ -1,15 +1,15 @@
 // Updated config.js
 const APP_CONFIG = {
     // Use the same origin as the frontend
-    CONTEXT_PATH: '/dbmcp/ui',
+    CONTEXT_PATH: '/dmcp/ui',
     
     // Use localhost if frontend is on localhost, or use relative URLs
     API_BASE_URL: window.location.hostname === 'localhost' 
-        ? 'http://localhost:8000/dbmcp' 
-        : 'http://127.0.0.1:8000/dbmcp',
+        ? 'http://localhost:8000/dmcp' 
+        : 'http://127.0.0.1:8000/dmcp',
     
     // Alternative: use relative URLs if frontend and backend are on same server
-    // API_BASE_URL: '/api/dbmcp',
+    // API_BASE_URL: '/api/dmcp',
     
     getPath: function(path) {
         if (!path.startsWith('/')) {

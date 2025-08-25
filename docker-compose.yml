@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  dbmcp:
+  dmcp:
     build: .
     ports:
       - "8000:8000"
@@ -12,5 +12,5 @@ services:
     #   - PORT=8000
     volumes:
       # Persist database file
-      - ./dbmcp.db:/app/dbmcp.db
+      - ./dmcp.db:/app/dmcp.db
     restart: unless-stopped

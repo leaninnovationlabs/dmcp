@@ -31,21 +31,21 @@ stop:
 	pkill -f "main.py"
 
 docker-build:
-	docker build -t dbmcp:latest .
+	docker build -t dmcp:latest .
 
 docker-run:
 	docker run \
-		--name dbmcp \
+		--name dmcp \
 		--env-file .env \
 		-p 8000:8000 \
-		-v $(PWD)/dbmcp.db:/app/dbmcp.db \
-		dbmcp:latest
+		-v $(PWD)/dmcp.db:/app/dmcp.db \
+		dmcp:latest
 
 docker-build-run: docker-build docker-run
 
 docker-stop:
-	docker stop dbmcp || true
-	docker rm dbmcp || true
+	docker stop dmcp || true
+	docker rm dmcp || true
 
 docker-clean: docker-stop
-	docker rmi dbmcp:latest || true
+	docker rmi dmcp:latest || true

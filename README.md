@@ -1,17 +1,17 @@
-# Opsloom DBMCP - Database Backend Server
+# DMCP - Data Model Context Protocol
 
-A Python backend server built with FastAPI that can connect to various databases and run queries. The server provides APIs for managing datasources, creating named queries, and executing queries with parameter support and pagination.
+A Python backend server built with FastAPI that can connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants. The server provides APIs for managing datasources, creating named operations, and executing operations with parameter support and pagination.
 
-You can find the documentation [here](https://dbmcp.opsloom.io/)
+You can find the documentation [here](https://dmcp.opsloom.io/)
 
 ## Features
-- **Datasource Management**: Ability to connect to various databases
-- **Named Queries**: Store and manage parameterized queries with jinja template support
-- **Query Execution**: Run queries with parameter support and pagination
-- **Multiple Database Support**: PostgreSQL, MySQL, SQLite, and more coming soon
-- **MCP Tool Support**: Expose APIs as MCP tools
+- **Datasource Management**: Ability to connect to various data sources
+- **Named Operations**: Store and manage parameterized operations with jinja template support
+- **Operation Execution**: Run operations with parameter support and pagination
+- **Multiple Data Source Support**: PostgreSQL, MySQL, SQLite, Databricks, APIs, and more coming soon
+- **MCP Tool Support**: Expose data operations as MCP tools
 - **Authentication**: Support for bearer token authentication
-- **UI**: A simple UI for managing datasources and queries
+- **UI**: A simple UI for managing datasources and operations
 
 ## Setup
 
@@ -50,11 +50,11 @@ uv sync
   uv run main.py
 ```
 
-4. Access the UI at: http://localhost:8000/dbmcp/ui
+4. Access the UI at: http://localhost:8000/dmcp/ui
 
 
 ## MCP Server Setup
-This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants. By default MCP server runs on port 8000 with /dbmcp/mcp prefix
+This project also provides an MCP (Model Context Protocol) server that exposes data operations as tools for AI assistants. By default MCP server runs on port 8000 with /dmcp/mcp prefix
 
 1. Launch MCP Inspector:
 
@@ -62,7 +62,7 @@ This project also provides an MCP (Model Context Protocol) server that exposes d
 npx @modelcontextprotocol/inspector
 ```
 
-- Provide the URL as http://127.0.0.1:8000/dbmcp
+- Provide the URL as http://127.0.0.1:8000/dmcp
 - Set the Header Name as Authorization
 - Set the Header Value as Bearer <token> (replace <token> with the token you generated in Token Handling section)
 
@@ -123,13 +123,13 @@ make docker-run
 or 
 
 docker run -d \
-  --name dbmcp \
+  --name dmcp \
   -p 8000:8000 \
-  -e DATABASE_URL="sqlite+aiosqlite:///./dbmcp.db" \
+  -e DATABASE_URL="sqlite+aiosqlite:///./dmcp.db" \
   -e SECRET_KEY="your-secret-key" \
   -e LOG_LEVEL="WARNING" \
-  -v $(pwd)/dbmcp.db:/app/dbmcp.db \
-  dbmcp:latest
+  -v $(pwd)/dmcp.db:/app/dmcp.db \
+  dmcp:latest
 
 ```
 
@@ -153,7 +153,7 @@ Create a `.env` file with required variables. Checkout `.env.example` file for r
 ### Example .env file
 ```bash
 # Database Configuration
-DATABASE_URL=sqlite+aiosqlite:///./dbmcp.db
+DATABASE_URL=sqlite+aiosqlite:///./dmcp.db
 
 # Security
 SECRET_KEY=your-super-secret-key-here
@@ -176,9 +176,9 @@ SECRET_KEY=your-super-secret-key-here
 ## API Documentation
 
 All routes are automatically documented in the OpenAPI schema and available at:
-- **Swagger UI**: http://localhost:8000/dbmcp/docs
-- **ReDoc**: http://localhost:8000/dbmcp/redoc
-- **OpenAPI JSON**: http://localhost:8000/dbmcp/openapi.json 
+- **Swagger UI**: http://localhost:8000/dmcp/docs
+- **ReDoc**: http://localhost:8000/dmcp/redoc
+- **OpenAPI JSON**: http://localhost:8000/dmcp/openapi.json 
 
 **Authentication Usage:**
 - **Web UI**: Enter the generated token in the authentication modal when prompted

@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from typing import Any, Dict, Optional
 
 
-class DBMCPException(Exception):
-    """Base exception for DBMCP application."""
+class DMCPException(Exception):
+    """Base exception for DMCP application."""
     
     def __init__(self, message: str, status_code: int = 500, details: Optional[Dict[str, Any]] = None):
         self.message = message
@@ -12,7 +12,7 @@ class DBMCPException(Exception):
         super().__init__(self.message)
 
 
-class DatasourceNotFoundError(DBMCPException):
+class DatasourceNotFoundError(DMCPException):
     """Raised when a datasource is not found."""
     
     def __init__(self, datasource_id: int):
@@ -23,7 +23,7 @@ class DatasourceNotFoundError(DBMCPException):
         )
 
 
-class ToolNotFoundError(DBMCPException):
+class ToolNotFoundError(DMCPException):
     """Raised when a tool is not found."""
     
     def __init__(self, tool_id: int):
@@ -34,7 +34,7 @@ class ToolNotFoundError(DBMCPException):
         )
 
 
-class DatabaseConnectionError(DBMCPException):
+class DatabaseConnectionError(DMCPException):
     """Raised when database connection fails."""
     
     def __init__(self, datasource_id: int, error: str):
@@ -45,7 +45,7 @@ class DatabaseConnectionError(DBMCPException):
         )
 
 
-class ToolExecutionError(DBMCPException):
+class ToolExecutionError(DMCPException):
     """Raised when tool execution fails."""
     
     def __init__(self, tool_id: Optional[int], error: str):
@@ -56,7 +56,7 @@ class ToolExecutionError(DBMCPException):
         )
 
 
-class ValidationError(DBMCPException):
+class ValidationError(DMCPException):
     """Raised when data validation fails."""
     
     def __init__(self, field: str, message: str):
@@ -67,7 +67,7 @@ class ValidationError(DBMCPException):
         )
 
 
-class AuthenticationError(DBMCPException):
+class AuthenticationError(DMCPException):
     """Raised when authentication fails."""
     
     def __init__(self, message: str = "Authentication failed"):
@@ -78,8 +78,8 @@ class AuthenticationError(DBMCPException):
         )
 
 
-def handle_dbmcp_exception(exc: DBMCPException) -> HTTPException:
-    """Convert DBMCP exceptions to FastAPI HTTP exceptions using standardized error detail."""
+def handle_dmcp_exception(exc: DMCPException) -> HTTPException:
+    """Convert DMCP exceptions to FastAPI HTTP exceptions using standardized error detail."""
     # Shape detail so global handler can produce StandardAPIResponse
     return HTTPException(
         status_code=exc.status_code,
