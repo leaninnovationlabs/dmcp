@@ -1,17 +1,17 @@
-# Opsloom DMCP - Database Backend Server
+# DMCP - Data Model Context Protocol
 
-A Python backend server built with FastAPI that can connect to various databases and run queries. The server provides APIs for managing datasources, creating named queries, and executing queries with parameter support and pagination.
+A Python backend server built with FastAPI that can connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants. The server provides APIs for managing datasources, creating named operations, and executing operations with parameter support and pagination.
 
 You can find the documentation [here](https://dmcp.opsloom.io/)
 
 ## Features
-- **Datasource Management**: Ability to connect to various databases
-- **Named Queries**: Store and manage parameterized queries with jinja template support
-- **Query Execution**: Run queries with parameter support and pagination
-- **Multiple Database Support**: PostgreSQL, MySQL, SQLite, and more coming soon
-- **MCP Tool Support**: Expose APIs as MCP tools
+- **Datasource Management**: Ability to connect to various data sources
+- **Named Operations**: Store and manage parameterized operations with jinja template support
+- **Operation Execution**: Run operations with parameter support and pagination
+- **Multiple Data Source Support**: PostgreSQL, MySQL, SQLite, Databricks, APIs, and more coming soon
+- **MCP Tool Support**: Expose data operations as MCP tools
 - **Authentication**: Support for bearer token authentication
-- **UI**: A simple UI for managing datasources and queries
+- **UI**: A simple UI for managing datasources and operations
 
 ## Setup
 
@@ -54,7 +54,7 @@ uv sync
 
 
 ## MCP Server Setup
-This project also provides an MCP (Model Context Protocol) server that exposes database operations as tools for AI assistants. By default MCP server runs on port 8000 with /dmcp/mcp prefix
+This project also provides an MCP (Model Context Protocol) server that exposes data operations as tools for AI assistants. By default MCP server runs on port 8000 with /dmcp/mcp prefix
 
 1. Launch MCP Inspector:
 

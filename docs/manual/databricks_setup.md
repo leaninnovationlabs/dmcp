@@ -51,7 +51,7 @@ The following parameters should be provided in the `additional_params` field:
 
 1. Navigate to the Datasources page
 2. Click "Add Datasource"
-3. Select "Databricks" from the database type dropdown
+3. Select "Databricks" from the data source type dropdown
 4. Fill in the required fields:
    - **Name**: A descriptive name for your datasource
    - **Host**: Your Databricks workspace URL

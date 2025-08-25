@@ -4,17 +4,17 @@ outline: deep
 
 # Configure DataSources
 
-DataSources are the foundation of DMCP - they define the connections to your databases. This guide will walk you through configuring various types of database connections.
+DataSources are the foundation of DMCP - they define the connections to your data sources. This guide will walk you through configuring various types of data source connections.
 
 ## Overview
 
 A DataSource in DMCP contains:
 - **Connection Information**: Host, port, database name, credentials
-- **Database Type**: PostgreSQL, MySQL, Databricks or SQLite (more coming soon)
+- **Data Source Type**: PostgreSQL, MySQL, Databricks, SQLite, APIs, or more
 - **Security Settings**: SSL configuration, connection pooling
 - **Additional Parameters**: Custom connection options
 
-## Supported Database Types
+## Supported Data Source Types
 
 ### 1. PostgreSQL
 - **Driver**: `postgresql`
@@ -33,6 +33,10 @@ A DataSource in DMCP contains:
 ### 4. Databricks
 - **Driver**: `databricks`
 - **Features**: Cloud data warehouse
+
+### 5. APIs (Coming Soon)
+- **Driver**: `http`
+- **Features**: HTTP request capabilities for external services
 
 ## Creating DataSources
 
@@ -138,11 +142,11 @@ curl -X POST http://localhost:8000/dmcp/datasources \
 |-----------|------|----------|-------------|
 | `name` | string | Yes | Unique name for the datasource |
 | `database_type` | string | Yes | One of: `postgresql`, `mysql`, `sqlite`, `databricks` |
-| `host` | string | Yes* | Database host (not required for SQLite) |
-| `port` | integer | Yes* | Database port (not required for SQLite) |
+| `host` | string | Yes* | Data source host (not required for SQLite) |
+| `port` | integer | Yes* | Data source port (not required for SQLite) |
 | `database` | string | Yes | Database name or file path |
-| `username` | string | Yes* | Database username (not required for SQLite) |
-| `password` | string | Yes* | Database password (not required for SQLite) |
+| `username` | string | Yes* | Data source username (not required for SQLite) |
+| `password` | string | Yes* | Data source password (not required for SQLite) |
 | `ssl_mode` | string | No | SSL mode for secure connections |
 | `additional_params` | object | No | Additional connection parameters |
 
@@ -263,7 +267,7 @@ curl -X DELETE http://localhost:8000/dmcp/datasources/{id} \
 
 ### 2. Network Security
 - Use SSL/TLS for all connections
-- Restrict database access to specific IPs
+- Restrict data source access to specific IPs
 - Use VPN or private networks when possible
 
 ### 3. Connection Security
@@ -293,7 +297,7 @@ curl -X DELETE http://localhost:8000/dmcp/datasources/{id} \
    telnet your_host your_port
    ```
 
-4. **Verify Database Permissions**
+4. **Verify Data Source Permissions**
    ```sql
    -- PostgreSQL
    GRANT CONNECT ON DATABASE your_db TO your_user;
@@ -305,7 +309,7 @@ curl -X DELETE http://localhost:8000/dmcp/datasources/{id} \
 
 Now that you have configured your DataSources, you can:
 
-1. **[Create Tools](./create-tools.md)** - Build MCP tools from your database queries
+1. **[Create Tools](./create-tools.md)** - Build MCP tools from your data queries and operations
 2. **[Connect MCP Clients](./connect-mcp-clients.md)** - Integrate with AI assistants
 
 Ready to create your first tool? Let's move on to the [Tool Creation Guide](./create-tools.md)! 

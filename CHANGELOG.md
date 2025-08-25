@@ -6,28 +6,29 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Initial Release
 
-DMCP (Database Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to various databases and expose database operations as MCP tools for AI assistants.
+DMCP (Data Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants.
 
 #### ✨ Core Features
 
-##### 🗄️ Database Connectivity
-- **Multi-Database Support**: 
+##### 🗄️ Data Source Connectivity
+- **Multi-Data Source Support**: 
   - PostgreSQL (async operations with asyncpg)
   - MySQL/MariaDB (async operations with aiomysql)
   - SQLite (async operations with aiosqlite)
   - Databricks (cloud data warehouse integration)
+  - APIs (HTTP request capabilities for external services)
 - **Connection Management**: Robust connection pooling and error handling
 - **Connection Testing**: Built-in connection validation and testing
 
 ##### 🛠️ Tool Management
-- **Named Query Tools**: Store and manage parameterized queries as MCP tools
-- **Jinja Template Support**: Advanced templating for dynamic query generation
+- **Named Operation Tools**: Store and manage parameterized operations as MCP tools
+- **Jinja Template Support**: Advanced templating for dynamic operation generation
 - **Parameter Validation**: Automatic parameter type checking and validation
-- **Tool Execution**: Execute queries with pagination and result formatting
+- **Tool Execution**: Execute operations with pagination and result formatting
 - **Tool CRUD Operations**: Create, read, update, and delete tools via API
 
 ##### 🔌 MCP (Model Context Protocol) Integration
-- **MCP Server**: Expose database operations as AI-accessible tools
+- **MCP Server**: Expose data operations as AI-accessible tools
 - **Tool Discovery**: Automatic tool registration and discovery
 - **HTTP Transport**: MCP server accessible via HTTP endpoints
 - **AI Assistant Integration**: Seamless integration with Claude, ChatGPT, and other AI assistants
@@ -44,11 +45,11 @@ DMCP (Database Model Context Protocol) is a Python backend server built with Fas
 - **Dependency Injection**: Clean service architecture with dependency management
 
 #### 🎯 Use Cases
-- **AI-Powered Data Analysis**: Enable AI assistants to query databases naturally
-- **Database Administration**: Web-based database management interface
-- **Data Exploration**: Create reusable query tools for data discovery
-- **Integration Hub**: Connect multiple databases through a single interface
-- **Development & Testing**: Local development environment for database operations
+- **AI-Powered Data Analysis**: Enable AI assistants to query data sources naturally
+- **Data Source Administration**: Web-based data source management interface
+- **Data Exploration**: Create reusable operation tools for data discovery
+- **Integration Hub**: Connect multiple data sources through a single interface
+- **Development & Testing**: Local development environment for data operations
 
 ---
 

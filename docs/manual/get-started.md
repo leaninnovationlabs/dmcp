@@ -179,8 +179,8 @@ lsof -i :8000
 kill -9 <PID>
 ```
 
-#### <i class="fas fa-database"></i> 2. Database Connection Issues
-- Ensure your database is running
+#### <i class="fas fa-database"></i> 2. Data Source Connection Issues
+- Ensure your data source is running
 - Check connection parameters in your datasource configuration
 - Verify network connectivity
 
@@ -198,8 +198,8 @@ kill -9 <PID>
 
 Now that you have DMCP installed and running, you can:
 
-1. **[Configure DataSources](./configure-datasources.md)** - Set up your database connections
-2. **[Create Tools](./create-tools.md)** - Build MCP tools from your queries
+1. **[Configure DataSources](./configure-datasources.md)** - Set up your data source connections
+2. **[Create Tools](./create-tools.md)** - Build MCP tools from your queries and operations
 3. **[Connect MCP Clients](./connect-mcp-clients.md)** - Integrate with AI assistants
 
 Ready to configure your first datasource? Let's move on to the [DataSource Configuration Guide](./configure-datasources.md)!

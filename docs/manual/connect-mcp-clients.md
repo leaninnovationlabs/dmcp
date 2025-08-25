@@ -4,11 +4,11 @@ outline: deep
 
 # Connect from MCP Clients
 
-Once you have configured your DataSources and created Tools, you can connect AI assistants to your DMCP server through the Model Context Protocol (MCP). This allows AI models to execute your database queries using natural language.
+Once you have configured your DataSources and created Tools, you can connect AI assistants to your DMCP server through the Model Context Protocol (MCP). This allows AI models to execute your data operations using natural language.
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. DMCP implements this protocol to expose your database tools to AI models.
+The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. DMCP implements this protocol to expose your data tools to AI models.
 
 ## MCP Server Setup
 
@@ -65,7 +65,7 @@ Navigate to the Cursor settings and add the following:
   "mcpServers": {
     "dmcp": {
       "url": "http://127.0.0.1:8000/dmcp/mcp",
-      "description": "Database MCP Server",
+      "description": "Data MCP Server",
       "name": "dmcp",
       "enabled": true,
       "headers": {
@@ -76,7 +76,7 @@ Navigate to the Cursor settings and add the following:
 }
 ```
 
-Now you can use the DBMMCP server in Cursor chat window.
+Now you can use the DMCP server in Cursor chat window.
 
 ### 3. Custom MCP Clients
 
@@ -302,7 +302,7 @@ Each tool includes metadata that helps AI assistants understand how to use it:
 
 3. **Test with Simple Tools**
    - Start with basic query tools
-   - Verify database connectivity
+   - Verify data source connectivity
    - Check tool execution
 
 4. **Monitor Server Logs**
@@ -320,4 +320,4 @@ Now that you have connected your MCP clients, you can:
 3. **Scale your setup** - Add more tools and datasources
 4. **Integrate with workflows** - Connect to other MCP servers
 
-Your DMCP setup is now complete! You can start using AI assistants to interact with your databases through natural language. 
+Your DMCP setup is now complete! You can start using AI assistants to interact with your data sources through natural language. 

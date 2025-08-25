@@ -4,32 +4,37 @@ outline: deep
 
 # Create Tools
 
-Tools in DMCP are named queries that can be executed by AI assistants through the MCP protocol. They allow you to expose database operations as simple, reusable functions that AI models can understand and use.
+Tools in DMCP are named operations that can be executed by AI assistants through the MCP protocol. They allow you to expose data operations as simple, reusable functions that AI models can understand and use.
 
 ## What are Tools?
 
 A Tool in DMCP consists of:
 - **Name**: Human-readable identifier for the tool
 - **Description**: Clear explanation of what the tool does
-- **SQL Query**: The actual database query to execute
-- **Parameters**: Input parameters that can be passed to the query
-- **DataSource**: Which database connection to use
-- **Tool Type**: The type of operation (query, mutation, etc.)
+- **Operation**: The actual data operation to execute (SQL query, API call, etc.)
+- **Parameters**: Input parameters that can be passed to the operation
+- **DataSource**: Which data source connection to use
+- **Tool Type**: The type of operation (query, mutation, API call, etc.)
 
 ## Tool Types
 
 ### 1. Query Tools
-- **Purpose**: Retrieve data from the database
+- **Purpose**: Retrieve data from data sources
 - **Use Case**: Reports, analytics, data exploration
 - **Example**: "Get user statistics", "List recent orders"
 
 ### 2. Mutation Tools
-- **Purpose**: Modify data in the database
+- **Purpose**: Modify data in data sources
 - **Use Case**: Data updates, inserts, deletes
 - **Example**: "Update user status", "Create new record"
 
-### 3. Utility Tools
-- **Purpose**: Database maintenance and utilities
+### 3. API Tools (Coming Soon)
+- **Purpose**: Make HTTP requests to external services
+- **Use Case**: Integration with third-party APIs, web services
+- **Example**: "Get weather data", "Send notification"
+
+### 4. Utility Tools
+- **Purpose**: Data source maintenance and utilities
 - **Use Case**: Schema exploration, connection testing
 - **Example**: "List tables", "Test connection"
 
@@ -43,7 +48,7 @@ A Tool in DMCP consists of:
 4. Fill in the tool details:
    - **Name**: A descriptive name
    - **Description**: What the tool does
-   - **SQL**: Your query with parameters
+   - **Operation**: Your query or operation with parameters
    - **DataSource**: Select your configured datasource
    - **Parameters**: Define input parameters
 5. Click "Test" to verify the tool works
@@ -153,7 +158,7 @@ curl -X POST http://localhost:8000/dmcp/tools \
 
 ## Jinja Template Support
 
-DMCP supports Jinja2 templating in your SQL queries, allowing for dynamic query construction.
+DMCP supports Jinja2 templating in your operations, allowing for dynamic query construction.
 
 ### Basic Variable Substitution
 
@@ -225,9 +230,9 @@ Write clear, concise descriptions that explain:
 "Retrieves user information by email address. Returns user details including name, email, status, and creation date. Use this tool when you need to look up a specific user."
 ```
 
-### 3. SQL Best Practices
+### 3. Operation Best Practices
 
-- Use parameterized queries to prevent SQL injection
+- Use parameterized operations to prevent injection attacks
 - Include appropriate WHERE clauses for performance
 - Use meaningful column aliases
 - Add LIMIT clauses for large result sets
@@ -434,19 +439,19 @@ curl -X POST http://localhost:8000/dmcp/execute/{tool_id} \
 
 ### Common Issues
 
-#### 1. SQL Syntax Errors
-- Check your SQL syntax
+#### 1. Operation Syntax Errors
+- Check your operation syntax
 - Verify table and column names
-- Test queries directly in your database
+- Test operations directly in your data source
 
 #### 2. Parameter Issues
-- Ensure parameter names match in SQL and parameters array
+- Ensure parameter names match in operations and parameters array
 - Check parameter types and required fields
 - Verify default values are correct
 
 #### 3. DataSource Issues
 - Confirm the datasource is working
-- Check database permissions
+- Check data source permissions
 - Verify connection parameters
 
 #### 4. Jinja Template Errors
@@ -456,7 +461,7 @@ curl -X POST http://localhost:8000/dmcp/execute/{tool_id} \
 
 ### Debugging Tips
 
-1. **Test with Simple Queries First**
+1. **Test with Simple Operations First**
    ```sql
    SELECT 1 as test
    ```
@@ -465,7 +470,7 @@ curl -X POST http://localhost:8000/dmcp/execute/{tool_id} \
    - Test with different parameter combinations
    - Verify required vs optional parameters
 
-3. **Check Query Performance**
+3. **Check Operation Performance**
    - Use EXPLAIN for complex queries
    - Add appropriate indexes
    - Limit result sets
