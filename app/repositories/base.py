@@ -4,7 +4,7 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from datetime import datetime
 
-from ..core.exceptions import DBMCPException
+from ..core.exceptions import DMCPException
 
 ModelType = TypeVar("ModelType")
 
@@ -26,7 +26,7 @@ class BaseRepository(Generic[ModelType]):
             return instance
         except Exception as e:
             await self.db.rollback()
-            raise DBMCPException(f"Failed to create {self.model.__name__}: {str(e)}")
+            raise DMCPException(f"Failed to create {self.model.__name__}: {str(e)}")
     
     async def get_by_id(self, id: int) -> Optional[ModelType]:
         """Get a record by ID."""
@@ -57,7 +57,7 @@ class BaseRepository(Generic[ModelType]):
             return result.scalar_one_or_none()
         except Exception as e:
             await self.db.rollback()
-            raise DBMCPException(f"Failed to update {self.model.__name__}: {str(e)}")
+            raise DMCPException(f"Failed to update {self.model.__name__}: {str(e)}")
     
     async def delete(self, id: int) -> bool:
         """Delete a record by ID."""
@@ -69,7 +69,7 @@ class BaseRepository(Generic[ModelType]):
             return result.rowcount > 0
         except Exception as e:
             await self.db.rollback()
-            raise DBMCPException(f"Failed to delete {self.model.__name__}: {str(e)}")
+            raise DMCPException(f"Failed to delete {self.model.__name__}: {str(e)}")
     
     async def find_by(self, **kwargs) -> List[ModelType]:
         """Find records by given criteria."""

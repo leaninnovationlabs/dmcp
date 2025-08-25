@@ -7,7 +7,7 @@ from app.services.tool_execution_service import ToolExecutionService
 from ..models.schemas import ToolCreate, ToolExecutionRequest, ToolUpdate, ToolResponse, StandardAPIResponse
 from ..database import get_db
 from ..services.tool_service import ToolService
-from ..core.exceptions import handle_dbmcp_exception
+from ..core.exceptions import handle_dmcp_exception
 from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 router = APIRouter(prefix="/tools", tags=["tools"])

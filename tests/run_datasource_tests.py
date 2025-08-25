@@ -13,7 +13,7 @@ import httpx
 def check_server_running():
     """Check if the API server is running at localhost:8000."""
     try:
-        response = httpx.get("http://localhost:8000/dbmcp/health", timeout=5.0)
+        response = httpx.get("http://localhost:8000/dmcp/health", timeout=5.0)
         return response.status_code == 200
     except httpx.ConnectError:
         return False

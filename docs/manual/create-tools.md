@@ -4,11 +4,11 @@ outline: deep
 
 # Create Tools
 
-Tools in DBMCP are named queries that can be executed by AI assistants through the MCP protocol. They allow you to expose database operations as simple, reusable functions that AI models can understand and use.
+Tools in DMCP are named queries that can be executed by AI assistants through the MCP protocol. They allow you to expose database operations as simple, reusable functions that AI models can understand and use.
 
 ## What are Tools?
 
-A Tool in DBMCP consists of:
+A Tool in DMCP consists of:
 - **Name**: Human-readable identifier for the tool
 - **Description**: Clear explanation of what the tool does
 - **SQL Query**: The actual database query to execute
@@ -37,7 +37,7 @@ A Tool in DBMCP consists of:
 
 ### Via Web UI
 
-1. Navigate to http://localhost:8000/dbmcp/ui (when server is running)
+1. Navigate to http://localhost:8000/dmcp/ui (when server is running)
 2. Click on "Tools" in the sidebar
 3. Click "Add New Tool"
 4. Fill in the tool details:
@@ -54,7 +54,7 @@ A Tool in DBMCP consists of:
 #### Simple Query Tool
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/tools \
+curl -X POST http://localhost:8000/dmcp/tools \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -69,7 +69,7 @@ curl -X POST http://localhost:8000/dbmcp/tools \
 #### Parameterized Query Tool
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/tools \
+curl -X POST http://localhost:8000/dmcp/tools \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -92,7 +92,7 @@ curl -X POST http://localhost:8000/dbmcp/tools \
 #### Complex Analytics Tool
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/tools \
+curl -X POST http://localhost:8000/dmcp/tools \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -153,7 +153,7 @@ curl -X POST http://localhost:8000/dbmcp/tools \
 
 ## Jinja Template Support
 
-DBMCP supports Jinja2 templating in your SQL queries, allowing for dynamic query construction.
+DMCP supports Jinja2 templating in your SQL queries, allowing for dynamic query construction.
 
 ### Basic Variable Substitution
 
@@ -357,20 +357,20 @@ Parameters:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8000/dbmcp/tools
+     http://localhost:8000/dmcp/tools
 ```
 
 ### Get Specific Tool
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8000/dbmcp/tools/{id}
+     http://localhost:8000/dmcp/tools/{id}
 ```
 
 ### Update Tool
 
 ```bash
-curl -X PUT http://localhost:8000/dbmcp/tools/{id} \
+curl -X PUT http://localhost:8000/dmcp/tools/{id} \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -390,14 +390,14 @@ curl -X PUT http://localhost:8000/dbmcp/tools/{id} \
 ### Delete Tool
 
 ```bash
-curl -X DELETE http://localhost:8000/dbmcp/tools/{id} \
+curl -X DELETE http://localhost:8000/dmcp/tools/{id} \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ### Test Tool
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/tools/{id}/test \
+curl -X POST http://localhost:8000/dmcp/tools/{id}/test \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -419,7 +419,7 @@ curl -X POST http://localhost:8000/dbmcp/tools/{id}/test \
 ### Via API
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/execute/{tool_id} \
+curl -X POST http://localhost:8000/dmcp/execute/{tool_id} \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

@@ -90,12 +90,12 @@ class TestDatasourceEndpoints:
         }
         
         print(f"🚀 Making API request to create datasource...")
-        print(f"🌐 URL: {self.base_url}/dbmcp/datasources")
+        print(f"🌐 URL: {self.base_url}/dmcp/datasources")
         
         # Make API request to create datasource
         try:
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -144,12 +144,12 @@ class TestDatasourceEndpoints:
             self.datasource_id = self.test_1_create_datasource_with_postgres_config()
         
         print(f"🔗 Testing connection to datasource ID: {self.datasource_id}")
-        print(f"🌐 URL: {self.base_url}/dbmcp/datasources/{self.datasource_id}/test")
+        print(f"🌐 URL: {self.base_url}/dmcp/datasources/{self.datasource_id}/test")
         
         # Make API request to test connection
         try:
             response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/{self.datasource_id}/test",
+                f"{self.base_url}/dmcp/datasources/{self.datasource_id}/test",
                 headers=self.headers
             )
             
@@ -212,11 +212,11 @@ class TestDatasourceEndpoints:
         }
         
         print("📝 Creating datasource for integration test...")
-        print(f"🌐 URL: {self.base_url}/dbmcp/datasources")
+        print(f"🌐 URL: {self.base_url}/dmcp/datasources")
         
         try:
             create_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources",
+                f"{self.base_url}/dmcp/datasources",
                 json=datasource_data,
                 headers=self.headers
             )
@@ -230,10 +230,10 @@ class TestDatasourceEndpoints:
             
             # Test connection
             print("🔗 Testing connection...")
-            print(f"🌐 URL: {self.base_url}/dbmcp/datasources/{datasource_id}/test")
+            print(f"🌐 URL: {self.base_url}/dmcp/datasources/{datasource_id}/test")
             
             test_response = self.client.post(
-                f"{self.base_url}/dbmcp/datasources/{datasource_id}/test",
+                f"{self.base_url}/dmcp/datasources/{datasource_id}/test",
                 headers=self.headers
             )
             
@@ -269,10 +269,10 @@ class TestDatasourceEndpoints:
         print("TEST 4: Health check - Verify API server is running")
         print("="*60)
         
-        print(f"🌐 Checking health endpoint: {self.base_url}/dbmcp/health")
+        print(f"🌐 Checking health endpoint: {self.base_url}/dmcp/health")
         
         try:
-            response = self.client.get(f"{self.base_url}/dbmcp/health")
+            response = self.client.get(f"{self.base_url}/dmcp/health")
             
             print(f"📊 Health check response status: {response.status_code}")
             

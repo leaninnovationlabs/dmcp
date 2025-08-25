@@ -6,7 +6,7 @@ This document describes the authentication endpoints for generating and validati
 
 ### Generate JWT Token
 
-**POST** `/dbmcp/auth`
+**POST** `/dmcp/auth`
 
 Generates a new JWT token with a dynamic payload provided in the request.
 
@@ -42,7 +42,7 @@ The `payload` field can contain any JSON object with the data you want to includ
 #### Example Usage
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth" \
+curl -X POST "http://localhost:8000/dmcp/auth" \
   -H "Content-Type: application/json" \
   -d '{
     "payload": {
@@ -55,7 +55,7 @@ curl -X POST "http://localhost:8000/dbmcp/auth" \
 
 ### Validate JWT Token
 
-**POST** `/dbmcp/auth/validate`
+**POST** `/dmcp/auth/validate`
 
 Validates a JWT token and returns its decoded payload.
 
@@ -87,7 +87,7 @@ Validates a JWT token and returns its decoded payload.
 #### Example Usage
 
 ```bash
-curl -X POST "http://localhost:8000/dbmcp/auth/validate" \
+curl -X POST "http://localhost:8000/dmcp/auth/validate" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   -H "Content-Type: application/json"
 ```

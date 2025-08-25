@@ -7,5 +7,5 @@ router = APIRouter(tags=["health"])
 @router.get("/health", response_model=StandardAPIResponse)
 async def health_check():
     """Health check endpoint to verify server status."""
-    data = {"status": "healthy", "message": "DBMCP server is running"}
+    data = {"status": "healthy", "message": "DMCP server is running"}
     return create_success_response(data=data) 

@@ -27,7 +27,7 @@ async def generate_token(request: AuthRequest):
     Generate a new JWT token with the provided config.
     
     This endpoint accepts a config from tidd personas and creates a JWT token 
-    for dbmcp access. We just generate an empty token since we don't need 
+    for dmcp access. We just generate an empty token since we don't need 
     the actual config data.
     
     Args:

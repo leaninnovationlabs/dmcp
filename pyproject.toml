@@ -1,5 +1,5 @@
 [project]
-name = "dbmcp"
+name = "dmcp"
 version = "0.1.0"
 description = "Database backend server with FastAPI and MCP support"
 authors = [

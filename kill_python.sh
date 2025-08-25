@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to kill all running Python processes
-# Author: Generated for DBMCP project
+# Author: Generated for DMCP project
 # Usage: ./kill_python.sh
 
 echo "🔍 Searching for running Python processes..."

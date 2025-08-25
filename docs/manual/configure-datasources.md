@@ -4,11 +4,11 @@ outline: deep
 
 # Configure DataSources
 
-DataSources are the foundation of DBMCP - they define the connections to your databases. This guide will walk you through configuring various types of database connections.
+DataSources are the foundation of DMCP - they define the connections to your databases. This guide will walk you through configuring various types of database connections.
 
 ## Overview
 
-A DataSource in DBMCP contains:
+A DataSource in DMCP contains:
 - **Connection Information**: Host, port, database name, credentials
 - **Database Type**: PostgreSQL, MySQL, Databricks or SQLite (more coming soon)
 - **Security Settings**: SSL configuration, connection pooling
@@ -38,7 +38,7 @@ A DataSource in DBMCP contains:
 
 ### Via Web UI
 
-1. Navigate to http://localhost:8000/dbmcp/ui (when server is running)
+1. Navigate to http://localhost:8000/dmcp/ui (when server is running)
 2. Click on "DataSources" in the sidebar
 3. Click "Add New DataSource"
 4. Fill in the connection details
@@ -50,7 +50,7 @@ A DataSource in DBMCP contains:
 #### PostgreSQL Example
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources \
+curl -X POST http://localhost:8000/dmcp/datasources \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -72,7 +72,7 @@ curl -X POST http://localhost:8000/dbmcp/datasources \
 #### MySQL Example
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources \
+curl -X POST http://localhost:8000/dmcp/datasources \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -94,7 +94,7 @@ curl -X POST http://localhost:8000/dbmcp/datasources \
 #### SQLite Example
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources \
+curl -X POST http://localhost:8000/dmcp/datasources \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -111,7 +111,7 @@ curl -X POST http://localhost:8000/dbmcp/datasources \
 #### Databricks Example
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources \
+curl -X POST http://localhost:8000/dmcp/datasources \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -210,7 +210,7 @@ For PostgreSQL and MySQL, you can specify SSL modes:
 ### Via API
 
 ```bash
-curl -X POST http://localhost:8000/dbmcp/datasources/{id}/test \
+curl -X POST http://localhost:8000/dmcp/datasources/{id}/test \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" 
 ```
@@ -221,20 +221,20 @@ curl -X POST http://localhost:8000/dbmcp/datasources/{id}/test \
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8000/dbmcp/datasources
+     http://localhost:8000/dmcp/datasources
 ```
 
 ### Get Specific DataSource
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://localhost:8000/dbmcp/datasources/{id}
+     http://localhost:8000/dmcp/datasources/{id}
 ```
 
 ### Update DataSource
 
 ```bash
-curl -X PUT http://localhost:8000/dbmcp/datasources/{id} \
+curl -X PUT http://localhost:8000/dmcp/datasources/{id} \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -250,7 +250,7 @@ curl -X PUT http://localhost:8000/dbmcp/datasources/{id} \
 ### Delete DataSource
 
 ```bash
-curl -X DELETE http://localhost:8000/dbmcp/datasources/{id} \
+curl -X DELETE http://localhost:8000/dmcp/datasources/{id} \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

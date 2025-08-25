@@ -140,7 +140,7 @@ TEST 1: Creating datasource with PostgreSQL config from .test.env
 ============================================================
 📋 Using config: {'name': 'Test PostgreSQL Database', ...}
 🚀 Making API request to create datasource...
-🌐 URL: http://localhost:8000/dbmcp/datasources
+🌐 URL: http://localhost:8000/dmcp/datasources
 📊 Response: {'success': True, 'data': {...}}
 ✅ Successfully created datasource with ID: 1
 
@@ -148,7 +148,7 @@ TEST 1: Creating datasource with PostgreSQL config from .test.env
 TEST 2: Testing connection to the created datasource
 ============================================================
 🔗 Testing connection to datasource ID: 1
-🌐 URL: http://localhost:8000/dbmcp/datasources/1/test
+🌐 URL: http://localhost:8000/dmcp/datasources/1/test
 📊 Connection test response: {'success': True, 'data': {...}}
 ✅ Connection test successful!
 ⏱️  Connection time: 150.5ms
@@ -223,12 +223,12 @@ tests/
 
 ## API Endpoints Tested
 
-- `POST /dbmcp/datasources` - Create datasource
-- `GET /dbmcp/datasources` - List datasources
-- `GET /dbmcp/datasources/{id}` - Get specific datasource
-- `PUT /dbmcp/datasources/{id}` - Update datasource
-- `DELETE /dbmcp/datasources/{id}` - Delete datasource
-- `POST /dbmcp/datasources/{id}/test` - Test connection
-- `GET /dbmcp/health` - Health check
+- `POST /dmcp/datasources` - Create datasource
+- `GET /dmcp/datasources` - List datasources
+- `GET /dmcp/datasources/{id}` - Get specific datasource
+- `PUT /dmcp/datasources/{id}` - Update datasource
+- `DELETE /dmcp/datasources/{id}` - Delete datasource
+- `POST /dmcp/datasources/{id}/test` - Test connection
+- `GET /dmcp/health` - Health check
 
 All endpoints are tested with proper authentication and error handling using real HTTP requests. 

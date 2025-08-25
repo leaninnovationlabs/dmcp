@@ -1,6 +1,6 @@
-# DBMCP Frontend
+# DMCP Frontend
 
-A simple, responsive web interface for managing database datasources in the DBMCP system.
+A simple, responsive web interface for managing database datasources in the DMCP system.
 
 ## Features
 
@@ -36,7 +36,7 @@ frontend/
 
 ## Setup
 
-1. **Start the DBMCP Server**: Make sure your DBMCP server is running on `http://localhost:8000`
+1. **Start the DMCP Server**: Make sure your DMCP server is running on `http://localhost:8000`
 
 2. **Serve the Frontend**: You can serve the frontend files using any static file server:
 
@@ -138,23 +138,23 @@ For detailed tools documentation, see [tools-README.md](tools-README.md).
 
 ## API Integration
 
-The frontend communicates with the DBMCP API using these endpoints:
+The frontend communicates with the DMCP API using these endpoints:
 
 ### Datasource APIs
-- `GET /dbmcp/datasources` - List all datasources
-- `GET /dbmcp/datasources/{id}` - Get specific datasource
-- `POST /dbmcp/datasources` - Create new datasource
-- `PUT /dbmcp/datasources/{id}` - Update existing datasource
-- `DELETE /dbmcp/datasources/{id}` - Delete datasource
-- `POST /dbmcp/datasources/{id}/test` - Test connection
+- `GET /dmcp/datasources` - List all datasources
+- `GET /dmcp/datasources/{id}` - Get specific datasource
+- `POST /dmcp/datasources` - Create new datasource
+- `PUT /dmcp/datasources/{id}` - Update existing datasource
+- `DELETE /dmcp/datasources/{id}` - Delete datasource
+- `POST /dmcp/datasources/{id}/test` - Test connection
 
 ### Tools APIs
-- `GET /dbmcp/tools` - List all tools
-- `GET /dbmcp/tools/{id}` - Get specific tool
-- `POST /dbmcp/tools` - Create new tool
-- `PUT /dbmcp/tools/{id}` - Update existing tool
-- `DELETE /dbmcp/tools/{id}` - Delete tool
-- `POST /dbmcp/execute/{tool_id}` - Execute tool with parameters
+- `GET /dmcp/tools` - List all tools
+- `GET /dmcp/tools/{id}` - Get specific tool
+- `POST /dmcp/tools` - Create new tool
+- `PUT /dmcp/tools/{id}` - Update existing tool
+- `DELETE /dmcp/tools/{id}` - Delete tool
+- `POST /dmcp/execute/{tool_id}` - Execute tool with parameters
 
 ## Browser Compatibility
 
@@ -173,10 +173,10 @@ The frontend communicates with the DBMCP API using these endpoints:
 
 ### Changing the API Base URL
 
-If your DBMCP server runs on a different URL, update the `API_BASE_URL` constant in both JavaScript files:
+If your DMCP server runs on a different URL, update the `API_BASE_URL` constant in both JavaScript files:
 
 ```javascript
-const API_BASE_URL = 'http://your-server:port/dbmcp';
+const API_BASE_URL = 'http://your-server:port/dmcp';
 ```
 
 ### Styling
@@ -189,10 +189,10 @@ The UI uses TailwindCSS for styling. You can customize the appearance by:
 ## Troubleshooting
 
 ### CORS Issues
-If you encounter CORS errors, make sure your DBMCP server allows requests from your frontend domain.
+If you encounter CORS errors, make sure your DMCP server allows requests from your frontend domain.
 
 ### Connection Refused
-Ensure the DBMCP server is running and accessible at the configured URL.
+Ensure the DMCP server is running and accessible at the configured URL.
 
 ### Form Validation
 Required fields are marked with a red asterisk (*). The form will highlight invalid fields in red.

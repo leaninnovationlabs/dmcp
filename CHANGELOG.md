@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Initial Release
 
-DBMCP (Database Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to various databases and expose database operations as MCP tools for AI assistants.
+DMCP (Database Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to various databases and expose database operations as MCP tools for AI assistants.
 
 #### ✨ Core Features
 
@@ -52,5 +52,5 @@ DBMCP (Database Model Context Protocol) is a Python backend server built with Fa
 
 ---
 
-*For detailed documentation, visit: https://dbmcp.opsloom.io/*
+*For detailed documentation, visit: https://dmcp.opsloom.io/*
 

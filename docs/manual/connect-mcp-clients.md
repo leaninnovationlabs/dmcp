@@ -4,30 +4,30 @@ outline: deep
 
 # Connect from MCP Clients
 
-Once you have configured your DataSources and created Tools, you can connect AI assistants to your DBMCP server through the Model Context Protocol (MCP). This allows AI models to execute your database queries using natural language.
+Once you have configured your DataSources and created Tools, you can connect AI assistants to your DMCP server through the Model Context Protocol (MCP). This allows AI models to execute your database queries using natural language.
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. DBMCP implements this protocol to expose your database tools to AI models.
+The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. DMCP implements this protocol to expose your database tools to AI models.
 
 ## MCP Server Setup
 
 ### Starting the MCP Server
 
-DBMCP provides an MCP server that exposes your tools to AI assistants:
+DMCP provides an MCP server that exposes your tools to AI assistants:
 
 ```bash
 uv run main.py
 ```
 
-By default, the MCP server runs on port 8000 with the `/dbmcp/mcp` prefix.
+By default, the MCP server runs on port 8000 with the `/dmcp/mcp` prefix.
 
 ### Server Configuration
 
 The MCP server supports two transport modes:
 
 #### 1. HTTP Transport (Default)
-- **URL**: `http://127.0.0.1:8000/dbmcp`
+- **URL**: `http://127.0.0.1:8000/dmcp`
 - **Authentication**: Bearer token required
 - **Use Case**: Web-based MCP clients, remote connections
 
@@ -51,7 +51,7 @@ npx @modelcontextprotocol/inspector
 ```
 
 3. Configure the connection:
-   - **URL**: `http://127.0.0.1:8000/dbmcp`
+   - **URL**: `http://127.0.0.1:8000/dmcp`
    - **Header Name**: `Authorization`
    - **Header Value**: `Bearer YOUR_TOKEN`
 
@@ -63,10 +63,10 @@ Navigate to the Cursor settings and add the following:
 ```json
 {
   "mcpServers": {
-    "dbmcp": {
-      "url": "http://127.0.0.1:8000/dbmcp/mcp",
+    "dmcp": {
+      "url": "http://127.0.0.1:8000/dmcp/mcp",
       "description": "Database MCP Server",
-      "name": "dbmcp",
+      "name": "dmcp",
       "enabled": true,
       "headers": {
         "Authorization": "Bearer token"
@@ -94,8 +94,8 @@ from mcp import ClientSession
 from mcp.client.http import http_client
 
 async def main():
-    # Connect to DBMCP server via HTTP
-    server_url = "http://127.0.0.1:8000/dbmcp"
+    # Connect to DMCP server via HTTP
+    server_url = "http://127.0.0.1:8000/dmcp"
     headers = {
         "Authorization": "Bearer YOUR_TOKEN_HERE",
         "Content-Type": "application/json"
@@ -129,7 +129,7 @@ import { HttpServerParameters } from '@modelcontextprotocol/sdk/server/index.js'
 
 async function main() {
     const server = new HttpServerParameters({
-        url: 'http://127.0.0.1:8000/dbmcp',
+        url: 'http://127.0.0.1:8000/dmcp',
         headers: {
             'Authorization': 'Bearer YOUR_TOKEN_HERE',
             'Content-Type': 'application/json'
@@ -170,7 +170,7 @@ Include the token in your request headers:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-     http://127.0.0.1:8000/dbmcp/tools
+     http://127.0.0.1:8000/dmcp/tools
 ```
 
 ## Tool Discovery
@@ -279,7 +279,7 @@ Each tool includes metadata that helps AI assistants understand how to use it:
 - Verify token hasn't expired
 
 #### 3. Tool Not Found
-- Check if the tool exists in your DBMCP instance
+- Check if the tool exists in your DMCP instance
 - Verify tool names match exactly
 - Ensure the tool is properly configured
 
@@ -320,4 +320,4 @@ Now that you have connected your MCP clients, you can:
 3. **Scale your setup** - Add more tools and datasources
 4. **Integrate with workflows** - Connect to other MCP servers
 
-Your DBMCP setup is now complete! You can start using AI assistants to interact with your databases through natural language. 
+Your DMCP setup is now complete! You can start using AI assistants to interact with your databases through natural language. 

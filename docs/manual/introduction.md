@@ -4,11 +4,11 @@ outline: deep
 
 # Introduction
 
-DBMCP (Database Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to various databases and expose database operations as MCP (Model Context Protocol) tools for AI assistants. This allows AI models to interact with your databases through natural language, making data access and analysis more intuitive and accessible.
+DMCP (Database Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to various databases and expose database operations as MCP (Model Context Protocol) tools for AI assistants. This allows AI models to interact with your databases through natural language, making data access and analysis more intuitive and accessible.
 
-## What is DBMCP?
+## What is DMCP?
 
-DBMCP serves as a bridge between AI assistants and your databases. It provides:
+DMCP serves as a bridge between AI assistants and your databases. It provides:
 
 - **Database Connectivity**: Connect to multiple database types (PostgreSQL, MySQL, SQLite, Databricks)
 - **Query Management**: Store and manage parameterized queries with Jinja template support
@@ -20,7 +20,7 @@ DBMCP serves as a bridge between AI assistants and your databases. It provides:
 
 ```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
-│   AI Assistant  │    │   DBMCP      │    │   Databases     │
+│   AI Assistant  │    │   DMCP      │    │   Databases     │
 │   (Claude, etc) │◄──►│   Server     │◄──►│   (PostgreSQL,  │
 │                 │    │              │    │    MySQL, etc)  │
 └─────────────────┘    └──────────────┘    └─────────────────┘
@@ -61,9 +61,9 @@ Transform your database queries into AI-accessible tools:
 
 The typical workflow involves:
 
-1. **<i class="fas fa-download"></i> Installation** - Set up the DBMCP server
+1. **<i class="fas fa-download"></i> Installation** - Set up the DMCP server
 2. **<i class="fas fa-cog"></i> Configuration** - Configure your database connections
 3. **<i class="fas fa-tools"></i> Tool Creation** - Create MCP tools from your queries
 4. **<i class="fas fa-plug"></i> MCP Integration** - Connect AI assistants to your tools
 
-Ready to get started? Check out the [Installation Guide](./get-started.md) to begin your DBMCP journey!
+Ready to get started? Check out the [Installation Guide](./get-started.md) to begin your DMCP journey!
