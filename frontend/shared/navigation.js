@@ -7,7 +7,7 @@ function createNavigation(currentPage = '') {
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
                         <h1 class="text-2xl font-bold text-gray-900">DB-MCP</h1>
-                        <p class="text-xs text-gray-500">Database Model Control Protocol</p>
+                        <p class="text-xs text-gray-500">Data Model Control Protocol</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-8">
