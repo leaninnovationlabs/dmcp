@@ -1,5 +1,5 @@
 from typing import Dict, Any, Set, Optional
-from jinja2 import Environment, Template, TemplateError, StrictUndefined
+from jinja2 import Environment, Template, TemplateError, Undefined
 from jinja2.exceptions import SecurityError, UndefinedError
 import re
 
@@ -10,9 +10,9 @@ class JinjaTemplateService:
     """Service for compiling and rendering Jinja templates for SQL queries."""
     
     def __init__(self):
-        # Create a secure Jinja environment with strict undefined handling
+        # Create a secure Jinja environment with custom undefined handling
         self.env = Environment(
-            undefined=StrictUndefined,
+            undefined=self._create_undefined_handler(),
             autoescape=False,  # SQL doesn't need HTML escaping
             trim_blocks=True,
             lstrip_blocks=True,
@@ -20,6 +20,39 @@ class JinjaTemplateService:
         
         # Add custom filters for SQL operations
         self._add_custom_filters()
+    
+    def _create_undefined_handler(self):
+        """Create a custom undefined handler for missing variables."""
+        class SQLUndefined(Undefined):
+            def __str__(self):
+                # Return empty string for missing variables in SQL context
+                return ""
+            
+            def __bool__(self):
+                # Treat missing variables as falsy for conditional statements
+                return False
+        
+        return SQLUndefined
+    
+    def _prepare_parameters(self, parameters: Dict[str, Any], default_values: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Prepare parameters by adding default values for missing keys.
+        
+        Args:
+            parameters: User-provided parameters
+            default_values: Dictionary of default values for missing parameters
+            
+        Returns:
+            Processed parameters with defaults applied
+        """
+        if default_values is None:
+            default_values = {}
+        
+        # Start with defaults, then override with user parameters
+        processed_params = default_values.copy()
+        processed_params.update(parameters)
+        
+        return processed_params
     
     def _add_custom_filters(self):
         """Add custom filters for SQL operations."""
@@ -59,7 +92,8 @@ class JinjaTemplateService:
         self, 
         template_string: str, 
         parameters: Dict[str, Any],
-        safe_mode: bool = True
+        safe_mode: bool = True,
+        default_values: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Render a Jinja template with parameters.
@@ -80,8 +114,11 @@ class JinjaTemplateService:
             if safe_mode:
                 self._validate_template_security(template_string, parameters)
             
+            # Pre-process parameters with defaults if provided
+            processed_params = self._prepare_parameters(parameters, default_values)
+            
             # Render the template
-            rendered_sql = template.render(**parameters)
+            rendered_sql = template.render(**processed_params)
             
             # Post-process the rendered SQL
             rendered_sql = self._post_process_sql(rendered_sql)
@@ -198,8 +235,8 @@ class JinjaTemplateService:
             
             # Create template and render with parameters
             template = self.env.from_string(sql)
+            # Should not fail here if parameters are missing 
             rendered_sql = template.render(**parameters)
-            
             return rendered_sql
             
         except UndefinedError as e:

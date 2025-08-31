@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "DMCP"
+  name: "Data MCP"
   text: "Connect to any data source via query, API, or code"
   tagline: Connect AI assistants to your data
   image:

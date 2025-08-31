@@ -20,8 +20,8 @@ class Sidebar {
                 <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200">
                     <div class="flex items-center min-w-0">
                         <div class="sidebar-logo">
-                            <h1 class="text-xl font-bold text-black">DB-MCP</h1>
-                            <p class="text-xs text-gray-600 sidebar-subtitle">Database Model Control Protocol</p>
+                            <h1 class="text-xl font-bold text-black">Opsloom Data MCP</h1>
+                            <p class="text-xs text-gray-600 sidebar-subtitle">Connect AI assistants to your data</p>
                         </div>
                     </div>
                     <button id="sidebarToggle" class="lg:hidden text-gray-500 hover:text-black flex-shrink-0">
