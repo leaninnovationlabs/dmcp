@@ -12,6 +12,58 @@ The user management system provides a complete solution for managing users in th
 - RESTful API endpoints for all user operations
 - Comprehensive validation and error handling
 
+## Default Admin Account
+
+When you first install DMCP, a default admin account is automatically created with the following credentials:
+
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+- **Roles**: `admin`
+
+⚠️ **Security Warning**: It's crucial to change this default password immediately after your first login for security purposes.
+
+### Changing the Default Admin Password
+
+You can change the admin password using several methods:
+
+#### Method 1: Using the API
+```bash
+curl -X POST http://localhost:8000/dmcp/users/1/change-password \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "current_password": "dochangethispassword",
+    "new_password": "your-new-secure-password"
+  }'
+```
+
+#### Method 2: Using the Web UI
+1. Navigate to http://localhost:8000/dmcp/ui
+2. Login with the default credentials (admin/dochangethispassword)
+3. Go to the Users section
+4. Click on the admin user
+5. Use the "Change Password" feature
+
+#### Method 3: Using the Login API First
+If you need to authenticate first:
+```bash
+# First, login to get a session
+curl -X POST http://localhost:8000/dmcp/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "dochangethispassword"
+  }'
+
+# Then change the password using the user ID (1)
+curl -X POST http://localhost:8000/dmcp/users/1/change-password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "current_password": "dochangethispassword",
+    "new_password": "your-new-secure-password"
+  }'
+```
+
 ## User Model
 
 Each user in the system has the following attributes:
@@ -172,6 +224,58 @@ POST /dmcp/users/{user_id}/change-password
   "new_password": "newsecurepassword456"
 }
 ```
+
+### Password Reset Procedures
+
+#### For Admin Users
+If you're an admin user and need to reset another user's password:
+
+1. **Using the API** (if you have admin privileges):
+```bash
+curl -X PUT http://localhost:8000/dmcp/users/{user_id} \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -d '{
+    "password": "new-temporary-password"
+  }'
+```
+
+2. **Using the Web UI**:
+   - Navigate to the Users section
+   - Find the user you want to reset
+   - Use the "Reset Password" feature (if available)
+
+#### For Default Admin Account Recovery
+If you've forgotten the admin password and need to recover access:
+
+1. **Database Reset** (if no other admin users exist):
+```bash
+# Stop the application
+# Delete the database file
+rm dmcp.db
+
+# Reinitialize the database (this will recreate the default admin account)
+uv run alembic upgrade head
+
+# Restart the application
+uv run main.py
+```
+
+⚠️ **Warning**: This will delete all existing data and users!
+
+2. **Create a New Admin User** (if you have database access):
+```bash
+# Use the test script to create a new admin user
+uv run scripts/test_user_creation.py
+```
+
+#### Password Security Best Practices
+- Use strong passwords (minimum 8 characters, mix of letters, numbers, symbols)
+- Change default passwords immediately
+- Use unique passwords for different accounts
+- Consider using a password manager
+- Regularly update passwords
+- Never share passwords or store them in plain text
 
 ### Role Management
 

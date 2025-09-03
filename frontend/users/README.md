@@ -2,6 +2,23 @@
 
 This directory contains user-related UI components for the DMCP application.
 
+## Default Admin Account
+
+When DMCP is first installed, a default admin account is automatically created:
+
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Security Warning**: Change this default password immediately after your first login!
+
+### Initial Login Process
+
+1. Navigate to the DMCP web interface: http://localhost:8000/dmcp/ui
+2. Use the default credentials:
+   - Username: `admin`
+   - Password: `dochangethispassword`
+3. Once logged in, immediately change the password using the Change Password feature
+
 ## Files
 
 - `change-password.html` - Password change form with modern UI

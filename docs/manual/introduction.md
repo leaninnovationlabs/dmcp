@@ -62,8 +62,10 @@ Transform your data queries and operations into AI-accessible tools:
 The typical workflow involves:
 
 1. **<i class="fas fa-download"></i> Installation** - Set up the DMCP server
-2. **<i class="fas fa-cog"></i> Configuration** - Configure your data source connections
-3. **<i class="fas fa-tools"></i> Tool Creation** - Create MCP tools from your queries and operations
-4. **<i class="fas fa-plug"></i> MCP Integration** - Connect AI assistants to your tools
+2. **<i class="fas fa-user-shield"></i> Initial Access** - Login with default admin credentials (admin/dochangethispassword)
+3. **<i class="fas fa-key"></i> Security Setup** - Change the default admin password
+4. **<i class="fas fa-cog"></i> Configuration** - Configure your data source connections
+5. **<i class="fas fa-tools"></i> Tool Creation** - Create MCP tools from your queries and operations
+6. **<i class="fas fa-plug"></i> MCP Integration** - Connect AI assistants to your tools
 
 Ready to get started? Check out the [Installation Guide](./get-started.md) to begin your DMCP journey!

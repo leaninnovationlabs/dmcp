@@ -45,7 +45,14 @@ uv sync
   uv run alembic upgrade head
 ```
 
-4. Run the API server, MCP server and UI:
+4. **Default Admin Account** (Important!)
+   After initializing the database, a default admin account is automatically created:
+   - **Username**: `admin`
+   - **Password**: `dochangethispassword`
+   
+   ⚠️ **Security Warning**: Change this default password immediately after your first login!
+
+5. Run the API server, MCP server and UI:
 ```bash
   uv run main.py
 ```
@@ -74,6 +81,12 @@ Support for bearer token authentication is built in. To create a token, run the 
 ```bash
 uv run scripts/apptoken.py
 ```
+
+**Alternative**: You can also use the default admin account for initial access:
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Remember**: Change the default password for security!
 
 ## Database Management
 
