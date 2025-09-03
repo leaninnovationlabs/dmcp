@@ -41,7 +41,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Skip authentication for static files and UI
-        if request.url.path.startswith("/dmcp/ui"):
+        if request.url.path.startswith("/dmcp/ui") or request.url.path.startswith("/dmcp/auth/login"):
             return await call_next(request)
             
         # Get authorization header

@@ -2,7 +2,7 @@ from typing import Generic, TypeVar, Type, List, Optional, Any, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..core.exceptions import DMCPException
 
@@ -45,7 +45,7 @@ class BaseRepository(Generic[ModelType]):
         try:
             # Add updated_at timestamp if the model has it
             if hasattr(self.model, 'updated_at'):
-                kwargs['updated_at'] = datetime.utcnow()
+                kwargs['updated_at'] = datetime.now(timezone.utc)
             
             result = await self.db.execute(
                 update(self.model)

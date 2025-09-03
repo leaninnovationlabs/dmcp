@@ -1,0 +1,36 @@
+meta {
+  name: login
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{server}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "admin",
+    "password": "demouser"
+  }
+}
+
+script:post-response {
+  // Post-response script for Bruno
+  // Add this to the "Tests" tab of your /auth request
+  
+  const response = res.getBody();
+  
+  // Extract the token from the response
+  if (response && response.token) {
+    // Set the token as an environment variable
+    bru.setEnvVar("token", response.token);
+    
+    console.log("Token saved to environment variable");
+    console.log("Token expires in:", response.expires_in_minutes, "minutes");
+  } else {
+    console.error("Token not found in response");
+  }
+}

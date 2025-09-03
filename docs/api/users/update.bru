@@ -1,0 +1,25 @@
+meta {
+  name: update
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{server}}/users/1
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+body:json {
+  {
+      "username": "admin",
+      "password": "lil_demouser",
+      "first_name": "Admin",
+      "last_name": "User",
+      "roles": ["admin"]
+  }
+}

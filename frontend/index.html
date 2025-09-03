@@ -118,14 +118,6 @@
                             <p class="mt-6 text-lg text-gray-600 sm:mt-8 sm:text-xl sm:max-w-xl sm:mx-auto md:mt-8 md:text-xl lg:mx-0">
                                 Securely connect to your data sources, create powerful tools, and execute queries across multiple database types with our intuitive interface.
                             </p>
-                            <div class="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start gap-4">
-                                <button class="modern-button">
-                                    Try now
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
-                                </button>
-                            </div>
                         </div>
                     </main>
                 </div>
@@ -255,6 +247,7 @@
                             </p>
                         </div>
 
+
                         <!-- Performance Card -->
                         <div class="feature-card">
                             <div class="flex items-start justify-between mb-6">
@@ -306,12 +299,14 @@
             setSidebarActivePage('home');
             
             // Update main action buttons
-            const actionLinks = document.querySelectorAll('a[href*="datasource"], a[href*="tools"]');
+            const actionLinks = document.querySelectorAll('a[href*="datasource"], a[href*="tools"], a[href*="users"]');
             actionLinks.forEach(link => {
                 if (link.getAttribute('href').includes('datasource')) {
                     link.setAttribute('href', APP_CONFIG.urls.datasource());
                 } else if (link.getAttribute('href').includes('tools')) {
                     link.setAttribute('href', APP_CONFIG.urls.tools());
+                } else if (link.getAttribute('href').includes('users')) {
+                    link.setAttribute('href', APP_CONFIG.urls.users());
                 }
             });
         });

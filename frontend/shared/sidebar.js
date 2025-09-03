@@ -52,6 +52,7 @@ class Sidebar {
                             <i class="fas fa-tools w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Tools</span>
                         </a>
+                        
                     </div>
                     
                     <!-- Authentication Section -->

@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
-from app.routes import auth, datasources, health, tools
+from app.routes import auth, datasources, health, tools, users
 from app.core.auth_middleware import BearerTokenMiddleware
 from app.mcp.middleware.auth import AuthMiddleware
 from app.mcp.middleware.logging import LoggingMiddleware
@@ -55,6 +55,7 @@ app.include_router(health.router, prefix=f"{settings.mcp_path}")
 app.include_router(auth.router, prefix=f"{settings.mcp_path}")
 app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
 app.include_router(tools.router, prefix=f"{settings.mcp_path}")
+app.include_router(users.router, prefix=f"{settings.mcp_path}")
 
 # Add Bearer token authentication middleware
 app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 

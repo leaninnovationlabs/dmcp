@@ -27,7 +27,8 @@ const APP_CONFIG = {
         tools: function() { return APP_CONFIG.getPath('/tools/'); },
         toolsEdit: function(id = null) { 
             return APP_CONFIG.getPath('/tools/edit.html' + (id ? '?id=' + id : ''));
-        }
+        },
+        users: function() { return APP_CONFIG.getPath('/users/'); }
     }
 };
 
