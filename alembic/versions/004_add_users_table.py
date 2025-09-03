@@ -6,6 +6,7 @@ Create Date: 2025-08-30 20:54:34.973923
 
 """
 from typing import Sequence, Union
+from datetime import datetime
 
 from alembic import op
 import sqlalchemy as sa
@@ -34,6 +35,14 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
     
+
+    # Insert admin user by default, set to dochangethispassword as the password
+    current_time = datetime.now().isoformat()
+    op.execute(f"""
+        INSERT INTO users (username, password, first_name, last_name, roles, created_at, updated_at)
+        VALUES ('admin', 'Z0FBQUFBQm91R1RKVkdqRnlvMFlWcVdXVW9aS2tzRkxhaENybUV0eERJN09helF5X2ltdUNJN2tuTU4tQUg1Ukt1S3dlb3QxR2djOFNoeXRhMGdFNm01U2h2UVA0TkZrTWtHSDczdlpQek83ZS0xZW55czR2QXM9', 'Admin', 'Admin', 'admin', '{current_time}', '{current_time}')
+    """)
+
     # Create indexes
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)

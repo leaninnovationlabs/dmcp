@@ -271,4 +271,11 @@ class UserPasswordChange(BaseModel):
     new_password: str = Field(..., description="New password")
 
 
+class TokenResponse(BaseModel):
+    token: str = Field(..., description="Generated JWT token")
+    expires_at: datetime = Field(..., description="Token expiration time")
+    user_id: int = Field(..., description="User ID associated with the token")
+    username: str = Field(..., description="Username associated with the token")
+
+
 

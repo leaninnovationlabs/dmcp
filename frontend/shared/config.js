@@ -28,7 +28,9 @@ const APP_CONFIG = {
         toolsEdit: function(id = null) { 
             return APP_CONFIG.getPath('/tools/edit.html' + (id ? '?id=' + id : ''));
         },
-        users: function() { return APP_CONFIG.getPath('/users/'); }
+        users: function() { return APP_CONFIG.getPath('/users/'); },
+        changePassword: function() { return APP_CONFIG.getPath('/users/change-password.html'); },
+        generateToken: function() { return APP_CONFIG.getPath('/users/generate-token.html'); }
     }
 };
 

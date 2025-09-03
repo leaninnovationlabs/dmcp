@@ -2,12 +2,13 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
 from ..database import get_db
 from ..services.user_service import UserService
 from ..models.schemas import (
     UserCreate, UserUpdate, UserResponse, UserLogin, 
-    UserPasswordChange, StandardAPIResponse
+    UserPasswordChange, StandardAPIResponse, TokenResponse
 )
 from ..core.responses import create_success_response, create_error_response
 from ..core.exceptions import DMCPException
@@ -62,6 +63,119 @@ async def get_all_users(
             status_code=500,
             detail=create_error_response(
                 errors=[f"Failed to get users: {str(e)}"]
+            ).model_dump()
+        )
+
+
+@router.get("/me", response_model=StandardAPIResponse)
+async def get_current_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get current user information from JWT token."""
+    try:
+        # Get user info from JWT token (set by auth middleware)
+        user_info = getattr(request.state, 'user', None)
+        
+        if not user_info or 'user_id' not in user_info:
+            raise HTTPException(
+                status_code=401,
+                detail=create_error_response(
+                    errors=["User not authenticated"]
+                ).model_dump()
+            )
+        
+        user_service = UserService(db)
+        user = await user_service.get_user_by_id(user_info['user_id'])
+        
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail=create_error_response(
+                    errors=["User not found"]
+                ).model_dump()
+            )
+        
+        return create_success_response(
+            data=user
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=create_error_response(
+                errors=[f"Failed to get current user: {str(e)}"]
+            ).model_dump()
+        )
+
+
+@router.get("/generate-token", response_model=StandardAPIResponse)
+async def generate_token(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Generate a new JWT token for the current user."""
+    try:
+        # Get user info from JWT token (set by auth middleware)
+        user_info = getattr(request.state, 'user', None)
+        
+        if not user_info or 'user_id' not in user_info:
+            raise HTTPException(
+                status_code=401,
+                detail=create_error_response(
+                    errors=["User not authenticated"]
+                ).model_dump()
+            )
+        
+        user_service = UserService(db)
+        user = await user_service.get_user_by_id(user_info['user_id'])
+        
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail=create_error_response(
+                    errors=["User not found"]
+                ).model_dump()
+            )
+        
+        # Import auth service here to avoid circular imports
+        from ..services.auth_service import AuthService
+        auth_service = AuthService()
+        
+        # Create token payload
+        token_payload = {
+            "user_id": user.id,
+            "username": user.username,
+            "roles": user.roles if isinstance(user.roles, list) else user.roles.split(',') if user.roles else []
+        }
+        
+        # Generate token
+        token = auth_service.create_token(token_payload)
+        
+        # Get expiration time from token
+        from ..core.jwt_validator import jwt_validator
+        import jwt
+        decoded_token = jwt.decode(token, jwt_validator.secret_key, algorithms=[jwt_validator.algorithm])
+        expires_at = datetime.fromtimestamp(decoded_token['exp'], tz=timezone.utc)
+        
+        token_response = TokenResponse(
+            token=token,
+            expires_at=expires_at,
+            user_id=user.id,
+            username=user.username
+        )
+        
+        return create_success_response(
+            data=token_response
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=create_error_response(
+                errors=[f"Failed to generate token: {str(e)}"]
             ).model_dump()
         )
 
@@ -290,3 +404,4 @@ async def get_users_by_role(
                 errors=[f"Failed to get users by role: {str(e)}"]
             ).model_dump()
         )
+

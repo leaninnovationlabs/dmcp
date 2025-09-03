@@ -1,0 +1,48 @@
+meta {
+  name: Get Current User
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/users/me
+  body: none
+  auth: {
+    type: bearer
+    token: {{authToken}}
+  }
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  title: Get Current User
+  description: |
+    Retrieves the current user's information based on the JWT token.
+    
+    This endpoint requires authentication via Bearer token in the Authorization header.
+    
+    Returns:
+    - 200: User information retrieved successfully
+    - 401: User not authenticated or invalid token
+    - 404: User not found in database
+    - 500: Internal server error
+    
+    Example Response:
+    ```json
+    {
+      "success": true,
+      "data": {
+        "id": 1,
+        "username": "john_doe",
+        "first_name": "John",
+        "last_name": "Doe",
+        "roles": ["user", "admin"],
+        "created_at": "2024-01-01T00:00:00Z",
+        "updated_at": "2024-01-01T00:00:00Z"
+      }
+    }
+    ```
+}
