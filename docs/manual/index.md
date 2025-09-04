@@ -1,10 +1,9 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
   name: "Data MCP"
-  text: "Connect LLMsto your enterprise data sources"
+  text: "Connect LLMs to all your enterprise data, securely"
   tagline: Connect AI assistants to your data
   image:
     src: /icons/logo.png
@@ -26,10 +25,10 @@ features:
     details: Expose data operations as tools for AI assistants using the Model Context Protocol
     icon: 🤖
   - title: Jinja Templating
-    details: Dynamic queries with parameter support and conditional logic
+    details: Jinja-powered templates for parameterized, conditional queries
     icon: 📝
   - title: Web Interface
-    details: Intuitive UI for managing datasources, tools, and testing connections
+    details: Add/remove data sources, test queries, preview results
     icon: 🌐
   - title: HTTP Request
     details: Build tools that can make HTTP requests to external APIs (coming soon)
@@ -37,4 +36,3 @@ features:
   - title: Easy Setup
     details: Simple installation with uv package manager and comprehensive documentation
     icon: ⚡
-
