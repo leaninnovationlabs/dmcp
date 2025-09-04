@@ -220,4 +220,62 @@ class ToolExecutionResponse(BaseModel):
     error: Optional[str] = None 
 
 
+# User-related schemas
+class UserCreate(BaseModel):
+    username: str = Field(..., description="Unique username for the user")
+    password: str = Field(..., description="User password (will be encrypted)")
+    first_name: str = Field(..., description="User's first name")
+    last_name: str = Field(..., description="User's last name")
+    roles: Optional[List[str]] = Field(default_factory=list, description="List of user roles")
+
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, description="Unique username for the user")
+    password: Optional[str] = Field(None, description="User password (will be encrypted)")
+    first_name: Optional[str] = Field(None, description="User's first name")
+    last_name: Optional[str] = Field(None, description="User's last name")
+    roles: Optional[List[str]] = Field(None, description="List of user roles")
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    first_name: str
+    last_name: str
+    roles: List[str]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+    
+    @classmethod
+    def model_validate(cls, obj):
+        """Custom validation to handle roles conversion from string to list."""
+        if hasattr(obj, 'roles') and isinstance(obj.roles, str):
+            # Convert comma-separated string to list
+            if obj.roles:
+                obj.roles = [role.strip() for role in obj.roles.split(',') if role.strip()]
+            else:
+                obj.roles = []
+        
+        return super().model_validate(obj)
+
+
+class UserLogin(BaseModel):
+    username: str = Field(..., description="Username for authentication")
+    password: str = Field(..., description="Password for authentication")
+
+
+class UserPasswordChange(BaseModel):
+    current_password: str = Field(..., description="Current password")
+    new_password: str = Field(..., description="New password")
+
+
+class TokenResponse(BaseModel):
+    token: str = Field(..., description="Generated JWT token")
+    expires_at: datetime = Field(..., description="Token expiration time")
+    user_id: int = Field(..., description="User ID associated with the token")
+    username: str = Field(..., description="Username associated with the token")
+
+
 

@@ -1,5 +1,51 @@
 # Auth API Examples
 
+## Default Admin Authentication
+
+When DMCP is first installed, a default admin account is automatically created. You can use these credentials for initial access:
+
+### Default Admin Login
+
+```bash
+curl -X POST "http://localhost:8000/dmcp/users/login" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "dochangethispassword"
+  }'
+```
+
+**Expected Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "admin",
+    "first_name": "Admin",
+    "last_name": "Admin",
+    "roles": ["admin"],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  },
+  "success": true,
+  "errors": [],
+  "warnings": []
+}
+```
+
+### Change Default Admin Password
+
+⚠️ **Security Warning**: Change the default password immediately after your first login!
+
+```bash
+curl -X POST "http://localhost:8000/dmcp/users/1/change-password" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "current_password": "dochangethispassword",
+    "new_password": "your-new-secure-password"
+  }'
+```
+
 ## Generate JWT Token
 
 ### Basic Example

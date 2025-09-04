@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Application settings."""
     
     # Database
-    database_url: str = "sqlite+aiosqlite:///./dmcp.db"
+    database_url: str = "sqlite+aiosqlite:///./data/dmcp.db"
     
     # Security
     secret_key: str

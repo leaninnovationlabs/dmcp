@@ -47,13 +47,14 @@ class AuthManager {
         }
         
         $('#authModal').removeClass('hidden').addClass('flex');
-        $('#tokenInput').focus();
+        $('#usernameInput').focus();
     }
 
     // Hide login dialog
     hideLoginDialog() {
         $('#authModal').addClass('hidden').removeClass('flex');
-        $('#tokenInput').val('');
+        $('#usernameInput').val('');
+        $('#passwordInput').val('');
         $('#authError').hide();
     }
 
@@ -66,23 +67,31 @@ class AuthManager {
                     <!-- Modal Header -->
                     <div class="px-6 py-4 border-b border-gray-200">
                         <h3 class="text-lg font-semibold text-gray-900">Authentication Required</h3>
-                        <p class="text-sm text-gray-600 mt-1">Please enter your bearer token to access the application</p>
+                        <p class="text-sm text-gray-600 mt-1">Please enter your credentials to access the application</p>
                     </div>
                     
                     <!-- Modal Body -->
                     <div class="px-6 py-4">
                         <form id="authForm">
                             <div class="mb-4">
-                                <label for="tokenInput" class="block text-sm font-medium text-gray-700 mb-2">Bearer Token</label>
-                                <input type="password" id="tokenInput" 
+                                <label for="usernameInput" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input type="text" id="usernameInput" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       placeholder="Enter your bearer token"
+                                       placeholder="Enter your username"
+                                       required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="passwordInput" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input type="password" id="passwordInput" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Enter your password"
                                        required>
                             </div>
                             
                             <div id="authError" class="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-md hidden">
                                 <i class="fas fa-exclamation-circle mr-2"></i>
-                                <span id="authErrorMessage">Invalid token. Please try again.</span>
+                                <span id="authErrorMessage">Invalid credentials. Please try again.</span>
                             </div>
                             
                             <div class="flex justify-end space-x-3">
@@ -101,43 +110,66 @@ class AuthManager {
         // Bind events
         $('#authForm').on('submit', (e) => {
             e.preventDefault();
-            const token = $('#tokenInput').val().trim();
-            if (token) {
-                this.validateAndSetToken(token);
+            const username = $('#usernameInput').val().trim();
+            const password = $('#passwordInput').val().trim();
+            if (username && password) {
+                this.loginWithCredentials(username, password);
             }
         });
     }
 
-    // Validate token and set if valid
-    validateAndSetToken(token) {
-        // Set token temporarily for validation
-        this.setToken(token);
+    // Login with username and password
+    loginWithCredentials(username, password) {
+        // Show loading state
+        const submitBtn = $('#authForm button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Logging in...').prop('disabled', true);
         
-        // Test the token with the auth validate endpoint
-        this.makeAuthenticatedRequest({
-            url: `${APP_CONFIG.API_BASE_URL}/auth/validate`,
-            method: 'GET',
-            success: () => {
-                // Token is valid
-                $('#authError').hide();
-                this.hideLoginDialog();
-                this.showNotification('Authentication successful!', 'success');
-                // Refresh the current page to load data
-                window.location.reload();
+        // Make login request
+        $.ajax({
+            url: `${APP_CONFIG.API_BASE_URL}/auth/login`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                username: username,
+                password: password
+            }),
+            success: (response) => {
+                if (response && response.token) {
+                    // Token received successfully
+                    this.setToken(response.token);
+                    $('#authError').hide();
+                    this.hideLoginDialog();
+                    this.showNotification('Authentication successful!', 'success');
+                    // Refresh the current page to load data
+                    window.location.reload();
+                } else {
+                    // No token in response
+                    $('#authErrorMessage').text('Invalid response from server. Please try again.');
+                    $('#authError').show();
+                    $('#passwordInput').focus().select();
+                }
             },
             error: (xhr) => {
-                // Token is invalid
-                this.clearToken();
+                // Login failed
                 if (xhr.status === 401) {
-                    $('#authErrorMessage').text('Invalid or expired token. Please check your bearer token.');
+                    $('#authErrorMessage').text('Invalid username or password. Please check your credentials.');
+                } else if (xhr.status === 400) {
+                    $('#authErrorMessage').text('Invalid request. Please check your input.');
                 } else {
-                    $('#authErrorMessage').text('Unable to validate token. Please try again.');
+                    $('#authErrorMessage').text('Unable to connect to server. Please try again.');
                 }
                 $('#authError').show();
-                $('#tokenInput').focus().select();
+                $('#passwordInput').focus().select();
+            },
+            complete: () => {
+                // Restore button state
+                submitBtn.html(originalText).prop('disabled', false);
             }
         });
     }
+
+
 
     // Logout user
     logout() {

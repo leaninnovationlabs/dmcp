@@ -20,7 +20,7 @@ class Sidebar {
                 <div class="flex items-center justify-between h-16 px-4 border-b border-gray-200">
                     <div class="flex items-center min-w-0">
                         <div class="sidebar-logo">
-                            <h1 class="text-xl font-bold text-black">Opsloom Data MCP</h1>
+                            <h1 class="text-xl font-bold text-black">Data MCP</h1>
                             <p class="text-xs text-gray-600 sidebar-subtitle">Connect AI assistants to your data</p>
                         </div>
                     </div>
@@ -51,6 +51,24 @@ class Sidebar {
                            data-page="tools">
                             <i class="fas fa-tools w-5 h-5 mr-3 flex-shrink-0"></i>
                             <span class="sidebar-text">Tools</span>
+                        </a>
+                        
+                    </div>
+                    
+                    <!-- User Profile Section -->
+                    <div class="px-4 py-2 mt-4 border-t border-gray-200">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 sidebar-text">User Profile</h3>
+                        <a href="${APP_CONFIG ? APP_CONFIG.urls.changePassword() : '/users/change-password.html'}" 
+                           class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
+                           data-page="profile">
+                            <i class="fas fa-key w-5 h-5 mr-3 flex-shrink-0"></i>
+                            <span class="sidebar-text">Change Password</span>
+                        </a>
+                        <a href="${APP_CONFIG ? APP_CONFIG.urls.generateToken() : '/users/generate-token.html'}" 
+                           class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
+                           data-page="token">
+                            <i class="fas fa-ticket w-5 h-5 mr-3 flex-shrink-0"></i>
+                            <span class="sidebar-text">API Access</span>
                         </a>
                     </div>
                     

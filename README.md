@@ -15,6 +15,27 @@ You can find the documentation [here](https://dmcp.opsloom.io/)
 
 ## Setup
 
+### Quick Start with Docker
+
+Run public image from ECR:
+```bash
+# Create data directory 
+mkdir -p ./data
+
+# Run container with data directory
+docker run \
+  --name dmcp \
+  -p 8000:8000 \
+  -e SECRET_KEY="your-secret-key" \
+  -v $(pwd)/data:/app/data \
+  public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+
+```
+
+### Manual Setup
+
+This is a manual setup for those who want to run the server without Docker.
+
 1. Install dependencies using uv:
 ```bash
 uv sync
@@ -45,7 +66,14 @@ uv sync
   uv run alembic upgrade head
 ```
 
-4. Run the API server, MCP server and UI:
+4. **Default Admin Account** (Important!)
+   After initializing the database, a default admin account is automatically created:
+   - **Username**: `admin`
+   - **Password**: `dochangethispassword`
+   
+   ⚠️ **Security Warning**: Change this default password immediately after your first login!
+
+5. Run the API server, MCP server and UI:
 ```bash
   uv run main.py
 ```
@@ -74,6 +102,12 @@ Support for bearer token authentication is built in. To create a token, run the 
 ```bash
 uv run scripts/apptoken.py
 ```
+
+**Alternative**: You can also use the default admin account for initial access:
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Remember**: Change the default password for security!
 
 ## Database Management
 
@@ -109,7 +143,12 @@ See `app/models/database.py` for the complete model definitions.
 
 ## Docker
 
-### Quick Start with Docker
+Clean up existing container:
+```bash
+docker stop dmcp || true
+docker rm dmcp || true
+```
+
 
 Build and run the container:
 

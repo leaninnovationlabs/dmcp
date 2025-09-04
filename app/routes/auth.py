@@ -1,11 +1,15 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from typing import Dict, Any, Union
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.jwt_validator import jwt_validator
 from app.core.responses import create_success_response, create_error_response
 from app.core.exceptions import AuthenticationError
+from app.database import get_db
+from app.models.schemas import UserLogin
+from app.services.user_service import UserService
 
 router = APIRouter()
 
@@ -109,3 +113,44 @@ async def validate_token(request: Request):
                 errors=[f"Token validation error: {str(e)}"]
             ).model_dump()
         ) 
+
+@router.post("/auth/login", response_model=AuthResponse)
+async def login_user(
+    login_data: UserLogin,
+    db: AsyncSession = Depends(get_db)
+):
+    """Authenticate a user."""
+    try:
+        user_service = UserService(db)
+        user = await user_service.authenticate_user(login_data)
+        
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail=create_error_response(
+                    errors=["Invalid username or password"]
+                ).model_dump()
+            )
+
+        # Create token with empty payload - we don't need the config data
+        token = jwt_validator.create_token({
+            "user_id": user.id,
+            "username": user.username,
+            "roles": user.roles
+        })
+        
+        # Return the token with expiration info
+        return AuthResponse(
+            token=token,
+            expires_in_minutes=jwt_validator.expiration_minutes
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=create_error_response(
+                errors=[f"Login failed: {str(e)}"]
+            ).model_dump()
+        )
+

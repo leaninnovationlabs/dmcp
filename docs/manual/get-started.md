@@ -6,6 +6,27 @@ outline: deep
 
 This guide will walk you through installing and setting up DMCP on your system.
 
+
+## Quick Start with Docker
+
+Run public image from ECR:
+```bash
+# Create data directory 
+mkdir -p ./data
+
+# Run container with data directory
+docker run \
+  --name dmcp \
+  -p 8000:8000 \
+  -e SECRET_KEY="your-secret-key" \
+  -v $(pwd)/data:/app/data \
+  public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+```
+
+### Manual Setup
+
+This is a manual setup for those who want to run the server without Docker.
+
 ## Prerequisites
 
 Before installing DMCP, ensure you have:
@@ -95,17 +116,40 @@ MCP_LOG_LEVEL=debug
 uv run alembic upgrade head
 ```
 
-### <i class="fas fa-key"></i> 5. Generate Authentication Token
+### <i class="fas fa-user-shield"></i> 5. Default Admin Account
 
-Create a token for API access:
+After initializing the database, a default admin account is automatically created with the following credentials:
 
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Security Warning**: It's crucial to change this default password immediately after your first login for security purposes.
+
+#### Changing the Default Password
+
+You can change the admin password using the API or the web interface:
+
+**Using the API:**
 ```bash
-uv run scripts/apptoken.py
+curl -X POST http://localhost:8000/dmcp/users/1/change-password \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "current_password": "dochangethispassword",
+    "new_password": "your-new-secure-password"
+  }'
 ```
 
-This will output a token that you'll use for authentication.
+**Using the Web UI:**
+1. Navigate to http://localhost:8000/dmcp/ui
+2. Login with the default credentials (admin/dochangethispassword)
+3. Go to the Users section
+4. Click on the admin user
+5. Use the "Change Password" feature
 
-### <i class="fas fa-server"></i> 6. Start the Server
+### <i class="fas fa-key"></i> 
+
+6. Start the Server
 
 
 #### API Server
@@ -144,7 +188,38 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
      http://localhost:8000/dmcp/datasources
 ```
 
-### <i class="fas fa-desktop"></i> 3. Access Web UI
+### <i class="fas fa-user-check"></i> 3. Test Default Admin Login
+
+Test the default admin account:
+
+```bash
+curl -X POST http://localhost:8000/dmcp/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "dochangethispassword"
+  }'
+```
+
+Expected response:
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "admin",
+    "first_name": "Admin",
+    "last_name": "Admin",
+    "roles": ["admin"],
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z"
+  },
+  "success": true,
+  "errors": [],
+  "warnings": []
+}
+```
+
+### <i class="fas fa-desktop"></i> 4. Access Web UI
 
 Open http://localhost:8000/dmcp/ui in your browser and enter your authentication token when prompted.
 
@@ -188,6 +263,8 @@ kill -9 <PID>
 - Regenerate your token: `uv run scripts/apptoken.py`
 - Ensure you're using the correct token format: `Bearer <token>`
 - Check that your JWT_SECRET_KEY is set correctly
+- **Default Admin Login**: Use username `admin` and password `dochangethispassword` for initial access
+- **Password Reset**: If you've forgotten the admin password, you may need to reset the database and reinitialize
 
 #### <i class="fas fa-plug"></i> 4. MCP Server Issues
 - Ensure the MCP server is running on the correct port
