@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "Data MCP"
-  text: "Connect to any data source via query, API, or code"
+  text: "Connect LLMsto your enterprise data sources"
   tagline: Connect AI assistants to your data
   image:
     src: /icons/logo.png
