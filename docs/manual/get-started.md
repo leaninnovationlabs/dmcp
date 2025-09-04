@@ -23,6 +23,12 @@ docker run \
   public.ecr.aws/p9k6o7t1/lil/datamcp:latest
 ```
 
+**Note**: Your default admin account is:
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Remember**: Change the default password for security!
+
 ### Manual Setup
 
 This is a manual setup for those who want to run the server without Docker.
