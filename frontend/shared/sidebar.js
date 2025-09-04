@@ -67,8 +67,8 @@ class Sidebar {
                         <a href="${APP_CONFIG ? APP_CONFIG.urls.generateToken() : '/users/generate-token.html'}" 
                            class="sidebar-link flex items-center px-4 py-3 text-black rounded-lg hover:bg-gray-50 transition-colors" 
                            data-page="token">
-                            <i class="fas fa-token w-5 h-5 mr-3 flex-shrink-0"></i>
-                            <span class="sidebar-text">Generate Token</span>
+                            <i class="fas fa-ticket w-5 h-5 mr-3 flex-shrink-0"></i>
+                            <span class="sidebar-text">API Access</span>
                         </a>
                     </div>
                     

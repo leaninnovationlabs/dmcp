@@ -80,6 +80,8 @@
 .sidebar-text {
     transition: opacity 0.3s ease-in-out;
     font-family: 'Inter', sans-serif;
+    font-size: 0.875rem; /* 14px - reduced from default */
+    line-height: 1.25rem;
 }
 
 /* Mobile menu button positioning fix */
