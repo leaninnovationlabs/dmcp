@@ -32,6 +32,12 @@ docker run \
 
 ```
 
+**Note**: Your default admin account is:
+- **Username**: `admin`
+- **Password**: `dochangethispassword`
+
+⚠️ **Remember**: Change the default password for security!
+
 ### Manual Setup
 
 This is a manual setup for those who want to run the server without Docker.
@@ -94,16 +100,7 @@ npx @modelcontextprotocol/inspector
 - Set the Header Name as Authorization
 - Set the Header Value as Bearer <token> (replace <token> with the token you generated in Token Handling section)
 
-
-## Token Handling
-
-Support for bearer token authentication is built in. To create a token, run the following command:
-
-```bash
-uv run scripts/apptoken.py
-```
-
-**Alternative**: You can also use the default admin account for initial access:
+**Note**: Your default admin account is:
 - **Username**: `admin`
 - **Password**: `dochangethispassword`
 
