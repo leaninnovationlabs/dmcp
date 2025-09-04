@@ -15,6 +15,27 @@ You can find the documentation [here](https://dmcp.opsloom.io/)
 
 ## Setup
 
+### Quick Start with Docker
+
+Run public image from ECR:
+```bash
+# Create data directory 
+mkdir -p ./data
+
+# Run container with data directory
+docker run \
+  --name dmcp \
+  -p 8000:8000 \
+  -e SECRET_KEY="your-secret-key" \
+  -v $(pwd)/data:/app/data \
+  public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+
+```
+
+### Manual Setup
+
+This is a manual setup for those who want to run the server without Docker.
+
 1. Install dependencies using uv:
 ```bash
 uv sync
@@ -121,24 +142,6 @@ The current schema includes:
 See `app/models/database.py` for the complete model definitions.
 
 ## Docker
-
-### Quick Start with Docker
-
-
-Run public image from ECR:
-```bash
-# Create data directory 
-mkdir -p ./data
-
-# Run container with data directory
-docker run \
-  --name dmcp \
-  -p 8000:8000 \
-  -e SECRET_KEY="401982b0fda5045c72a26944f3e229abe26c389963dd47ee034c96915f4dc975" \
-  -v $(pwd)/data:/app/data \
-  public.ecr.aws/p9k6o7t1/lil/datamcp:latest
-
-```
 
 Clean up existing container:
 ```bash
