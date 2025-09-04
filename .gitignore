@@ -8,3 +8,4 @@ tests/.test.env
 docs/node_modules
 docs/manual/.vitepress/cache
 docs/manual/.vitepress/dist
+data/

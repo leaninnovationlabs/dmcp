@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from ..database import get_db
 from ..services.user_service import UserService
+from ..services.auth_service import AuthService
 from ..models.schemas import (
     UserCreate, UserUpdate, UserResponse, UserLogin, 
     UserPasswordChange, StandardAPIResponse, TokenResponse
@@ -30,16 +31,16 @@ async def create_user(
             data=user
         )
     except DMCPException as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[str(e)]
             ).model_dump()
         )
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to create user: {str(e)}"]
             ).model_dump()
         )
@@ -59,9 +60,9 @@ async def get_all_users(
         )
     except Exception as e:
         print(f"Failed to get users: {str(e)}")
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to get users: {str(e)}"]
             ).model_dump()
         )
@@ -78,9 +79,9 @@ async def get_current_user(
         user_info = getattr(request.state, 'user', None)
         
         if not user_info or 'user_id' not in user_info:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=401,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not authenticated"]
                 ).model_dump()
             )
@@ -89,9 +90,9 @@ async def get_current_user(
         user = await user_service.get_user_by_id(user_info['user_id'])
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -99,12 +100,10 @@ async def get_current_user(
         return create_success_response(
             data=user
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to get current user: {str(e)}"]
             ).model_dump()
         )
@@ -121,9 +120,9 @@ async def generate_token(
         user_info = getattr(request.state, 'user', None)
         
         if not user_info or 'user_id' not in user_info:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=401,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not authenticated"]
                 ).model_dump()
             )
@@ -132,15 +131,14 @@ async def generate_token(
         user = await user_service.get_user_by_id(user_info['user_id'])
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
         
         # Import auth service here to avoid circular imports
-        from ..services.auth_service import AuthService
         auth_service = AuthService()
         
         # Create token payload
@@ -169,12 +167,10 @@ async def generate_token(
         return create_success_response(
             data=token_response
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to generate token: {str(e)}"]
             ).model_dump()
         )
@@ -191,9 +187,9 @@ async def get_user(
         user = await user_service.get_user_by_id(user_id)
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -201,12 +197,10 @@ async def get_user(
         return create_success_response(
             data=user
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to get user: {str(e)}"]
             ).model_dump()
         )
@@ -224,9 +218,9 @@ async def update_user(
         user = await user_service.update_user(user_id, user_data)
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -234,19 +228,17 @@ async def update_user(
         return create_success_response(
             data=user
         )
-    except HTTPException:
-        raise
     except DMCPException as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=400,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[str(e)]
             ).model_dump()
         )
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to update user: {str(e)}"]
             ).model_dump()
         )
@@ -263,9 +255,9 @@ async def delete_user(
         success = await user_service.delete_user(user_id)
         
         if not success:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -273,12 +265,10 @@ async def delete_user(
         return create_success_response(
             data={"message": "User deleted successfully"}
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to delete user: {str(e)}"]
             ).model_dump()
         )
@@ -297,9 +287,9 @@ async def change_password(
         success = await user_service.change_password(user_id, password_data)
         
         if not success:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=400,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["Invalid current password or user not found"]
                 ).model_dump()
             )
@@ -307,12 +297,10 @@ async def change_password(
         return create_success_response(
             data={"message": "Password changed successfully"}
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to change password: {str(e)}"]
             ).model_dump()
         )
@@ -330,9 +318,9 @@ async def add_role_to_user(
         user = await user_service.add_role_to_user(user_id, role)
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -340,12 +328,10 @@ async def add_role_to_user(
         return create_success_response(
             data=user
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to add role: {str(e)}"]
             ).model_dump()
         )
@@ -363,9 +349,9 @@ async def remove_role_from_user(
         user = await user_service.remove_role_from_user(user_id, role)
         
         if not user:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=404,
-                detail=create_error_response(
+                content=create_error_response(
                     errors=["User not found"]
                 ).model_dump()
             )
@@ -373,12 +359,10 @@ async def remove_role_from_user(
         return create_success_response(
             data=user
         )
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to remove role: {str(e)}"]
             ).model_dump()
         )
@@ -398,9 +382,9 @@ async def get_users_by_role(
             data=users
         )
     except Exception as e:
-        raise HTTPException(
+        return JSONResponse(
             status_code=500,
-            detail=create_error_response(
+            content=create_error_response(
                 errors=[f"Failed to get users by role: {str(e)}"]
             ).model_dump()
         )

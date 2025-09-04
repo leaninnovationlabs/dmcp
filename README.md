@@ -124,16 +124,26 @@ See `app/models/database.py` for the complete model definitions.
 
 ### Quick Start with Docker
 
+
 Run public image from ECR:
 ```bash
-docker run -d \
+# Create data directory 
+mkdir -p ./data
+
+# Run container with data directory
+docker run \
   --name dmcp \
   -p 8000:8000 \
-  -e DATABASE_URL="sqlite+aiosqlite:///./dmcp.db" \
-  -e SECRET_KEY="your-secret-key" \
-  -e LOG_LEVEL="WARNING" \
-  -v $(pwd)/dmcp.db:/app/dmcp.db \
+  -e SECRET_KEY="401982b0fda5045c72a26944f3e229abe26c389963dd47ee034c96915f4dc975" \
+  -v $(pwd)/data:/app/data \
   public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+
+```
+
+Clean up existing container:
+```bash
+docker stop dmcp || true
+docker rm dmcp || true
 ```
 
 
