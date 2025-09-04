@@ -6,6 +6,27 @@ outline: deep
 
 This guide will walk you through installing and setting up DMCP on your system.
 
+
+## Quick Start with Docker
+
+Run public image from ECR:
+```bash
+# Create data directory 
+mkdir -p ./data
+
+# Run container with data directory
+docker run \
+  --name dmcp \
+  -p 8000:8000 \
+  -e SECRET_KEY="your-secret-key" \
+  -v $(pwd)/data:/app/data \
+  public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+```
+
+### Manual Setup
+
+This is a manual setup for those who want to run the server without Docker.
+
 ## Prerequisites
 
 Before installing DMCP, ensure you have:
