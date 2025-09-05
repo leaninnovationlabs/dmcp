@@ -99,36 +99,18 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
   ];
 
   const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home, color: 'blue' },
-    { id: 'data-sources', label: 'Data Sources', icon: Database, color: 'green' },
-    { id: 'tools', label: 'Tools', icon: Wrench, color: 'purple' },
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'data-sources', label: 'Data Sources', icon: Database },
+    { id: 'tools', label: 'Tools', icon: Wrench },
   ];
 
-  const getActiveColor = (itemColor: string) => {
-    switch (itemColor) {
-      case 'blue':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'green':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'purple':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      default:
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-    }
+  const getActiveColor = () => {
+    return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
-  const getIconColor = (itemColor: string, isActive: boolean) => {
+  const getIconColor = (isActive: boolean) => {
     if (isActive) {
-      switch (itemColor) {
-        case 'blue':
-          return 'text-blue-600';
-        case 'green':
-          return 'text-green-600';
-        case 'purple':
-          return 'text-purple-600';
-        default:
-          return 'text-blue-600';
-      }
+      return 'text-gray-600';
     }
     return 'text-gray-500';
   };
@@ -136,26 +118,26 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
   const getToolTypeIcon = (toolType: string) => {
     switch (toolType) {
       case 'query':
-        return <Search className="w-8 h-8 text-blue-600" />;
+        return <Search className="w-8 h-8 text-gray-600" />;
       case 'http':
-        return <Zap className="w-8 h-8 text-orange-500" />;
+        return <Zap className="w-8 h-8 text-gray-600" />;
       case 'code':
         return <FileText className="w-8 h-8 text-gray-600" />;
       default:
-        return <Wrench className="w-8 h-8 text-purple-500" />;
+        return <Wrench className="w-8 h-8 text-gray-600" />;
     }
   };
 
   const getToolTypeColor = (toolType: string) => {
     switch (toolType) {
       case 'query':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-gray-100 text-gray-800';
       case 'http':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-gray-100 text-gray-800';
       case 'code':
         return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -211,7 +193,7 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
   return (
     <>
       {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
         {/* Header */}
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-6'} border-b border-gray-200`}>
           {sidebarCollapsed ? (
@@ -241,11 +223,11 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                   onClick={() => onModuleChange(item.id as NavigationItem)}
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
-                      ? `${getActiveColor(item.color)} border`
+                      ? `${getActiveColor()} border`
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${getIconColor(item.color, isActive)}`} />
+                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${getIconColor(isActive)}`} />
                   {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
                 </Button>
               );
@@ -260,8 +242,8 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
           <div className="p-4 flex-1">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Tool Categories</h3>
             <div className="space-y-1">
-              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 border border-purple-200">
-                <Search className="w-4 h-4 text-purple-600" />
+              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
+                <Search className="w-4 h-4 text-gray-600" />
                 <span className="text-sm font-medium">Analytics (2)</span>
               </button>
               <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
@@ -276,23 +258,6 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                 <FileText className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium">Development (1)</span>
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Tool Status */}
-        {!sidebarCollapsed && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-gray-700">Active Tools</span>
-                <span className="text-sm text-purple-600">3 of 5</span>
-              </div>
-              <Progress value={60} className="h-2" />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>Status</span>
-                <span>60%</span>
-              </div>
             </div>
           </div>
         )}
@@ -336,7 +301,7 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
             </div>
             <p className="text-gray-600 mb-3">
               Manage your development and productivity tools.
-              <a href="#" className="text-purple-600 hover:text-purple-700 ml-1 underline">
+              <a href="#" className="text-gray-600 hover:text-gray-700 ml-1 underline">
                 View documentation
               </a>
             </p>
@@ -427,7 +392,7 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                         <Calendar className="w-4 h-4" />
                         Created: {formatDate(tool.created_at)}
                       </span>
-                      <span className="text-purple-600 font-medium text-sm flex items-center gap-1">
+                      <span className="text-gray-600 font-medium text-sm flex items-center gap-1">
                         <Edit className="w-4 h-4" />
                         Click to edit
                       </span>
@@ -490,7 +455,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
   return (
     <>
       {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
         {/* Header */}
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-6'} border-b border-gray-200`}>
           {sidebarCollapsed ? (
@@ -511,9 +476,9 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
           <nav className="space-y-2">
             {[
-              { id: 'home', label: 'Home', icon: Home, color: 'blue' },
-              { id: 'data-sources', label: 'Data Sources', icon: Database, color: 'green' },
-              { id: 'tools', label: 'Tools', icon: Wrench, color: 'purple' },
+              { id: 'home', label: 'Home', icon: Home },
+              { id: 'data-sources', label: 'Data Sources', icon: Database },
+              { id: 'tools', label: 'Tools', icon: Wrench },
             ].map((item) => {
               const Icon = item.icon;
               const isActive = item.id === 'tools';
@@ -523,11 +488,11 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
                   variant="ghost"
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
-                      ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                      ? 'bg-gray-50 text-gray-700 border border-gray-200'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${isActive ? 'text-purple-600' : 'text-gray-500'}`} />
+                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${isActive ? 'text-gray-600' : 'text-gray-500'}`} />
                   {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
                 </Button>
               );

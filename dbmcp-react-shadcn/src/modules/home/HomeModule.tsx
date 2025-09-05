@@ -39,36 +39,18 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
   const [activeFileCategory, setActiveFileCategory] = useState<string>('Home Files');
 
   const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home, color: 'blue' },
-    { id: 'data-sources', label: 'Data Sources', icon: Database, color: 'green' },
-    { id: 'tools', label: 'Tools', icon: Wrench, color: 'purple' },
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'data-sources', label: 'Data Sources', icon: Database },
+    { id: 'tools', label: 'Tools', icon: Wrench },
   ];
 
-  const getActiveColor = (itemColor: string) => {
-    switch (itemColor) {
-      case 'blue':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'green':
-        return 'bg-green-50 text-green-700 border-green-200';
-      case 'purple':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      default:
-        return 'bg-blue-50 text-blue-700 border-blue-200';
-    }
+  const getActiveColor = () => {
+    return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
-  const getIconColor = (itemColor: string, isActive: boolean) => {
+  const getIconColor = (isActive: boolean) => {
     if (isActive) {
-      switch (itemColor) {
-        case 'blue':
-          return 'text-blue-600';
-        case 'green':
-          return 'text-green-600';
-        case 'purple':
-          return 'text-purple-600';
-        default:
-          return 'text-blue-600';
-      }
+      return 'text-gray-600';
     }
     return 'text-gray-500';
   };
@@ -88,7 +70,7 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
   return (
     <>
       {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
         {/* Header */}
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-6'} border-b border-gray-200`}>
           {sidebarCollapsed ? (
@@ -118,11 +100,11 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
                   onClick={() => onModuleChange(item.id as NavigationItem)}
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
-                      ? `${getActiveColor(item.color)} border`
+                      ? `${getActiveColor()} border`
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${getIconColor(item.color, isActive)}`} />
+                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${getIconColor(isActive)}`} />
                   {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
                 </Button>
               );

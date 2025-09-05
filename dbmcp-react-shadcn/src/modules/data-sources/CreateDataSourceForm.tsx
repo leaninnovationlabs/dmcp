@@ -70,7 +70,7 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, sidebarCollapsed =
   return (
     <>
       {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`}>
+      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
         {/* Header */}
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-6'} border-b border-gray-200`}>
           {sidebarCollapsed ? (
@@ -91,9 +91,9 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, sidebarCollapsed =
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
           <nav className="space-y-2">
             {[
-              { id: 'home', label: 'Home', icon: Home, color: 'blue' },
-              { id: 'data-sources', label: 'Data Sources', icon: Database, color: 'green' },
-              { id: 'tools', label: 'Tools', icon: Wrench, color: 'purple' },
+              { id: 'home', label: 'Home', icon: Home },
+              { id: 'data-sources', label: 'Data Sources', icon: Database },
+              { id: 'tools', label: 'Tools', icon: Wrench },
             ].map((item) => {
               const Icon = item.icon;
               const isActive = item.id === 'data-sources';
@@ -103,11 +103,11 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, sidebarCollapsed =
                   variant="ghost"
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
-                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      ? 'bg-gray-50 text-gray-700 border border-gray-200'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${isActive ? 'text-green-600' : 'text-gray-500'}`} />
+                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${isActive ? 'text-gray-600' : 'text-gray-500'}`} />
                   {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
                 </Button>
               );
