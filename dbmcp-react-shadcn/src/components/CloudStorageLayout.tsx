@@ -16,6 +16,7 @@ const CloudStorageLayout = ({ children }: CloudStorageLayoutProps) => {
     if (path === '/tools') return 'tools';
     if (path === '/generate-token') return 'token';
     if (path === '/change-password') return 'change-password';
+    if (path === '/profile') return 'profile';
     return 'home';
   };
 

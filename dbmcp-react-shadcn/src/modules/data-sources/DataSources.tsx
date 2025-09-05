@@ -149,21 +149,6 @@ const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
     <>
       {/* Left Sidebar Navigation */}
       <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
-        {/* Header */}
-        <div className={`${sidebarCollapsed ? 'p-2' : 'p-6'} border-b border-gray-200`}>
-          {sidebarCollapsed ? (
-            <div className="flex justify-center">
-              <div className="w-8 h-8 bg-black rounded flex items-center justify-center">
-                <Database className="w-5 h-5 text-white" />
-              </div>
-            </div>
-          ) : (
-            <>
-              <h1 className="text-xl font-bold text-black">Opsloom Data MCP</h1>
-              <p className="text-sm text-gray-600 mt-1">Connect AI assistants to your data</p>
-            </>
-          )}
-        </div>
 
         {/* Main Navigation */}
         <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
@@ -213,7 +198,6 @@ const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
             className="w-full justify-center h-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
           >
             <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-            {!sidebarCollapsed && <span className="ml-2 text-sm">Collapse</span>}
           </Button>
         </div>
       </aside>

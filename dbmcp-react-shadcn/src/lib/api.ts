@@ -31,6 +31,22 @@ export interface ChangePasswordResponse {
   errors?: Array<{ msg: string }>;
 }
 
+export interface UserProfile {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  roles: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfileResponse {
+  success: boolean;
+  data?: UserProfile;
+  errors?: Array<{ msg: string }>;
+}
+
 class ApiError extends Error {
   status: number;
 
@@ -109,6 +125,15 @@ class ApiService {
         'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(passwordData),
+    });
+  }
+
+  async getUserProfile(token: string): Promise<UserProfileResponse> {
+    return this.request<UserProfileResponse>('/dmcp/users/me', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
   }
 }

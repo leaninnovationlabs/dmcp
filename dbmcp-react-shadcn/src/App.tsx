@@ -8,6 +8,7 @@ import ToolsPage from '@/pages/ToolsPage';
 import LoginPage from '@/pages/LoginPage';
 import GenerateTokenPage from '@/pages/GenerateTokenPage';
 import ChangePasswordPage from '@/pages/ChangePasswordPage';
+import ProfilePage from '@/pages/ProfilePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -84,6 +85,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <CloudStorageLayout>
               <ChangePasswordPage />
+            </CloudStorageLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <CloudStorageLayout>
+              <ProfilePage />
             </CloudStorageLayout>
           </ProtectedRoute>
         }

@@ -16,7 +16,8 @@ import {
   Key,
   LogOut,
   ChevronDown,
-  Shield
+  Shield,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -76,6 +77,11 @@ const Navigation = ({ activeModule }: NavigationProps) => {
     setIsUserMenuOpen(false);
   };
 
+  const handleProfile = () => {
+    navigate('/profile');
+    setIsUserMenuOpen(false);
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-3">
@@ -110,6 +116,10 @@ const Navigation = ({ activeModule }: NavigationProps) => {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleProfile}>
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleGenerateToken}>
               <Key className="mr-2 h-4 w-4" />
               Generate API Token
