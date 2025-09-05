@@ -85,19 +85,7 @@ export default function ProfileModule() {
 
   return (
     <div className="h-full w-full flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full space-y-8">
-        {/* Back Button */}
-        <div className="flex items-center justify-start">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Home</span>
-          </Button>
-        </div>
-
+      <div className="max-w-3xl w-full space-y-8">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-black rounded-lg flex items-center justify-center">
             <User className="h-6 w-6 text-white" />
@@ -215,6 +203,18 @@ export default function ProfileModule() {
             </CardContent>
           </Card>
         )}
+
+        {/* Back Button */}
+        <div className="flex items-center justify-center">
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 cursor-pointer"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
