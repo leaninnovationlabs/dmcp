@@ -155,10 +155,10 @@ export default function ChangePasswordModule({ onSuccess, onCancel }: ChangePass
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full space-y-8">
+    <div className="h-full w-full flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
         {/* Back Button */}
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-start">
           <Button
             variant="ghost"
             onClick={onCancel}
