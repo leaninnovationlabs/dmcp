@@ -161,13 +161,13 @@ const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                   key={item.id}
                   variant="ghost"
                   onClick={() => handleNavigationClick(item.id)}
-                  className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
+                  className={`w-full h-auto ${sidebarCollapsed ? 'justify-center p-2' : 'justify-start p-3'} ${
                     isActive
                       ? `${getActiveColor()} border`
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${getIconColor(isActive)}`} />
+                  <Icon className={`w-5 h-5 ${!sidebarCollapsed ? 'mr-3' : ''} ${getIconColor(isActive)}`} />
                   {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
                 </Button>
               );
