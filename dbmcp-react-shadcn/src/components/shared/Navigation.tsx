@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -14,21 +15,22 @@ import {
   Folder,
   Key,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token';
+type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token' | 'change-password';
 
 interface NavigationProps {
   activeModule: NavigationItem;
-  onModuleChange: (module: NavigationItem) => void;
   notificationCount?: number;
 }
 
-const Navigation = ({ activeModule, onModuleChange }: NavigationProps) => {
+const Navigation = ({ activeModule }: NavigationProps) => {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const getHeaderColor = (module: NavigationItem) => {
     switch (module) {
@@ -61,20 +63,32 @@ const Navigation = ({ activeModule, onModuleChange }: NavigationProps) => {
   const handleLogout = () => {
     logout();
     setIsUserMenuOpen(false);
+    navigate('/login');
   };
 
   const handleGenerateToken = () => {
-    onModuleChange('token');
+    navigate('/generate-token');
+    setIsUserMenuOpen(false);
+  };
+
+  const handleChangePassword = () => {
+    navigate('/change-password');
     setIsUserMenuOpen(false);
   };
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor(activeModule)}`}>
-          <Folder className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-lg font-semibold text-gray-900">{activeItem?.label}</span>
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/app')}
+          className="flex items-center space-x-3 p-0 h-auto hover:bg-transparent"
+        >
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor(activeModule)}`}>
+            <Folder className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-lg font-semibold text-gray-900">{activeItem?.label}</span>
+        </Button>
       </div>
       
       <div className="flex items-center space-x-4">
@@ -99,6 +113,10 @@ const Navigation = ({ activeModule, onModuleChange }: NavigationProps) => {
             <DropdownMenuItem onClick={handleGenerateToken}>
               <Key className="mr-2 h-4 w-4" />
               Generate API Token
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleChangePassword}>
+              <Shield className="mr-2 h-4 w-4" />
+              Change Password
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

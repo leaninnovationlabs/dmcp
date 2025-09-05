@@ -1,72 +1,37 @@
-import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navigation from './shared/Navigation';
-import HomeModule from '@/modules/home';
-import DataSources from '@/modules/data-sources';
-import ToolsModule from '@/modules/tools';
-import { LoginModule, TokenModule } from '@/modules/auth';
-import { useAuth } from '@/contexts/AuthContext';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token';
+interface CloudStorageLayoutProps {
+  children: React.ReactNode;
+}
 
-const CloudStorageLayout = () => {
-  const [activeModule, setActiveModule] = useState<NavigationItem>('home');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { isAuthenticated, isLoading } = useAuth();
+const CloudStorageLayout = ({ children }: CloudStorageLayoutProps) => {
+  const location = useLocation();
 
-  const handleModuleChange = (module: NavigationItem) => {
-    setActiveModule(module);
+  // Determine active module based on current route
+  const getActiveModule = () => {
+    const path = location.pathname;
+    if (path === '/app') return 'home';
+    if (path === '/data-sources') return 'data-sources';
+    if (path === '/tools') return 'tools';
+    if (path === '/generate-token') return 'token';
+    if (path === '/change-password') return 'change-password';
+    return 'home';
   };
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const renderActiveModule = () => {
-    switch (activeModule) {
-      case 'home':
-        return <HomeModule onModuleChange={handleModuleChange} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar} />;
-      case 'data-sources':
-        return <DataSources onModuleChange={handleModuleChange} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar} />;
-      case 'tools':
-        return <ToolsModule onModuleChange={handleModuleChange} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar} />;
-      case 'auth':
-        return <LoginModule onLoginSuccess={() => setActiveModule('home')} />;
-      case 'token':
-        return <TokenModule />;
-      default:
-        return <HomeModule onModuleChange={handleModuleChange} sidebarCollapsed={sidebarCollapsed} onToggleSidebar={toggleSidebar} />;
-    }
-  };
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show login if not authenticated
-  if (!isAuthenticated) {
-    return <LoginModule onLoginSuccess={() => setActiveModule('home')} />;
-  }
+  const activeModule = getActiveModule();
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
       {/* Top Header Bar */}
       <Navigation 
         activeModule={activeModule} 
-        onModuleChange={handleModuleChange}
         notificationCount={17}
       />
       
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {renderActiveModule()}
+        {children}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ interface HomeModuleProps {
 }
 
 const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: HomeModuleProps) => {
+  const navigate = useNavigate();
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -43,15 +45,31 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
   };
 
   const handleTryNow = () => {
-    onModuleChange('data-sources');
+    navigate('/data-sources');
   };
 
   const handleDatasourceClick = () => {
-    onModuleChange('data-sources');
+    navigate('/data-sources');
   };
 
   const handleToolsClick = () => {
-    onModuleChange('tools');
+    navigate('/tools');
+  };
+
+  const handleNavigationClick = (itemId: string) => {
+    switch (itemId) {
+      case 'home':
+        navigate('/app');
+        break;
+      case 'data-sources':
+        navigate('/data-sources');
+        break;
+      case 'tools':
+        navigate('/tools');
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -84,7 +102,7 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
                 <Button
                   key={item.id}
                   variant="ghost"
-                  onClick={() => onModuleChange(item.id as NavigationItem)}
+                  onClick={() => handleNavigationClick(item.id)}
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
                       ? `${getActiveColor()} border`

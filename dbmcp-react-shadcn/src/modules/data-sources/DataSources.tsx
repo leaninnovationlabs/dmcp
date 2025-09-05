@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -36,6 +37,7 @@ interface DataSourcesProps {
 }
 
 const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: DataSourcesProps) => {
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingDataSource, setEditingDataSource] = useState<DataSourceItem | null>(null);
   const [dataSources, setDataSources] = useState<DataSourceItem[]>([
@@ -86,6 +88,22 @@ const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
       return 'text-gray-600';
     }
     return 'text-gray-500';
+  };
+
+  const handleNavigationClick = (itemId: string) => {
+    switch (itemId) {
+      case 'home':
+        navigate('/app');
+        break;
+      case 'data-sources':
+        navigate('/data-sources');
+        break;
+      case 'tools':
+        navigate('/tools');
+        break;
+      default:
+        break;
+    }
   };
 
   const handleAddDataSource = () => {
@@ -157,7 +175,7 @@ const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                 <Button
                   key={item.id}
                   variant="ghost"
-                  onClick={() => onModuleChange(item.id as NavigationItem)}
+                  onClick={() => handleNavigationClick(item.id)}
                   className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
                     isActive
                       ? `${getActiveColor()} border`

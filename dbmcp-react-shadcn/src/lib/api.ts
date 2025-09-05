@@ -20,6 +20,17 @@ export interface TokenGenerationResponse {
   errors?: Array<{ msg: string }>;
 }
 
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message?: string;
+  errors?: Array<{ msg: string }>;
+}
+
 class ApiError extends Error {
   status: number;
 
@@ -89,6 +100,16 @@ class ApiService {
 
   async healthCheck(): Promise<{ status: string }> {
     return this.request<{ status: string }>('/dmcp/health');
+  }
+
+  async changePassword(token: string, passwordData: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    return this.request<ChangePasswordResponse>('/dmcp/users/change-password', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(passwordData),
+    });
   }
 }
 
