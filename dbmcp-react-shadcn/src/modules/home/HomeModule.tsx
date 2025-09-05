@@ -1,11 +1,6 @@
-'use client';
-
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import {
   Home,
   Database,
@@ -21,13 +16,6 @@ import {
 
 type NavigationItem = 'home' | 'data-sources' | 'tools';
 
-interface FileItem {
-  id: string;
-  name: string;
-  type: 'folder' | 'file';
-  size?: string;
-  modified?: string;
-}
 
 interface HomeModuleProps {
   onModuleChange: (module: NavigationItem) => void;
@@ -36,7 +24,6 @@ interface HomeModuleProps {
 }
 
 const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: HomeModuleProps) => {
-  const [activeFileCategory, setActiveFileCategory] = useState<string>('Home Files');
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home },

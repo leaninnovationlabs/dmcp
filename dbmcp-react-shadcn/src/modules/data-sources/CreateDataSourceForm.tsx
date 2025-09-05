@@ -9,7 +9,6 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools';
 
 interface DataSourceItem {
   id: string;

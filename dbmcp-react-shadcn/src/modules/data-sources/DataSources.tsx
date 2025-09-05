@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import CreateDataSourceForm from './CreateDataSourceForm';
 import {
@@ -12,10 +11,8 @@ import {
   Wrench,
   Plus,
   Eye,
-  ChevronRight,
   ChevronLeft,
   Upload,
-  Calendar,
   Edit
 } from 'lucide-react';
 
@@ -39,7 +36,6 @@ interface DataSourcesProps {
 }
 
 const DataSources = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: DataSourcesProps) => {
-  const [activeFileCategory, setActiveFileCategory] = useState<string>('Data Sources Files');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingDataSource, setEditingDataSource] = useState<DataSourceItem | null>(null);
   const [dataSources, setDataSources] = useState<DataSourceItem[]>([

@@ -1,27 +1,24 @@
-'use client';
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
-  Home,
-  Database,
-  Wrench,
-  HelpCircle,
-  Bell,
   Folder,
   Key,
-  Lock
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools';
+type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token';
 
 interface NavigationProps {
   activeModule: NavigationItem;
@@ -29,28 +26,52 @@ interface NavigationProps {
   notificationCount?: number;
 }
 
-const Navigation = ({ activeModule, onModuleChange, notificationCount = 0 }: NavigationProps) => {
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'data-sources', label: 'Data Sources', icon: Database },
-    { id: 'tools', label: 'Tools', icon: Wrench },
-  ];
+const Navigation = ({ activeModule, onModuleChange }: NavigationProps) => {
+  const { user, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const getHeaderColor = () => {
-    return 'bg-gray-600';
+  const getHeaderColor = (module: NavigationItem) => {
+    switch (module) {
+      case 'home':
+        return 'bg-blue-600';
+      case 'data-sources':
+        return 'bg-green-600';
+      case 'tools':
+        return 'bg-purple-600';
+      default:
+        return 'bg-blue-600';
+    }
   };
 
-  const getAvatarColor = () => {
-    return 'bg-gray-100 text-gray-600';
+  const getAvatarColor = (module: NavigationItem) => {
+    switch (module) {
+      case 'home':
+        return 'bg-blue-100 text-blue-600';
+      case 'data-sources':
+        return 'bg-green-100 text-green-600';
+      case 'tools':
+        return 'bg-purple-100 text-purple-600';
+      default:
+        return 'bg-blue-100 text-blue-600';
+    }
   };
 
-  const activeItem = navigationItems.find(item => item.id === activeModule);
+  const activeItem = { label: activeModule.charAt(0).toUpperCase() + activeModule.slice(1) };
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+  };
+
+  const handleGenerateToken = () => {
+    onModuleChange('token');
+    setIsUserMenuOpen(false);
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor()}`}>
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor(activeModule)}`}>
           <Folder className="w-5 h-5 text-white" />
         </div>
         <span className="text-lg font-semibold text-gray-900">{activeItem?.label}</span>
@@ -58,44 +79,34 @@ const Navigation = ({ activeModule, onModuleChange, notificationCount = 0 }: Nav
       
       <div className="flex items-center space-x-4">
         <Separator orientation="vertical" className="h-6" />
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2 p-2 hover:bg-gray-50">
+        
+        {/* User Menu */}
+        <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className={`text-sm font-medium ${getAvatarColor()}`}>
-                  IL
+                <AvatarFallback className={`text-sm font-medium ${getAvatarColor(activeModule)}`}>
+                  {user?.username?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium text-gray-700">Innovation Labs</span>
+              <span className="text-sm font-medium text-gray-700">{user?.username || 'User'}</span>
+              <ChevronDown className="w-4 h-4 text-gray-500" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 p-2" align="end">
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start h-auto p-3 text-gray-700 hover:bg-gray-50"
-                onClick={() => {
-                  console.log('Change Password clicked');
-                  setIsPopoverOpen(false);
-                }}
-              >
-                <Lock className="w-4 h-4 mr-3 text-gray-500" />
-                <span className="font-medium">Change Password</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start h-auto p-3 text-gray-700 hover:bg-gray-50"
-                onClick={() => {
-                  console.log('Access Keys clicked');
-                  setIsPopoverOpen(false);
-                }}
-              >
-                <Key className="w-4 h-4 mr-3 text-gray-500" />
-                <span className="font-medium">Access Keys</span>
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleGenerateToken}>
+              <Key className="mr-2 h-4 w-4" />
+              Generate API Token
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

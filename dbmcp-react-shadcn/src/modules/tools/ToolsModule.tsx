@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import {
   Home,
@@ -11,11 +10,8 @@ import {
   Wrench,
   Plus,
   Eye,
-  ChevronRight,
   ChevronLeft,
   Upload,
-  Settings,
-  BarChart3,
   FileText,
   Zap,
   Palette,
@@ -61,7 +57,6 @@ interface ToolsModuleProps {
 }
 
 const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: ToolsModuleProps) => {
-  const [activeFileCategory, setActiveFileCategory] = useState<string>('Tools Files');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTool, setEditingTool] = useState<ToolItem | null>(null);
 
