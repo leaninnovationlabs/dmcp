@@ -82,7 +82,7 @@ const Navigation = ({ activeModule }: NavigationProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/app')}
-          className="flex items-center space-x-3 p-0 h-auto hover:bg-transparent"
+          className="flex items-center space-x-3 p-0 h-auto hover:bg-transparent cursor-pointer"
         >
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor(activeModule)}`}>
             <Folder className="w-5 h-5 text-white" />
