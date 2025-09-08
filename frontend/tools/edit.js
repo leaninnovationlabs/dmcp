@@ -195,8 +195,10 @@ $(document).ready(function() {
     // Save tool (create or update)
     function saveTool() {
         const formData = getFormData();
+        console.log('Form data:', formData);
         
         if (!validateForm(formData)) {
+            console.log('Form validation failed');
             return;
         }
 
@@ -206,6 +208,9 @@ $(document).ready(function() {
 
         const url = isEditMode ? `${API_BASE_URL}/tools/${currentToolId}` : `${API_BASE_URL}/tools`;
         const method = isEditMode ? 'PUT' : 'POST';
+        
+        console.log('Making API request:', { url, method, formData });
+        console.log('JSON payload:', JSON.stringify(formData, null, 2));
 
         makeApiRequest({
             url: url,
@@ -214,7 +219,9 @@ $(document).ready(function() {
             data: JSON.stringify(formData),
             dataType: 'json',
             success: function(response) {
+                console.log('API success response:', response);
                 if (response.success) {
+                    console.log('Tool created/updated successfully');
                     showNotification(isEditMode ? 'Tool updated successfully' : 'Tool created successfully', 'success');
                     
                     // Trigger tools refresh API
@@ -236,11 +243,13 @@ $(document).ready(function() {
                     
                     setTimeout(() => window.location.href = APP_CONFIG.urls.tools(), 1500);
                 } else {
+                    console.log('API returned success=false:', response);
                     const errorMessage = response.errors?.[0]?.msg || 'Unknown error occurred';
                     showNotification('Failed to save tool: ' + errorMessage, 'error');
                 }
             },
             error: function(xhr) {
+                console.log('API error:', xhr);
                 let errorMessage = 'Failed to save tool';
                 if (xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.length > 0) {
                     errorMessage = xhr.responseJSON.errors[0].msg || errorMessage;
@@ -338,9 +347,15 @@ $(document).ready(function() {
                 const param = {
                     name: name,
                     type: $param.find('.param-type').val(),
-                    description: $param.find('.param-description').val().trim() || null,
+                    description: (() => {
+                        const desc = $param.find('.param-description').val().trim();
+                        return desc === '' ? null : desc;
+                    })(),
                     required: $param.find('.param-required').is(':checked'),
-                    default: $param.find('.param-default').val().trim() || null
+                    default: (() => {
+                        const defaultVal = $param.find('.param-default').val().trim();
+                        return defaultVal === '' ? null : defaultVal;
+                    })()
                 };
                 parameters.push(param);
             }
@@ -744,9 +759,15 @@ $(document).ready(function() {
                 const param = {
                     name: name,
                     type: $param.find('.param-type').val(),
-                    description: $param.find('.param-description').val().trim() || null,
+                    description: (() => {
+                        const desc = $param.find('.param-description').val().trim();
+                        return desc === '' ? null : desc;
+                    })(),
                     required: $param.find('.param-required').is(':checked'),
-                    default: $param.find('.param-default').val().trim() || null
+                    default: (() => {
+                        const defaultVal = $param.find('.param-default').val().trim();
+                        return defaultVal === '' ? null : defaultVal;
+                    })()
                 };
                 parameters.push(param);
             }
@@ -754,10 +775,17 @@ $(document).ready(function() {
 
         const formData = {
             name: $('#name').val().trim(),
-            description: $('#description').val().trim() || null,
-            type: $('#type').val(),
+            description: (() => {
+                const desc = $('#description').val().trim();
+                return desc === '' ? null : desc;
+            })(),
+            type: $('#type').val() || 'query',
             sql: $('#sql').val().trim(),
-            datasource_id: parseInt($('#datasource_id').val()),
+            datasource_id: (() => {
+                const dsId = $('#datasource_id').val();
+                const parsed = parseInt(dsId);
+                return isNaN(parsed) ? null : parsed;
+            })(),
             parameters: parameters
         };
 
@@ -775,6 +803,7 @@ $(document).ready(function() {
 
     // Form validation
     function validateForm(data) {
+        console.log('Validating form data:', data);
         let isValid = true;
         
         // Clear previous errors
@@ -839,7 +868,10 @@ $(document).ready(function() {
         }
 
         if (!isValid) {
+            console.log('Form validation failed');
             showNotification('Please fix the highlighted fields', 'error');
+        } else {
+            console.log('Form validation passed');
         }
 
         return isValid;

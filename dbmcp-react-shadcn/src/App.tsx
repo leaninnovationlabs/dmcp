@@ -9,6 +9,8 @@ import LoginPage from '@/pages/LoginPage';
 import GenerateTokenPage from '@/pages/GenerateTokenPage';
 import ChangePasswordPage from '@/pages/ChangePasswordPage';
 import ProfilePage from '@/pages/ProfilePage';
+import CreateDataSourcePage from '@/pages/CreateDataSourcePage';
+import EditDataSourcePage from '@/pages/EditDataSourcePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -95,6 +97,26 @@ function AppRoutes() {
           <ProtectedRoute>
             <CloudStorageLayout>
               <ProfilePage />
+            </CloudStorageLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/data-sources/create"
+        element={
+          <ProtectedRoute>
+            <CloudStorageLayout>
+              <CreateDataSourcePage />
+            </CloudStorageLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/data-sources/edit/:id"
+        element={
+          <ProtectedRoute>
+            <CloudStorageLayout>
+              <EditDataSourcePage />
             </CloudStorageLayout>
           </ProtectedRoute>
         }

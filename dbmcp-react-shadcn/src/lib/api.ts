@@ -47,6 +47,46 @@ export interface UserProfileResponse {
   errors?: Array<{ msg: string }>;
 }
 
+export interface DataSource {
+  id: number;
+  name: string;
+  database_type: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  connection_string?: string;
+  ssl_mode?: string;
+  additional_params?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DataSourceCreateRequest {
+  name: string;
+  database_type: string;
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+  connection_string?: string;
+  ssl_mode?: string;
+  additional_params?: Record<string, any>;
+}
+
+export interface DataSourceResponse {
+  success: boolean;
+  data?: DataSource;
+  errors?: Array<{ msg: string }>;
+}
+
+export interface DataSourcesListResponse {
+  success: boolean;
+  data?: DataSource[];
+  errors?: Array<{ msg: string }>;
+}
+
 class ApiError extends Error {
   status: number;
 
@@ -70,19 +110,35 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Handle body - if it's an object, stringify it
+    let body = options.body;
+    console.log('Original body:', body, 'Type:', typeof body);
+    if (body && typeof body === 'object' && !(body instanceof FormData)) {
+      body = JSON.stringify(body);
+      console.log('Stringified body:', body);
+    }
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
       ...options,
+      body,
     };
 
     try {
+      console.log('Making request to:', url);
+      console.log('Request config:', config);
+      
       const response = await fetch(url, config);
       const data = await response.json();
 
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
+
       if (!response.ok) {
+        console.error('Request failed:', response.status, data);
         throw new ApiError(
           data.errors?.[0]?.msg || data.message || 'Request failed',
           response.status
@@ -91,6 +147,7 @@ class ApiService {
 
       return data;
     } catch (error) {
+      console.error('Request error:', error);
       if (error instanceof ApiError) {
         throw error;
       }
@@ -136,6 +193,124 @@ class ApiService {
       },
     });
   }
+
+  // Datasource methods
+  async getDataSources(token: string): Promise<DataSourcesListResponse> {
+    return this.request<DataSourcesListResponse>('/dmcp/datasources', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDataSource(token: string, id: number): Promise<DataSourceResponse> {
+    return this.request<DataSourceResponse>(`/dmcp/datasources/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createDataSource(token: string, dataSource: DataSourceCreateRequest): Promise<DataSourceResponse> {
+    return this.request<DataSourceResponse>('/dmcp/datasources', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(dataSource),
+    });
+  }
+
+  async updateDataSource(token: string, id: number, dataSource: Partial<DataSourceCreateRequest>): Promise<DataSourceResponse> {
+    return this.request<DataSourceResponse>(`/dmcp/datasources/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(dataSource),
+    });
+  }
+
+  async deleteDataSource(token: string, id: number): Promise<{ success: boolean; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; errors?: Array<{ msg: string }> }>(`/dmcp/datasources/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async testDataSourceConnection(token: string, dataSource: DataSourceCreateRequest): Promise<{ success: boolean; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; errors?: Array<{ msg: string }> }>('/dmcp/datasources/test-connection', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(dataSource),
+    });
+  }
+
+  async testExistingDataSourceConnection(token: string, id: number): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/datasources/${id}/test`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  // Tool methods
+  async getTools(token: string): Promise<{ success: boolean; data?: any[]; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; data?: any[]; errors?: Array<{ msg: string }> }>('/dmcp/tools', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getTool(token: string, id: number): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createTool(token: string, tool: any): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    console.log('Creating tool with token:', token ? 'exists' : 'missing');
+    console.log('Tool data:', tool);
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>('/dmcp/tools', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: tool,
+    });
+  }
+
+  async updateTool(token: string, id: number, tool: any): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: tool,
+    });
+  }
+
+  async deleteTool(token: string, id: number): Promise<{ success: boolean; errors?: Array<{ msg: string }> }> {
+    return this.request<{ success: boolean; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
 }
 
 export const apiService = new ApiService();

@@ -3,46 +3,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Home,
   Database,
   Wrench,
   Shield,
   Zap,
   Link,
   Server,
-  ChevronRight,
-  LogOut,
-  ChevronLeft
+  ChevronRight
 } from 'lucide-react';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools';
+interface HomeModuleProps {}
 
-
-interface HomeModuleProps {
-  onModuleChange: (module: NavigationItem) => void;
-  sidebarCollapsed?: boolean;
-  onToggleSidebar?: () => void;
-}
-
-const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: HomeModuleProps) => {
+const HomeModule = ({}: HomeModuleProps) => {
   const navigate = useNavigate();
-
-  const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'data-sources', label: 'Data Sources', icon: Database },
-    { id: 'tools', label: 'Tools', icon: Wrench },
-  ];
-
-  const getActiveColor = () => {
-    return 'bg-gray-50 text-gray-700 border-gray-200';
-  };
-
-  const getIconColor = (isActive: boolean) => {
-    if (isActive) {
-      return 'text-gray-600';
-    }
-    return 'text-gray-500';
-  };
 
   const handleTryNow = () => {
     navigate('/data-sources');
@@ -56,75 +29,16 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
     navigate('/tools');
   };
 
-  const handleNavigationClick = (itemId: string) => {
-    switch (itemId) {
-      case 'home':
-        navigate('/app');
-        break;
-      case 'data-sources':
-        navigate('/data-sources');
-        break;
-      case 'tools':
-        navigate('/tools');
-        break;
-      default:
-        break;
-    }
-  };
 
   return (
-    <>
-      {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
-        {/* Header */}
-
-        {/* Main Navigation */}
-        <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
-          <nav className="space-y-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.id === 'home';
-              return (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  onClick={() => handleNavigationClick(item.id)}
-                  className={`w-full h-auto ${sidebarCollapsed ? 'justify-center p-2' : 'justify-start p-3'} ${
-                    isActive
-                      ? `${getActiveColor()} border`
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${!sidebarCollapsed ? 'mr-3' : ''} ${getIconColor(isActive)}`} />
-                  {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex-1"></div>
-
-        {/* Collapse Button */}
-        <div className="p-2 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            onClick={onToggleSidebar}
-            className="w-full justify-center h-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-          >
-            <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-white">
+    <div className="overflow-auto bg-white">
         {/* Hero Section */}
-        <div className="relative bg-white overflow-hidden">
+        <div className="bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-              <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                <div className="sm:text-center lg:text-left">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:min-h-[430px]">
+              {/* Text Content */}
+              <div className="flex-1 py-4 lg:py-6 lg:pr-8">
+                <div className="text-center lg:text-left">
                   <h1 className="text-4xl tracking-tight font-bold text-black sm:text-5xl md:text-6xl">
                     <span className="block xl:inline">Data</span>
                     <span className="block xl:inline xl:ml-2">MCP</span>
@@ -142,17 +56,19 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
                     </Button>
                   </div>
                 </div>
-              </main>
-            </div>
-          </div>
-          <div className="lg:absolute lg:inset-y-10 lg:right-0 lg:w-1/3">
-            <div className="h-56 w-full bg-gradient-to-br from-indigo-500 to-purple-600 sm:h-72 md:h-96 lg:w-full lg:h-full flex items-center justify-center">
-              <div className="text-white text-center">
-                <div className="text-6xl mb-4">
-                  <Database className="w-16 h-16 mx-auto" />
+              </div>
+              
+              {/* Image Content */}
+              <div className="flex-1 lg:max-w-lg">
+                <div className="h-56 w-full bg-gradient-to-br from-indigo-500 to-purple-600 sm:h-72 md:h-96 lg:h-[400px] flex items-center justify-center rounded-lg">
+                  <div className="text-white text-center">
+                    <div className="text-6xl mb-4">
+                      <Database className="w-16 h-16 mx-auto" />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-2">Multiple Database Support</h3>
+                    <p className="text-lg opacity-90">PostgreSQL • MySQL • SQLite</p>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-semibold mb-2">Multiple Database Support</h3>
-                <p className="text-lg opacity-90">PostgreSQL • MySQL • SQLite</p>
               </div>
             </div>
           </div>
@@ -336,8 +252,7 @@ const HomeModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar 
             </p>
           </div>
         </div>
-      </main>
-    </>
+    </div>
   );
 };
 

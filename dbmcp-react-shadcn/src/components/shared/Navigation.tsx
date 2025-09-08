@@ -88,12 +88,22 @@ const Navigation = ({ activeModule }: NavigationProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate('/app')}
-          className="flex items-center space-x-3 p-0 h-auto hover:bg-transparent cursor-pointer"
+          className="flex items-center p-0 h-auto hover:bg-transparent cursor-pointer"
         >
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getHeaderColor(activeModule)}`}>
-            <Folder className="w-5 h-5 text-white" />
+          <div className="w-20 h-16 flex items-center justify-center">
+            <img 
+              src="/logo.webp" 
+              alt="DBMCP Logo" 
+              className="w-18 h-14 object-contain rounded-lg"
+              onLoad={() => console.log('Logo loaded successfully')}
+              onError={(e) => {
+                console.error('Logo failed to load:', e);
+                console.log('Trying fallback to PNG...');
+                e.currentTarget.src = '/logo.png';
+              }}
+            />
           </div>
-          <span className="text-lg font-semibold text-gray-900">{activeItem?.label}</span>
+          <span className="text-lg font-semibold text-gray-900">DBMCP</span>
         </Button>
       </div>
       

@@ -1,30 +1,40 @@
 'use client';
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
-  Home,
-  Database,
-  Wrench,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { apiService, ApiError } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import {
   Plus,
   Eye,
-  ChevronLeft,
   Upload,
   FileText,
   Zap,
-  Palette,
   Search,
   Play,
   Calendar,
   Edit,
   Server,
-  Cog
+  Cog,
+  Wrench,
+  Trash2,
+  CheckCircle,
+  Download,
+  RotateCcw,
+  X,
+  Minus
 } from 'lucide-react';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools';
 
 interface ToolItem {
   id: string;
@@ -45,99 +55,92 @@ interface ToolParameter {
   default?: string;
 }
 
+interface ExecutionResult {
+  success: boolean;
+  rows?: any[];
+  rowCount?: number;
+  executionTime?: number;
+  error?: string;
+}
+
 interface Datasource {
-  id: string;
+  id: number;
   name: string;
   database_type: string;
 }
 
-interface ToolsModuleProps {
-  onModuleChange: (module: NavigationItem) => void;
-  sidebarCollapsed?: boolean;
-  onToggleSidebar?: () => void;
-}
+interface ToolsModuleProps {}
 
-const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar }: ToolsModuleProps) => {
-  const navigate = useNavigate();
+const ToolsModule = ({}: ToolsModuleProps) => {
+  const { token } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTool, setEditingTool] = useState<ToolItem | null>(null);
+  const [tools, setTools] = useState<ToolItem[]>([]);
+  const [datasources, setDatasources] = useState<Datasource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const tools: ToolItem[] = [
-    {
-      id: '1',
-      name: 'User Analytics Query',
-      description: 'Get user analytics data with filtering options',
-      type: 'query',
-      datasource_id: '1',
-      sql: 'SELECT user_id, action, created_at FROM user_actions WHERE created_at >= {{ start_date }} AND created_at <= {{ end_date }}',
-      parameters: [
-        { name: 'start_date', type: 'date', required: true, description: 'Start date for the query' },
-        { name: 'end_date', type: 'date', required: true, description: 'End date for the query' }
-      ],
-      created_at: '2024-01-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      name: 'Revenue Report',
-      description: 'Generate revenue reports by period',
-      type: 'query',
-      datasource_id: '2',
-      sql: 'SELECT SUM(amount) as total_revenue, DATE(created_at) as date FROM transactions WHERE created_at >= {{ start_date }} GROUP BY DATE(created_at)',
-      parameters: [
-        { name: 'start_date', type: 'date', required: true, description: 'Start date for revenue calculation' }
-      ],
-      created_at: '2024-01-10T14:20:00Z'
-    },
-  ];
+  // Fetch tools and datasources from API
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
-  const datasources: Datasource[] = [
-    { id: '1', name: 'Production PostgreSQL', database_type: 'postgresql' },
-    { id: '2', name: 'Development MySQL', database_type: 'mysql' }
-  ];
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch tools and datasources in parallel
+        const [toolsResponse, datasourcesResponse] = await Promise.all([
+          apiService.getTools(token),
+          apiService.getDataSources(token)
+        ]);
+        
+        if (toolsResponse.success && toolsResponse.data) {
+          setTools(toolsResponse.data);
+        } else {
+          setError('Failed to fetch tools');
+          toast.error('Failed to fetch tools');
+        }
 
-  const navigationItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'data-sources', label: 'Data Sources', icon: Database },
-    { id: 'tools', label: 'Tools', icon: Wrench },
-  ];
+        if (datasourcesResponse.success && datasourcesResponse.data) {
+          setDatasources(datasourcesResponse.data);
+        } else {
+          setError('Failed to fetch datasources');
+          toast.error('Failed to fetch datasources');
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        if (err instanceof ApiError) {
+          setError(err.message);
+          toast.error(err.message);
+        } else {
+          setError('An unexpected error occurred');
+          toast.error('An unexpected error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getActiveColor = () => {
-    return 'bg-gray-50 text-gray-700 border-gray-200';
-  };
+    fetchData();
+  }, [token]);
 
-  const getIconColor = (isActive: boolean) => {
-    if (isActive) {
-      return 'text-gray-600';
-    }
-    return 'text-gray-500';
-  };
 
-  const handleNavigationClick = (itemId: string) => {
-    switch (itemId) {
-      case 'home':
-        navigate('/app');
-        break;
-      case 'data-sources':
-        navigate('/data-sources');
-        break;
-      case 'tools':
-        navigate('/tools');
-        break;
-      default:
-        break;
-    }
-  };
+
 
   const getToolTypeIcon = (toolType: string) => {
     switch (toolType) {
       case 'query':
-        return <Search className="w-8 h-8 text-gray-600" />;
+        return <Search className="w-8 h-8 text-[#FEBF23]" />;
       case 'http':
-        return <Zap className="w-8 h-8 text-gray-600" />;
+        return <Zap className="w-8 h-8 text-[#FEBF23]" />;
       case 'code':
-        return <FileText className="w-8 h-8 text-gray-600" />;
+        return <FileText className="w-8 h-8 text-[#FEBF23]" />;
       default:
-        return <Wrench className="w-8 h-8 text-gray-600" />;
+        return <Wrench className="w-8 h-8 text-[#FEBF23]" />;
     }
   };
 
@@ -159,7 +162,7 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
   };
 
   const getDatasourceName = (datasourceId: string) => {
-    const datasource = datasources.find(ds => ds.id === datasourceId);
+    const datasource = datasources.find(ds => ds.id === parseInt(datasourceId));
     return datasource ? datasource.name : `Datasource #${datasourceId}`;
   };
 
@@ -179,10 +182,42 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
   };
 
   const handleSaveTool = (tool: ToolItem) => {
-    // Here you would typically save to an API
-    console.log('Saving tool:', tool);
+    // Refresh the data after saving
+    if (token) {
+      fetchData();
+    }
     setShowCreateForm(false);
     setEditingTool(null);
+  };
+
+  const handleDeleteTool = (toolId: string) => {
+    // Refresh the data after deletion
+    if (token) {
+      fetchData();
+    }
+    setShowCreateForm(false);
+    setEditingTool(null);
+  };
+
+  const fetchData = async () => {
+    if (!token) return;
+
+    try {
+      const [toolsResponse, datasourcesResponse] = await Promise.all([
+        apiService.getTools(token),
+        apiService.getDataSources(token)
+      ]);
+      
+      if (toolsResponse.success && toolsResponse.data) {
+        setTools(toolsResponse.data);
+      }
+      
+      if (datasourcesResponse.success && datasourcesResponse.data) {
+        setDatasources(datasourcesResponse.data);
+      }
+    } catch (err) {
+      console.error('Error fetching data:', err);
+    }
   };
 
   const handleExecuteTool = async (toolId: string) => {
@@ -197,83 +232,13 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
         datasources={datasources}
         onSave={handleSaveTool}
         onCancel={handleCancelForm}
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={onToggleSidebar}
+        onDelete={handleDeleteTool}
       />
     );
   }
 
   return (
-    <>
-      {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
-
-        {/* Main Navigation */}
-        <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
-          <nav className="space-y-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.id === 'tools';
-              return (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  onClick={() => handleNavigationClick(item.id)}
-                  className={`w-full h-auto ${sidebarCollapsed ? 'justify-center p-2' : 'justify-start p-3'} ${
-                    isActive
-                      ? `${getActiveColor()} border`
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${!sidebarCollapsed ? 'mr-3' : ''} ${getIconColor(isActive)}`} />
-                  {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {!sidebarCollapsed && <Separator />}
-
-        {/* Tool Categories */}
-        {!sidebarCollapsed && (
-          <div className="p-4 flex-1">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Tool Categories</h3>
-            <div className="space-y-1">
-              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
-                <Search className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium">Analytics (2)</span>
-              </button>
-              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
-                <Zap className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium">Automation (1)</span>
-              </button>
-              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
-                <Palette className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium">Design (1)</span>
-              </button>
-              <button className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50">
-                <FileText className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium">Development (1)</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Collapse Button */}
-        <div className="p-2 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            onClick={onToggleSidebar}
-            className="w-full justify-center h-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-          >
-            <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-gray-50">
+    <div className="overflow-auto bg-gray-50">
         <div className="p-4 pt-8">
           {/* Action Buttons Row */}
           <div className="flex items-center space-x-4 mb-6">
@@ -284,21 +249,17 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
               <Plus className="w-5 h-5" />
               <span className="text-sm">Add New Tool</span>
             </Button>
-            <Button className="flex flex-col items-center space-y-2 bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-6 py-4 h-auto">
-              <Upload className="w-5 h-5" />
-              <span className="text-sm">Import Tool</span>
-            </Button>
           </div>
 
           {/* Tools Overview */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
             <div className="flex items-center space-x-2 mb-2">
-              <Eye className="w-5 h-5 text-gray-600" />
+              <Eye className="w-5 h-5 text-[#FEBF23]" />
               <h3 className="text-lg font-semibold text-gray-900">Tools Overview</h3>
             </div>
             <p className="text-gray-600 mb-3">
               Manage your development and productivity tools.
-              <a href="#" className="text-gray-600 hover:text-gray-700 ml-1 underline">
+              <a href="#" className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium">
                 View documentation
               </a>
             </p>
@@ -306,19 +267,55 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
 
           {/* Breadcrumbs */}
           <div className="flex items-center space-x-2 mb-4">
-            <span className="text-sm text-gray-500">Tools / Demo</span>
+            <span className="text-sm text-gray-500">Tools</span>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <div className="text-red-600 text-sm">{error}</div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setError(null)}
+                  className="ml-auto text-red-600 hover:text-red-700"
+                >
+                  ×
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Tools List */}
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Manage and execute your database tools</h2>
             
-            {/* Tools Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <span className="ml-3 text-gray-600">Loading tools...</span>
+              </div>
+            ) : tools.length === 0 ? (
+              <div className="text-center py-12">
+                <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Tools Found</h3>
+                <p className="text-gray-500 mb-4">Create your first tool to get started with database management
+
+
+</p>
+                <Button onClick={handleAddTool} className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Tool
+                </Button>
+              </div>
+            ) : (
+              /* Tools Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {tools.map((tool) => (
                 <div
                   key={tool.id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
+                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-[#FEBF23]/20"
                   onClick={() => handleEditTool(tool)}
                 >
                   <div className="p-8">
@@ -389,7 +386,7 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                         <Calendar className="w-4 h-4" />
                         Created: {formatDate(tool.created_at)}
                       </span>
-                      <span className="text-gray-600 font-medium text-sm flex items-center gap-1">
+                      <span className="text-[#FEBF23] font-medium text-sm flex items-center gap-1">
                         <Edit className="w-4 h-4" />
                         Click to edit
                       </span>
@@ -397,11 +394,11 @@ const ToolsModule = ({ onModuleChange, sidebarCollapsed = false, onToggleSidebar
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
-      </main>
-    </>
+    </div>
   );
 };
 
@@ -411,11 +408,11 @@ interface CreateToolFormProps {
   datasources: Datasource[];
   onSave: (tool: ToolItem) => void;
   onCancel: () => void;
-  sidebarCollapsed?: boolean;
-  onToggleSidebar?: () => void;
+  onDelete?: (toolId: string) => void;
 }
 
-const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed = false, onToggleSidebar }: CreateToolFormProps) => {
+const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete }: CreateToolFormProps) => {
+  const { token } = useAuth();
   const [formData, setFormData] = useState({
     name: tool?.name || '',
     description: tool?.description || '',
@@ -423,6 +420,20 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
     datasource_id: tool?.datasource_id || '',
     sql: tool?.sql || '',
     parameters: tool?.parameters || []
+  });
+  const [loading, setLoading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showExecuteDialog, setShowExecuteDialog] = useState(false);
+  const [executionResult, setExecutionResult] = useState<ExecutionResult | null>(null);
+  const [executing, setExecuting] = useState(false);
+  const [showParameterForm, setShowParameterForm] = useState(false);
+  const [editingParameterIndex, setEditingParameterIndex] = useState<number | null>(null);
+  const [parameterFormData, setParameterFormData] = useState({
+    name: '',
+    type: 'string',
+    description: '',
+    default: '',
+    required: false
   });
 
   const isEditMode = !!tool;
@@ -434,94 +445,328 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newTool: ToolItem = {
-      id: tool?.id || Date.now().toString(),
-      name: formData.name,
-      description: formData.description,
-      type: formData.type,
-      datasource_id: formData.datasource_id,
-      sql: formData.sql,
-      parameters: formData.parameters,
-      created_at: tool?.created_at || new Date().toISOString()
+  const handleAddParameter = () => {
+    setParameterFormData({
+      name: '',
+      type: 'string',
+      description: '',
+      default: '',
+      required: false
+    });
+    setEditingParameterIndex(null);
+    setShowParameterForm(true);
+  };
+
+  const handleEditParameter = (index: number) => {
+    const parameter = formData.parameters[index];
+    setParameterFormData({
+      name: parameter.name,
+      type: parameter.type,
+      description: parameter.description || '',
+      default: parameter.default || '',
+      required: parameter.required
+    });
+    setEditingParameterIndex(index);
+    setShowParameterForm(true);
+  };
+
+  const handleParameterFormChange = (field: string, value: string | boolean) => {
+    setParameterFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSaveParameter = () => {
+    if (!parameterFormData.name.trim()) {
+      toast.error('Parameter name is required');
+      return;
+    }
+
+    const updatedParameter: ToolParameter = {
+      name: parameterFormData.name.trim(),
+      type: parameterFormData.type,
+      description: parameterFormData.description.trim() || undefined,
+      required: parameterFormData.required,
+      default: parameterFormData.default.trim() || undefined
     };
-    onSave(newTool);
+
+    setFormData(prev => {
+      if (editingParameterIndex !== null) {
+        // Edit existing parameter
+        const updatedParameters = [...prev.parameters];
+        updatedParameters[editingParameterIndex] = updatedParameter;
+        return {
+          ...prev,
+          parameters: updatedParameters
+        };
+      } else {
+        // Add new parameter
+        return {
+          ...prev,
+          parameters: [...prev.parameters, updatedParameter]
+        };
+      }
+    });
+
+    setShowParameterForm(false);
+    setEditingParameterIndex(null);
+    setParameterFormData({
+      name: '',
+      type: 'string',
+      description: '',
+      default: '',
+      required: false
+    });
+    toast.success(editingParameterIndex !== null ? 'Parameter updated successfully' : 'Parameter added successfully');
+  };
+
+  const handleCancelParameter = () => {
+    setShowParameterForm(false);
+    setEditingParameterIndex(null);
+    setParameterFormData({
+      name: '',
+      type: 'string',
+      description: '',
+      default: '',
+      required: false
+    });
+  };
+
+
+  const handleRemoveParameter = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      parameters: prev.parameters.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error('Tool name is required');
+      return;
+    }
+    if (!formData.sql.trim()) {
+      toast.error('SQL query is required');
+      return;
+    }
+    if (!formData.datasource_id) {
+      toast.error('Please select a datasource');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const toolData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        type: formData.type || 'query',
+        datasource_id: parseInt(formData.datasource_id),
+        sql: formData.sql.trim(),
+        parameters: formData.parameters.map(param => ({
+          name: param.name,
+          type: param.type,
+          description: param.description || null,
+          required: param.required,
+          default: param.default || null
+        }))
+      };
+
+      console.log('Sending tool data:', toolData);
+
+      if (isEditMode && tool) {
+        const response = await apiService.updateTool(token, parseInt(tool.id), toolData);
+        if (response.success) {
+          toast.success('Tool updated successfully');
+          onSave(response.data);
+        } else {
+          toast.error('Failed to update tool');
+        }
+      } else {
+        const response = await apiService.createTool(token, toolData);
+        if (response.success) {
+          toast.success('Tool created successfully');
+          onSave(response.data);
+        } else {
+          console.error('Tool creation failed:', response);
+          const errorMessage = response.errors?.[0]?.msg || 'Unknown error';
+          toast.error(`Failed to create tool: ${errorMessage}`);
+          console.error('Full error response:', response);
+        }
+      }
+    } catch (err) {
+      console.error('Error saving tool:', err);
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExecuteTool = () => {
+    setShowExecuteDialog(true);
+    setExecutionResult(null);
+  };
+
+  const handleExecuteConfirm = async () => {
+    if (!token || !tool) return;
+
+    try {
+      setExecuting(true);
+      
+      // Simulate API call to execute tool
+      // In real implementation, this would call: apiService.executeTool(token, tool.id)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock execution result based on the image
+      const mockResult: ExecutionResult = {
+        success: true,
+        rows: [
+          { RESTAURANT_ID: 1, NAME: 'Spice Garden', LOCATION: 'Bangalore', RATING: 4.5 },
+          { RESTAURANT_ID: 2, NAME: 'Pizza Palace', LOCATION: 'Delhi', RATING: 4.2 }
+        ],
+        rowCount: 2,
+        executionTime: 10.683059692382812
+      };
+      
+      setExecutionResult(mockResult);
+      toast.success(`Tool executed successfully! ${mockResult.rowCount} rows returned`);
+    } catch (err) {
+      console.error('Error executing tool:', err);
+      setExecutionResult({
+        success: false,
+        error: 'Failed to execute tool'
+      });
+      toast.error('Failed to execute tool');
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  const handleRunAgain = () => {
+    setExecutionResult(null);
+    handleExecuteConfirm();
+  };
+
+  const handleCloseExecuteDialog = () => {
+    setShowExecuteDialog(false);
+    setExecutionResult(null);
+  };
+
+  const handleExportCSV = () => {
+    if (!executionResult?.rows) return;
+    
+    const csvContent = [
+      Object.keys(executionResult.rows[0]).join(','),
+      ...executionResult.rows.map(row => 
+        Object.values(row).map(value => `"${value}"`).join(',')
+      )
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${tool?.name || 'tool'}_results.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('CSV exported successfully');
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!token || !tool || !onDelete) return;
+
+    try {
+      setLoading(true);
+      const response = await apiService.deleteTool(token, parseInt(tool.id));
+      if (response.success) {
+        toast.success('Tool deleted successfully');
+        onDelete(tool.id);
+      } else {
+        toast.error('Failed to delete tool');
+      }
+    } catch (err) {
+      console.error('Error deleting tool:', err);
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
   };
 
   return (
-    <>
-      {/* Left Sidebar Navigation */}
-      <aside className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-lg`}>
-
-        {/* Main Navigation */}
-        <div className={`${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
-          <nav className="space-y-2">
-            {[
-              { id: 'home', label: 'Home', icon: Home },
-              { id: 'data-sources', label: 'Data Sources', icon: Database },
-              { id: 'tools', label: 'Tools', icon: Wrench },
-            ].map((item) => {
-              const Icon = item.icon;
-              const isActive = item.id === 'tools';
-              return (
-                <Button
-                  key={item.id}
-                  variant="ghost"
-                  className={`w-full justify-start h-auto ${sidebarCollapsed ? 'p-2' : 'p-3'} ${
-                    isActive
-                      ? 'bg-gray-50 text-gray-700 border border-gray-200'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-5 h-5 mr-3'} ${isActive ? 'text-gray-600' : 'text-gray-500'}`} />
-                  {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Collapse Button */}
-        <div className="p-2 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            onClick={onToggleSidebar}
-            className="w-full justify-center h-auto p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-          >
-            <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto bg-gray-50">
+    <div className="overflow-auto bg-gray-50">
         <div className="p-4 pt-2">
           {/* Page Header */}
-          <div className="mb-6 max-w-4xl mx-auto">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold text-black">
               {isEditMode ? 'Edit Tool' : 'Create New Tool'}
             </h2>
           </div>
 
           {/* Form */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8 max-w-4xl mx-auto">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
             <form onSubmit={handleSubmit}>
               {/* Form Actions */}
               <div className="flex justify-end space-x-4 pt-6 border-b border-gray-200 mb-6 pb-6">
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    onClick={handleExecuteTool}
+                    disabled={loading}
+                    className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] flex items-center space-x-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>Execute Tool</span>
+                  </Button>
+                )}
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    onClick={handleDeleteClick}
+                    disabled={loading}
+                    variant="outline"
+                    className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Tool</span>
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onCancel}
+                  disabled={loading}
                   className="text-gray-700 bg-gray-100 hover:bg-gray-200"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
+                  disabled={loading}
                   className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
                 >
-                  {isEditMode ? 'Update Tool' : 'Create Tool'}
+                  {loading ? 'Saving...' : (isEditMode ? 'Update Tool' : 'Create Tool')}
                 </Button>
               </div>
 
@@ -618,25 +863,364 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, sidebarCollapsed 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">Define parameters that users can pass to this tool</p>
-                    <Button
-                      type="button"
-                      className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] rounded-lg px-3 py-1 text-sm font-medium"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add Parameter
-                    </Button>
+                    {!showParameterForm && (
+                      <Button
+                        type="button"
+                        onClick={handleAddParameter}
+                        className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] rounded-lg px-3 py-1 text-sm font-medium"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Parameter
+                      </Button>
+                    )}
                   </div>
                   
-                  <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
-                    No parameters defined. Click "Add Parameter" to add one.
-                  </div>
+                  {formData.parameters.length === 0 && !showParameterForm ? (
+                    <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
+                      No parameters defined. Click "Add Parameter" to add one.
+                    </div>
+                  ) : formData.parameters.length > 0 ? (
+                    <div className="space-y-2">
+                      {formData.parameters.map((parameter, index) => (
+                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              {/* Grid Layout for Labels and Values */}
+                              <div className="grid gap-4" style={{ gridTemplateColumns: '1fr 0.7fr 2fr 1fr 0.8fr' }}>
+                                {/* Name Column */}
+                                <div>
+                                  <div className="text-xs text-black mb-2 font-semibold">Name</div>
+                                  <div className="text-sm text-gray-900">{parameter.name}</div>
+                                </div>
+                                
+                                {/* Type Column */}
+                                <div>
+                                  <div className="text-xs text-black mb-2 font-semibold">Type</div>
+                                  <div className="text-xs text-gray-700">
+                                    {parameter.type}
+                                  </div>
+                                </div>
+                                
+                                {/* Description Column */}
+                                <div>
+                                  <div className="text-xs text-black mb-2 font-semibold">Description</div>
+                                  <div className="text-xs text-gray-700 break-words">
+                                    {parameter.description || '-'}
+                                  </div>
+                                </div>
+                                
+                                {/* Default Value Column */}
+                                <div>
+                                  <div className="text-xs text-black mb-2 font-semibold">Default Value</div>
+                                  <div className="text-xs text-gray-700">
+                                    {parameter.default || '-'}
+                                  </div>
+                                </div>
+                                
+                                {/* Required Column */}
+                                <div>
+                                  <div className="text-xs text-black mb-2 font-semibold">Required</div>
+                                  <div className="text-xs text-gray-700">
+                                    {parameter.required ? 'Yes' : 'No'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Button
+                                type="button"
+                                onClick={() => handleEditParameter(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-1 h-6 w-6"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </Button>
+                              <Button
+                                type="button"
+                                onClick={() => handleRemoveParameter(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-6 w-6"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {/* Section 3: Add Parameter Form (shown when showParameterForm is true) */}
+                  {showParameterForm && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-medium text-gray-900">
+                          {editingParameterIndex !== null ? 'Edit Parameter' : 'Add New Parameter'}
+                        </h4>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={parameterFormData.name}
+                              onChange={(e) => handleParameterFormChange('name', e.target.value)}
+                              placeholder="e.g., start_date"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Type <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={parameterFormData.type}
+                              onChange={(e) => handleParameterFormChange('type', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                            >
+                              <option value="string">String</option>
+                              <option value="integer">Integer</option>
+                              <option value="float">Float</option>
+                              <option value="boolean">Boolean</option>
+                              <option value="date">Date</option>
+                              <option value="datetime">DateTime</option>
+                              <option value="array">Array</option>
+                              <option value="object">Object</option>
+                            </select>
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea
+                              value={parameterFormData.description}
+                              onChange={(e) => handleParameterFormChange('description', e.target.value)}
+                              rows={2}
+                              placeholder="Brief description of this parameter"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                            />
+                          </div>
+                          <div className="flex gap-4">
+                            <div className="flex-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Default Value</label>
+                              <input
+                                type="text"
+                                value={parameterFormData.default}
+                                onChange={(e) => handleParameterFormChange('default', e.target.value)}
+                                placeholder="Optional default value"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                              />
+                            </div>
+                            <div className="flex items-end pb-2">
+                              <label className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  checked={parameterFormData.required}
+                                  onChange={(e) => handleParameterFormChange('required', e.target.checked)}
+                                  className="mr-2"
+                                />
+                                <span className="text-sm font-medium text-gray-700">Required</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-end space-x-3 pt-4">
+                          <Button 
+                            variant="outline" 
+                            onClick={handleCancelParameter}
+                            className="text-gray-700 bg-gray-100 hover:bg-gray-200"
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleSaveParameter}
+                            className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
+                          >
+                            {editingParameterIndex !== null ? 'Update Parameter' : 'Save Parameter'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </form>
           </div>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Tool</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete "{tool?.name}"? This action cannot be undone and will permanently remove the tool and all associated data.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={handleDeleteCancel} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteConfirm} disabled={loading} className="bg-red-600 hover:bg-red-700 text-white">
+                  {loading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Execute Tool Dialog */}
+          <Dialog open={showExecuteDialog} onOpenChange={handleCloseExecuteDialog}>
+            <DialogContent className="w-[700px] max-w-[90vw] sm:max-w-[700px] min-h-[450px]" style={{ width: '700px', maxWidth: '90vw', minHeight: '450px' }}>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold">Execute Tool</DialogTitle>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Tool Information */}
+                <div className="bg-gray-50 rounded-lg p-4 space-y-1">
+                  <h3 className="font-semibold text-lg text-black">{tool?.name}</h3>
+                  <p className="text-sm text-black">{tool?.description}</p>
+                </div>
+
+                {/* Parameters Section - Only show when no execution result */}
+                {!executionResult && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex flex-col items-center space-y-2">
+                      <div className="w-5 h-5 rounded-full bg-gray-600 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">i</span>
+                      </div>
+                      <span className="text-sm text-gray-600">This tool has no parameters to configure.</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Execution Status */}
+                {executionResult && (
+                  <div className="space-y-4">
+                    {executionResult.success ? (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="font-medium text-green-800">Execution Completed</span>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">
+                          {executionResult.rowCount} rows returned in {executionResult.executionTime}ms
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2">
+                          <X className="w-5 h-5 text-red-600" />
+                          <span className="font-medium text-red-800">Execution Failed</span>
+                        </div>
+                        <p className="text-sm text-red-700 mt-1">{executionResult.error}</p>
+                      </div>
+                    )}
+
+                    {/* Results Section */}
+                    {executionResult.success && executionResult.rows && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900">Results</h4>
+                          <Button
+                            onClick={handleExportCSV}
+                            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Export CSV</span>
+                          </Button>
+                        </div>
+                        
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead className="bg-gray-50">
+                                <tr>
+                                  {executionResult.rows.length > 0 && Object.keys(executionResult.rows[0]).map((key) => (
+                                    <th key={key} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      {key}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {executionResult.rows.map((row, index) => (
+                                  <tr key={index}>
+                                    {Object.values(row).map((value, cellIndex) => (
+                                      <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900">
+                                        {String(value)}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Loading State */}
+                {executing && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                    <span className="ml-3 text-gray-600">Executing tool...</span>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="flex justify-end space-x-3">
+                {!executionResult ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCloseExecuteDialog} 
+                      disabled={executing}
+                      className="text-gray-700 bg-gray-100 hover:bg-gray-200"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleExecuteConfirm} 
+                      disabled={executing} 
+                      className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] flex items-center space-x-2"
+                    >
+                      <Play className="w-4 h-4" />
+                      <span>Execute Tool</span>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCloseExecuteDialog}
+                      className="text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                    >
+                      Close
+                    </Button>
+                    <Button 
+                      onClick={handleRunAgain} 
+                      disabled={executing} 
+                      className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] flex items-center space-x-2"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      <span>Run Again</span>
+                    </Button>
+                  </>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
         </div>
-      </main>
-    </>
+    </div>
   );
 };
 
