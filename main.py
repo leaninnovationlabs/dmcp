@@ -27,7 +27,7 @@ mcp.add_middleware(CustomizeToolsList())
 mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
 
 starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
-mcp_app.mount("/ui", StaticFiles(directory="frontend/dist", html=True), name="static")
+mcp_app.mount("/ui", StaticFiles(directory="public", html=True), name="static")
 
 app = FastAPI(
     title="DMCP - Database Backend Server",

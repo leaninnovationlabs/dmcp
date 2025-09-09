@@ -10,3 +10,4 @@ docs/manual/.vitepress/cache
 docs/manual/.vitepress/dist
 data/
 .DS_Store
+public/*
