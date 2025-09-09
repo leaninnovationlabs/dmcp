@@ -6,11 +6,12 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     build-essential \
     pkg-config \
+    curl \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+# Install Node.js latest version
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
 RUN --mount=type=cache,target=/root/.cache/uv \
