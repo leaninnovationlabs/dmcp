@@ -74,9 +74,9 @@ async def serve_logo_webp():
 async def serve_logo_png():
     return FileResponse("public/logo.png")
 
-@app.get("/dmcp/ui/vite.svg")
+@app.get("/dmcp/ui/logo.svg")
 async def serve_vite_svg():
-    return FileResponse("public/vite.svg")
+    return FileResponse("public/logo.svg")
 
 # Catch-all route for React app - serves index.html for any /ui/ path
 @app.get("/dmcp/ui/{path:path}")
