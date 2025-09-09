@@ -218,7 +218,7 @@ function App() {
   return (
     <AuthProvider>
       <SessionProvider>
-        <Router basename="/ui">
+        <Router basename="/dmcp/ui">
           <SessionHandler />
         </Router>
       </SessionProvider>

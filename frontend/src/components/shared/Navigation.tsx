@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import logoWebp from '/logo.webp';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,15 +69,9 @@ const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
         >
           <div className="w-20 h-16 flex items-center justify-center">
             <img 
-              src="/ui/logo.webp" 
+              src={logoWebp} 
               alt="DBMCP Logo" 
               className="w-18 h-14 object-contain rounded-lg"
-              onLoad={() => console.log('Logo loaded successfully')}
-              onError={(e) => {
-                console.error('Logo failed to load:', e);
-                console.log('Trying fallback to PNG...');
-                e.currentTarget.src = '/ui/logo.png';
-              }}
             />
           </div>
           <span className="text-lg font-semibold text-gray-900">DBMCP</span>
