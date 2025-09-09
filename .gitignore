@@ -11,3 +11,4 @@ docs/manual/.vitepress/dist
 data/
 .DS_Store
 public/*
+!public/.gitkeep
