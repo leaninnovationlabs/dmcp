@@ -20,7 +20,7 @@ export default function CreateDataSourcePage() {
   };
 
   return (
-    <div className="p-4 pt-2">
+    <div className="p-4">
       <CreateDataSourceForm
         onSave={handleSave}
         onCancel={handleCancel}

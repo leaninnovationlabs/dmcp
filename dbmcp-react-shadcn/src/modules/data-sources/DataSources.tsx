@@ -121,10 +121,10 @@ const DataSources = ({}: DataSourcesProps) => {
 
 
   return (
-    <div className="p-4 pt-8">
+    <div className="p-4">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <div className="flex items-center">
                 <div className="text-red-600 text-sm">{error}</div>
                 <Button
@@ -140,7 +140,7 @@ const DataSources = ({}: DataSourcesProps) => {
           )}
 
           {/* Data Sources Overview */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-[#FEBF23]" />
@@ -186,7 +186,7 @@ const DataSources = ({}: DataSourcesProps) => {
           </div>
 
           {/* Data Sources List */}
-          <div className="bg-white rounded-lg border border-gray-200">
+          <div className="bg-white rounded-lg border border-gray-200 mb-4">
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Manage your database connections</h3>
             </div>

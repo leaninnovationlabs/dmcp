@@ -225,7 +225,7 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
   };
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col">
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">

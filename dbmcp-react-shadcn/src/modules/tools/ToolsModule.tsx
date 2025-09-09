@@ -273,9 +273,9 @@ const ToolsModule = ({}: ToolsModuleProps) => {
 
   return (
     <div className="overflow-auto bg-gray-50">
-        <div className="p-4 pt-8">
+        <div className="p-4">
           {/* Tools Overview */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-[#FEBF23]" />
@@ -300,7 +300,7 @@ const ToolsModule = ({}: ToolsModuleProps) => {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <div className="flex items-center">
                 <div className="text-red-600 text-sm">{error}</div>
                 <Button
@@ -316,7 +316,7 @@ const ToolsModule = ({}: ToolsModuleProps) => {
           )}
 
           {/* Tools List */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Manage and execute your database tools</h2>
             
             {loading ? (
