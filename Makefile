@@ -21,17 +21,20 @@ help:
 install:
 	uv sync
 
-migrate:
+db-migrate:
 	uv run alembic upgrade head
 
-start: migrate
+db-truncate:
+	uv run alembic downgrade base
+
+start: db-migrate
 	uv run main.py
 
 stop:
 	pkill -f "main.py"
 
 docker-build:
-	docker build -t dmcp:latest .
+	docker build -t datamcp:latest .
 
 docker-run:
 	docker run \
@@ -39,7 +42,7 @@ docker-run:
 		--env-file .env \
 		-p 8000:8000 \
 		-v $(PWD)/data:/app/data \
-		dmcp:latest
+		datamcp:latest
 
 docker-build-run: docker-build docker-run
 

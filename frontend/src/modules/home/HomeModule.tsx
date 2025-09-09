@@ -41,7 +41,7 @@ const HomeModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideba
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row lg:items-stretch">
               {/* Text Content */}
-              <div className="flex-1 lg:pr-8 flex items-center">
+              <div className="flex-1 lg:pr-8 flex items-center p-20">
                 <div className="text-center lg:text-left">
                   <h1 className="text-4xl tracking-tight font-bold text-black sm:text-5xl md:text-6xl">
                     <span className="block xl:inline">Data</span>
@@ -61,9 +61,11 @@ const HomeModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideba
                   </div>
                 </div>
               </div>
+
+
               
               {/* Image Content */}
-              <div className="flex-1 lg:max-w-lg">
+              {/* <div className="flex-1 lg:max-w-lg">
                 <div className="h-80 w-full bg-[#FEBF23]/10 border-2 border-[#FEBF23] flex items-center justify-center rounded-lg" style={{margin: '25px 0'}}>
                   <div className="text-black text-center">
                     <div className="text-6xl mb-4">
@@ -73,7 +75,7 @@ const HomeModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideba
                     <p className="text-lg opacity-90">PostgreSQL • MySQL • SQLite</p>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

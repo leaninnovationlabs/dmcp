@@ -3,6 +3,9 @@ from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.datasources.base import logger
+
 from .base import BaseRepository
 from ..models.database import User
 from ..core.encryption import password_encryption
@@ -55,6 +58,20 @@ class UserRepository(BaseRepository[User]):
         
         return await super().update(user_id, **kwargs)
     
+    def validate_password(self, username: str, userpassword: str, password: str) -> bool:
+        """Validate a password."""
+
+        # ALERT: Check for the out of the box admin password and if the password is dochangethispassword
+        if (username == settings.default_admin_username and 
+            password == settings.default_admin_password and
+            userpassword == settings.default_admin_password_encrypted):
+            logger.warning(f"!!!Alert!!!! Used the default admin password for user: {username}")
+            return True
+
+        if password_encryption.decrypt_password(userpassword) == password:
+            return True
+        return False
+    
     async def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """Authenticate a user by username and password."""
         user = await self.get_by_username(username)
@@ -63,7 +80,7 @@ class UserRepository(BaseRepository[User]):
         
         # Verify the password
         try:
-            if password_encryption.decrypt_password(user.password) == password:
+            if self.validate_password(user.username, user.password, password):
                 return user
         except Exception:
             # If decryption fails, the password is invalid
@@ -80,7 +97,7 @@ class UserRepository(BaseRepository[User]):
         
         # Verify current password
         try:
-            if password_encryption.decrypt_password(user.password) != current_password:
+            if not self.validate_password(user.username, user.password, current_password):
                 return False
         except Exception:
             return False
