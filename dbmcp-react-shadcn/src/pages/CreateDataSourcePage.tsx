@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import CreateDataSourceForm from '@/modules/data-sources/CreateDataSourceForm';
-import { apiService } from '@/lib/api';
 
 export default function CreateDataSourcePage() {
   const navigate = useNavigate();

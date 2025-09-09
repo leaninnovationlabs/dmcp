@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Folder,
   Key,
   LogOut,
   ChevronDown,
@@ -21,36 +20,21 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token' | 'change-password';
+type NavigationItem = 'home' | 'data-sources' | 'tools' | 'auth' | 'token' | 'change-password' | 'profile';
 
 interface NavigationProps {
   activeModule: NavigationItem;
   notificationCount?: number;
 }
 
-const Navigation = ({ activeModule }: NavigationProps) => {
+const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const getHeaderColor = (module: NavigationItem) => {
-    switch (module) {
-      case 'home':
-        return 'bg-blue-600';
-      case 'data-sources':
-        return 'bg-green-600';
-      case 'tools':
-        return 'bg-purple-600';
-      default:
-        return 'bg-blue-600';
-    }
-  };
-
-  const getAvatarColor = (module: NavigationItem) => {
+  const getAvatarColor = () => {
     return 'bg-[#FEBF23]/20 text-[#FEBF23]';
   };
-
-  const activeItem = { label: activeModule.charAt(0).toUpperCase() + activeModule.slice(1) };
 
   const handleLogout = () => {
     logout();
@@ -106,7 +90,7 @@ const Navigation = ({ activeModule }: NavigationProps) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className={`text-sm font-medium ${getAvatarColor(activeModule)}`}>
+                <AvatarFallback className={`text-sm font-medium ${getAvatarColor()}`}>
                   {user?.username?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>

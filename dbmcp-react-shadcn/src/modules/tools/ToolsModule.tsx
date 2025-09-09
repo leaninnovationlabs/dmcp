@@ -18,14 +18,7 @@ import { toast } from 'sonner';
 import {
   Plus,
   Eye,
-  Upload,
-  FileText,
-  Zap,
-  Database,
-  Calendar,
   Edit,
-  Server,
-  Cog,
   Wrench,
   Trash2,
   CheckCircle,
@@ -70,9 +63,13 @@ interface Datasource {
   database_type: string;
 }
 
-interface ToolsModuleProps {}
+interface ToolsModuleProps {
+  onModuleChange?: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+}
 
-const ToolsModule = ({}: ToolsModuleProps) => {
+const ToolsModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sidebarCollapsed, onToggleSidebar: _onToggleSidebar }: ToolsModuleProps) => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -135,18 +132,6 @@ const ToolsModule = ({}: ToolsModuleProps) => {
 
 
 
-  const getToolTypeIcon = (toolType: string) => {
-    switch (toolType) {
-      case 'query':
-        return <Database className="w-8 h-8 text-[#FEBF23]" />;
-      case 'http':
-        return <Zap className="w-8 h-8 text-[#FEBF23]" />;
-      case 'code':
-        return <FileText className="w-8 h-8 text-[#FEBF23]" />;
-      default:
-        return <Wrench className="w-8 h-8 text-[#FEBF23]" />;
-    }
-  };
 
   const getToolTypeColor = (toolType: string) => {
     switch (toolType) {
@@ -185,7 +170,7 @@ const ToolsModule = ({}: ToolsModuleProps) => {
     setEditingTool(null);
   };
 
-  const handleSaveTool = (tool: ToolItem) => {
+  const handleSaveTool = (_tool: ToolItem) => {
     // Refresh the data after saving
     if (token) {
       fetchData();
@@ -454,7 +439,7 @@ interface CreateToolFormProps {
   navigate: (path: string) => void;
 }
 
-const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigate }: CreateToolFormProps) => {
+const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigate: _navigate }: CreateToolFormProps) => {
   const { token } = useAuth();
   const [formData, setFormData] = useState({
     name: tool?.name || '',

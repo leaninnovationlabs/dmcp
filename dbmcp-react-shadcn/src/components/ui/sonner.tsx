@@ -8,7 +8,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         [data-sonner-toaster][data-theme] {
           --normal-bg: var(--popover);
           --normal-text: var(--popover-foreground);
@@ -41,7 +42,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           color: #ffffff !important;
           border-color: #dc2626 !important;
         }
-      `}</style>
+      `}} />
       <Sonner
         theme={theme as ToasterProps["theme"]}
         className="toaster group"

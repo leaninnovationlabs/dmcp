@@ -27,6 +27,9 @@ export interface ChangePasswordRequest {
 
 export interface ChangePasswordResponse {
   success: boolean;
+  data?: {
+    message: string;
+  };
   message?: string;
   errors?: Array<{ msg: string }>;
 }

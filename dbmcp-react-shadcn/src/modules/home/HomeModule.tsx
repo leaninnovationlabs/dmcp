@@ -12,9 +12,13 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-interface HomeModuleProps {}
+interface HomeModuleProps {
+  onModuleChange?: () => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
+}
 
-const HomeModule = ({}: HomeModuleProps) => {
+const HomeModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sidebarCollapsed, onToggleSidebar: _onToggleSidebar }: HomeModuleProps) => {
   const navigate = useNavigate();
 
   const handleTryNow = () => {

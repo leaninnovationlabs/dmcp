@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,8 +6,6 @@ import {
   Wrench,
   ChevronLeft,
 } from 'lucide-react';
-
-type NavigationItem = 'home' | 'data-sources' | 'tools';
 
 interface SidebarProps {
   collapsed?: boolean;
