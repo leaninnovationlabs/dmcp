@@ -170,8 +170,8 @@ export default function ChangePasswordModule({ onSuccess, onCancel }: ChangePass
     <div className="h-full w-full flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-lg w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-black rounded-lg flex items-center justify-center">
-            <Key className="h-6 w-6 text-white" />
+          <div className="mx-auto h-12 w-12 bg-[#FEBF23] rounded-lg flex items-center justify-center">
+            <Key className="h-6 w-6 text-black" />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Change Password

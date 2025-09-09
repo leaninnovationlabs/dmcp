@@ -47,16 +47,7 @@ const Navigation = ({ activeModule }: NavigationProps) => {
   };
 
   const getAvatarColor = (module: NavigationItem) => {
-    switch (module) {
-      case 'home':
-        return 'bg-blue-100 text-blue-600';
-      case 'data-sources':
-        return 'bg-green-100 text-green-600';
-      case 'tools':
-        return 'bg-purple-100 text-purple-600';
-      default:
-        return 'bg-blue-100 text-blue-600';
-    }
+    return 'bg-[#FEBF23]/20 text-[#FEBF23]';
   };
 
   const activeItem = { label: activeModule.charAt(0).toUpperCase() + activeModule.slice(1) };
