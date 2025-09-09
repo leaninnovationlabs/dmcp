@@ -87,7 +87,7 @@ async def serve_react_app(path: str):
 # Add a redirect to the root path to /dmcp/ui
 @app.get("/")
 async def redirect_to_ui():
-    return RedirectResponse(f"{settings.mcp_path}/ui/")
+    return RedirectResponse(f"dmcp/ui/")
 
 # Add Bearer token authentication middleware
 app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 

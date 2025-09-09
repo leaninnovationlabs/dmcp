@@ -21,10 +21,13 @@ help:
 install:
 	uv sync
 
-migrate:
+dbmigrate:
 	uv run alembic upgrade head
 
-start: migrate
+dbtruncate:
+	uv run alembic downgrade base
+
+start: dbmigrate
 	uv run main.py
 
 stop:
