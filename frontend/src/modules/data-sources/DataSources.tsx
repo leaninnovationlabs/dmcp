@@ -79,7 +79,9 @@ const DataSources = ({}: DataSourcesProps) => {
     navigate('/data-sources/create');
   };
 
-
+  const handleEditDataSource = (dataSource: DataSource) => {
+    navigate(`/data-sources/edit/${dataSource.id}`);
+  };
 
   const handleDeleteClick = (dataSource: DataSource) => {
     setDataSourceToDelete(dataSource);
@@ -205,7 +207,11 @@ const DataSources = ({}: DataSourcesProps) => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {dataSources.map((dataSource) => (
-                    <div key={dataSource.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div 
+                      key={dataSource.id} 
+                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleEditDataSource(dataSource)}
+                    >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center space-x-2">
                           <div className="w-8 h-8 bg-[#FEBF23]/20 rounded flex items-center justify-center">
@@ -218,7 +224,10 @@ const DataSources = ({}: DataSourcesProps) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteClick(dataSource)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(dataSource);
+                          }}
                           className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1 h-6 w-6"
                         >
                           <Trash2 className="w-3 h-3" />
