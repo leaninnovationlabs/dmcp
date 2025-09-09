@@ -5,6 +5,8 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.mcp.middleware.logging import logger
+
 from .jwt_validator import jwt_validator
 from .exceptions import AuthenticationError
 from .responses import create_error_response
@@ -45,8 +47,9 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Skip authentication for static files and UI
-        excluded_paths = ["/ui", "/dmcp/ui", "/dmcp/auth/login", "/favicon.ico", "/logo.svg", "/logo.webp", "/logo.png", ""]
-        if any(request.url.path.startswith(path) for path in excluded_paths):
+        excluded_paths = ["/dmcp/ui", "/dmcp/auth/login", "/", "/favicon.ico", "/logo.svg", "/logo.webp", "/logo.png"]
+        if request.url.path in excluded_paths:
+            logger.debug(f"++++++ BearerTokenMiddleware excluded paths {request.url.path} ++++++")
             return await call_next(request)
             
         # Get authorization header
