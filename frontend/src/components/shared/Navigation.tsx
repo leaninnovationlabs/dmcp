@@ -67,14 +67,14 @@ const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
         >
           <div className="w-20 h-16 flex items-center justify-center">
             <img 
-              src="/logo.webp" 
+              src="/ui/logo.webp" 
               alt="DBMCP Logo" 
               className="w-18 h-14 object-contain rounded-lg"
               onLoad={() => console.log('Logo loaded successfully')}
               onError={(e) => {
                 console.error('Logo failed to load:', e);
                 console.log('Trying fallback to PNG...');
-                e.currentTarget.src = '/logo.png';
+                e.currentTarget.src = '/ui/logo.png';
               }}
             />
           </div>

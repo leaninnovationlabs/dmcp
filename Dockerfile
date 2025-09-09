@@ -8,7 +8,12 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libpq-dev \
     default-libmysqlclient-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
@@ -16,6 +21,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project
 
 COPY . .
+
+# Build React frontend
+WORKDIR /app/frontend
+RUN npm ci && npm run build
+
+# Back to app root
+WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable --compile-bytecode
@@ -36,7 +48,7 @@ COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appuser /app/main.py /app/alembic.ini ./
 COPY --from=builder --chown=appuser:appuser /app/app ./app
 COPY --from=builder --chown=appuser:appuser /app/alembic ./alembic
-COPY --from=builder --chown=appuser:appuser /app/frontend ./frontend
+COPY --from=builder --chown=appuser:appuser /app/frontend/dist ./frontend
 
 ENV PATH="/app/.venv/bin:$PATH"
 

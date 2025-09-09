@@ -45,7 +45,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Skip authentication for static files and UI
-        excluded_paths = ["/dmcp/ui", "/dmcp/auth/login", "/favicon.ico"]
+        excluded_paths = ["/ui", "/dmcp/ui", "/dmcp/auth/login", "/favicon.ico", "/assets", "/vite.svg"]
         if any(request.url.path.startswith(path) for path in excluded_paths):
             return await call_next(request)
             
