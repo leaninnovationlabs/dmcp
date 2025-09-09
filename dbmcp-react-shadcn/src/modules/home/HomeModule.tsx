@@ -149,9 +149,9 @@ const HomeModule = ({}: HomeModuleProps) => {
                       <Button 
                         variant="link"
                         onClick={handleToolsClick}
-                        className="text-black underline font-medium hover:text-gray-700 p-0 h-auto"
+                        className="text-[#FEBF23] underline font-medium hover:text-[#FEBF23]/80 p-0 h-auto"
                       >
-                        Learn more
+                        Try Now
                       </Button>
                     </div>
                   </CardHeader>

@@ -34,7 +34,7 @@ const Sidebar = ({ collapsed = false, onToggle }: SidebarProps) => {
   };
 
   return (
-    <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-[width] duration-200 ease-in-out shadow-lg`}>
+    <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col justify-between transition-[width] duration-200 ease-in-out shadow-lg h-full`}>
       {/* Main Navigation */}
       <div className={`transition-[padding] duration-200 ease-in-out ${collapsed ? 'p-2' : 'p-4'}`}>
         <nav className="space-y-2">
@@ -63,12 +63,12 @@ const Sidebar = ({ collapsed = false, onToggle }: SidebarProps) => {
         </nav>
       </div>
 
-      {/* Collapse Button */}
-      <div className="p-2 border-t border-gray-200">
+      {/* Collapse Button - Pushed to bottom */}
+      <div className="p-2 border-t border-gray-200 bg-gray-50">
         <Button
           variant="ghost"
           onClick={onToggle}
-          className="w-full justify-center p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-all duration-200 ease-in-out"
+          className="w-full justify-center p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 ease-in-out"
         >
           <ChevronLeft className={`w-4 h-4 transition-transform duration-200 ease-in-out ${collapsed ? 'rotate-180' : ''}`} />
           <span className={`transition-all duration-200 ease-in-out ${collapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 ml-2'}`}>

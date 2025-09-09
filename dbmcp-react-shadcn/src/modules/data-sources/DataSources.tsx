@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { apiService, DataSource, ApiError } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -23,6 +31,8 @@ const DataSources = ({}: DataSourcesProps) => {
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [dataSourceToDelete, setDataSourceToDelete] = useState<DataSource | null>(null);
 
 
   // Fetch datasources on component mount
@@ -75,14 +85,21 @@ const DataSources = ({}: DataSourcesProps) => {
   };
 
 
-  const handleDeleteDataSource = async (id: number) => {
-    if (!token) return;
+  const handleDeleteClick = (dataSource: DataSource) => {
+    setDataSourceToDelete(dataSource);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!token || !dataSourceToDelete) return;
     
     try {
       setError(null);
-      const response = await apiService.deleteDataSource(token, id);
+      const response = await apiService.deleteDataSource(token, dataSourceToDelete.id);
       if (response.success) {
-        setDataSources(prev => prev.filter(ds => ds.id !== id));
+        setDataSources(prev => prev.filter(ds => ds.id !== dataSourceToDelete.id));
+        setShowDeleteDialog(false);
+        setDataSourceToDelete(null);
       } else {
         setError('Failed to delete datasource');
       }
@@ -93,6 +110,11 @@ const DataSources = ({}: DataSourcesProps) => {
         setError('An unexpected error occurred');
       }
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
+    setDataSourceToDelete(null);
   };
 
 
@@ -133,7 +155,7 @@ const DataSources = ({}: DataSourcesProps) => {
             </div>
             <p className="text-gray-600 mb-3">
               Manage your connected data sources and monitor their status.
-              <a href="#" className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium">
+              <a href="https://dmcp.opsloom.io/configure-datasources.html" target="_blank" rel="noopener noreferrer" className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium">
                 View documentation
               </a>
             </p>
@@ -184,72 +206,114 @@ const DataSources = ({}: DataSourcesProps) => {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {dataSources.map((dataSource) => (
-                    <div key={dataSource.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-[#FEBF23]/20 rounded flex items-center justify-center">
-                            <Database className="w-4 h-4 text-[#FEBF23]" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900">{dataSource.name}</h4>
-                            <p className="text-sm text-gray-500 capitalize">{dataSource.database_type}</p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditDataSource(dataSource)}
-                            className="text-gray-500 hover:text-gray-700"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteDataSource(dataSource.id)}
-                            className="text-gray-500 hover:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex justify-between">
-                          <span>Host:</span>
-                          <span className="font-mono">{dataSource.host}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Port:</span>
-                          <span className="font-mono">{dataSource.port}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Database:</span>
-                          <span className="font-mono">{dataSource.database}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>User:</span>
-                          <span className="font-mono">{dataSource.username}</span>
-                        </div>
-                      </div>
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">
-                            Created {new Date(dataSource.created_at).toLocaleDateString()}
-                          </span>
-                          <Badge variant="secondary" className="text-xs">
-                            Connected
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Host</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Port</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Database</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Username</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Created</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dataSources.map((dataSource) => (
+                        <tr key={dataSource.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 bg-[#FEBF23]/20 rounded flex items-center justify-center">
+                                <Database className="w-3 h-3 text-[#FEBF23]" />
+                              </div>
+                              <span className="font-medium text-gray-900">{dataSource.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge variant="secondary" className="capitalize">
+                              {dataSource.database_type}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-mono text-sm text-gray-600">{dataSource.host}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-mono text-sm text-gray-600">{dataSource.port}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-mono text-sm text-gray-600">{dataSource.database}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-mono text-sm text-gray-600">{dataSource.username}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                              Connected
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-sm text-gray-500">
+                              {new Date(dataSource.created_at).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditDataSource(dataSource)}
+                                className="text-gray-500 hover:text-black hover:bg-[#FEBF23] p-1"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteClick(dataSource)}
+                                className="text-gray-500 hover:text-red-600 hover:bg-[#FEBF23] p-1"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Delete Data Source</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete "{dataSourceToDelete?.name}"? This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteCancel}
+                  className="text-gray-700 bg-gray-100 hover:bg-gray-200"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteConfirm}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
   );
 };

@@ -29,6 +29,12 @@ const CloudStorageLayout = ({ children }: CloudStorageLayoutProps) => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  // Hide sidebar for profile, generate-token, and change-password pages
+  const isProfilePage = location.pathname === '/profile';
+  const isGenerateTokenPage = location.pathname === '/generate-token';
+  const isChangePasswordPage = location.pathname === '/change-password';
+  const hideSidebar = isProfilePage || isGenerateTokenPage || isChangePasswordPage;
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
       {/* Top Header Bar */}
@@ -39,10 +45,12 @@ const CloudStorageLayout = ({ children }: CloudStorageLayoutProps) => {
       
       {/* Main Content Area with Sidebar */}
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
-          onToggle={handleToggleSidebar}
-        />
+        {!hideSidebar && (
+          <Sidebar 
+            collapsed={sidebarCollapsed} 
+            onToggle={handleToggleSidebar}
+          />
+        )}
         <main className="flex-1 overflow-auto bg-gray-50">
           {children}
         </main>

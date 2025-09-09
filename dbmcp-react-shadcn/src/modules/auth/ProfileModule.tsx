@@ -117,10 +117,9 @@ export default function ProfileModule() {
                   </CardDescription>
                 </div>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={handleRefresh}
-                  className="flex items-center space-x-2"
+                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center space-x-2"
                 >
                   <RefreshCw className="h-4 w-4" />
                   <span>Refresh</span>
@@ -207,9 +206,9 @@ export default function ProfileModule() {
         {/* Back Button */}
         <div className="flex items-center justify-center">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={handleBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 cursor-pointer"
+            className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Home</span>

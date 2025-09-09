@@ -116,16 +116,26 @@ class ApiService {
     if (body && typeof body === 'object' && !(body instanceof FormData)) {
       body = JSON.stringify(body);
       console.log('Stringified body:', body);
+    } else if (body && typeof body === 'string') {
+      console.log('Body is already a string, not stringifying again');
     }
     
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
       body,
     };
+    
+    // Only add Content-Type header if body is not FormData
+    if (!(body instanceof FormData)) {
+      config.headers = {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      };
+    } else {
+      config.headers = {
+        ...options.headers,
+      };
+    }
 
     try {
       console.log('Making request to:', url);
@@ -139,8 +149,9 @@ class ApiService {
 
       if (!response.ok) {
         console.error('Request failed:', response.status, data);
+        console.error('Full error details:', JSON.stringify(data, null, 2));
         throw new ApiError(
-          data.errors?.[0]?.msg || data.message || 'Request failed',
+          data.errors?.[0]?.msg || data.message || data.detail?.[0]?.msg || 'Request failed',
           response.status
         );
       }
@@ -293,21 +304,69 @@ class ApiService {
   }
 
   async updateTool(token: string, id: number, tool: any): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
-    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}`, {
+    console.log('Updating tool with token:', token ? 'exists' : 'missing');
+    console.log('Tool ID:', id);
+    console.log('Tool data:', tool);
+    
+    const url = `${this.baseURL}/dmcp/tools/${id}`;
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
-      body: tool,
+      body: JSON.stringify(tool),
     });
+    
+    const data = await response.json();
+    console.log('Update response status:', response.status);
+    console.log('Update response data:', data);
+    
+    if (!response.ok) {
+      console.error('Update failed:', response.status, data);
+      throw new ApiError(
+        data.errors?.[0]?.msg || data.message || data.detail?.[0]?.msg || 'Request failed',
+        response.status
+      );
+    }
+    
+    return data;
   }
 
   async deleteTool(token: string, id: number): Promise<{ success: boolean; errors?: Array<{ msg: string }> }> {
-    return this.request<{ success: boolean; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}`, {
+    const url = `${this.baseURL}/dmcp/tools/${id}`;
+    const response = await fetch(url, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+    });
+    
+    const data = await response.json();
+    console.log('Delete response status:', response.status);
+    console.log('Delete response data:', data);
+    
+    if (!response.ok) {
+      console.error('Delete failed:', response.status, data);
+      throw new ApiError(
+        data.errors?.[0]?.msg || data.message || data.detail?.[0]?.msg || 'Request failed',
+        response.status
+      );
+    }
+    
+    return data;
+  }
+
+  async executeTool(token: string, id: number, parameters: any = {}): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    console.log('Executing tool with token:', token ? 'exists' : 'missing');
+    console.log('Tool ID:', id, 'Parameters:', parameters);
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/tools/${id}/execute`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: { parameters },
     });
   }
 

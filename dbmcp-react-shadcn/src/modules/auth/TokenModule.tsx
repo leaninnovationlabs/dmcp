@@ -143,7 +143,7 @@ export default function TokenModule() {
                   <Button 
                     onClick={generateToken}
                     disabled={isGenerating}
-                    className="flex items-center gap-2"
+                    className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center gap-2"
                   >
                     {isGenerating ? (
                       <>
@@ -221,7 +221,7 @@ export default function TokenModule() {
                 </div>
 
                 <div className="flex justify-center">
-                  <Button onClick={generateAnother} className="flex items-center gap-2">
+                  <Button onClick={generateAnother} className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Generate Another Token
                   </Button>
@@ -234,9 +234,9 @@ export default function TokenModule() {
         {/* Back Button */}
         <div className="flex items-center justify-center">
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={handleBack}
-            className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 cursor-pointer"
+            className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Home</span>
