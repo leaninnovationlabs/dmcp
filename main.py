@@ -1,3 +1,4 @@
+from fastapi.responses import FileResponse
 from fastmcp import FastMCP
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
@@ -27,7 +28,7 @@ mcp.add_middleware(CustomizeToolsList())
 mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
 
 starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
-mcp_app.mount("/ui", StaticFiles(directory="public", html=True), name="static")
+# mcp_app.mount("/ui", StaticFiles(directory="public", html=True), name="static")
 
 app = FastAPI(
     title="DMCP - Database Backend Server",
@@ -56,6 +57,29 @@ app.include_router(auth.router, prefix=f"{settings.mcp_path}")
 app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
 app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 app.include_router(users.router, prefix=f"{settings.mcp_path}")
+
+# Serve static assets for React app
+@app.get("/dmcp/ui/assets/{file_path:path}")
+async def serve_react_assets(file_path: str):
+    return FileResponse(f"public/assets/{file_path}")
+
+# Serve logo assets
+@app.get("/dmcp/ui/logo.webp")
+async def serve_logo_webp():
+    return FileResponse("public/logo.webp")
+
+@app.get("/dmcp/ui/logo.png")
+async def serve_logo_png():
+    return FileResponse("public/logo.png")
+
+@app.get("/dmcp/ui/vite.svg")
+async def serve_vite_svg():
+    return FileResponse("public/vite.svg")
+
+# Catch-all route for React app - serves index.html for any /ui/ path
+@app.get("/dmcp/ui/{path:path}")
+async def serve_react_app(path: str):
+    return FileResponse("public/index.html")
 
 # Add Bearer token authentication middleware
 app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 

@@ -25,6 +25,7 @@ COPY . .
 # Build React frontend
 WORKDIR /app/frontend
 RUN npm ci && npm run build
+RUN rm -rf /app/frontend
 
 # Back to app root
 WORKDIR /app
