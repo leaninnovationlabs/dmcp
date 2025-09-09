@@ -35,9 +35,9 @@ const HomeModule = ({}: HomeModuleProps) => {
         {/* Hero Section */}
         <div className="bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:min-h-[430px]">
+            <div className="flex flex-col lg:flex-row lg:items-stretch">
               {/* Text Content */}
-              <div className="flex-1 py-4 lg:py-6 lg:pr-8">
+              <div className="flex-1 lg:pr-8 flex items-center">
                 <div className="text-center lg:text-left">
                   <h1 className="text-4xl tracking-tight font-bold text-black sm:text-5xl md:text-6xl">
                     <span className="block xl:inline">Data</span>
@@ -60,8 +60,8 @@ const HomeModule = ({}: HomeModuleProps) => {
               
               {/* Image Content */}
               <div className="flex-1 lg:max-w-lg">
-                <div className="h-56 w-full bg-gradient-to-br from-indigo-500 to-purple-600 sm:h-72 md:h-96 lg:h-[400px] flex items-center justify-center rounded-lg">
-                  <div className="text-white text-center">
+                <div className="h-80 w-full bg-[#FEBF23]/10 border-2 border-[#FEBF23] flex items-center justify-center rounded-lg" style={{margin: '25px 0'}}>
+                  <div className="text-black text-center">
                     <div className="text-6xl mb-4">
                       <Database className="w-16 h-16 mx-auto" />
                     </div>
@@ -96,7 +96,7 @@ const HomeModule = ({}: HomeModuleProps) => {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center">
-                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white mr-4">
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#FEBF23] text-black mr-4">
                           <Link className="w-6 h-6" />
                         </div>
                         <div>
@@ -116,14 +116,14 @@ const HomeModule = ({}: HomeModuleProps) => {
                   <CardContent>
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                          <Database className="text-white text-sm" />
+                        <div className="w-8 h-8 bg-[#FEBF23] rounded flex items-center justify-center">
+                          <Database className="text-black text-sm" />
                         </div>
-                        <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                          <Server className="text-white text-sm" />
+                        <div className="w-8 h-8 bg-[#FEBF23] rounded flex items-center justify-center">
+                          <Server className="text-black text-sm" />
                         </div>
-                        <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
-                          <Database className="text-white text-sm" />
+                        <div className="w-8 h-8 bg-[#FEBF23] rounded flex items-center justify-center">
+                          <Database className="text-black text-sm" />
                         </div>
                       </div>
                     </div>
@@ -138,7 +138,7 @@ const HomeModule = ({}: HomeModuleProps) => {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center">
-                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white mr-4">
+                        <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#FEBF23] text-black mr-4">
                           <Wrench className="w-6 h-6" />
                         </div>
                         <div>
@@ -159,15 +159,15 @@ const HomeModule = ({}: HomeModuleProps) => {
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                          <div className="w-3 h-3 bg-[#FEBF23] rounded-full"></div>
                           <span className="text-sm text-gray-700">Parameterized queries</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                          <div className="w-3 h-3 bg-[#FEBF23] rounded-full"></div>
                           <span className="text-sm text-gray-700">Template support</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                          <div className="w-3 h-3 bg-[#FEBF23] rounded-full"></div>
                           <span className="text-sm text-gray-700">Reusable components</span>
                         </div>
                       </div>
@@ -182,7 +182,7 @@ const HomeModule = ({}: HomeModuleProps) => {
                 <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <CardHeader>
                     <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white mr-4">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#FEBF23] text-black mr-4">
                         <Shield className="w-6 h-6" />
                       </div>
                       <div>
@@ -196,9 +196,9 @@ const HomeModule = ({}: HomeModuleProps) => {
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-700">Encryption</span>
                         <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-[#FEBF23] rounded-full"></div>
+                          <div className="w-2 h-2 bg-[#FEBF23] rounded-full"></div>
+                          <div className="w-2 h-2 bg-[#FEBF23] rounded-full"></div>
                         </div>
                       </div>
                     </div>
@@ -212,7 +212,7 @@ const HomeModule = ({}: HomeModuleProps) => {
                 <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                   <CardHeader>
                     <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 text-white mr-4">
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[#FEBF23] text-black mr-4">
                         <Zap className="w-6 h-6" />
                       </div>
                       <div>
@@ -225,7 +225,7 @@ const HomeModule = ({}: HomeModuleProps) => {
                     <div className="bg-gray-50 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-12 h-2 bg-green-500 rounded-full"></div>
+                          <div className="w-12 h-2 bg-[#FEBF23] rounded-full"></div>
                         </div>
                         <span className="text-sm text-gray-700">Performance</span>
                       </div>
