@@ -413,7 +413,7 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
                   disabled={loading}
                   className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
                 >
-                  {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}
+                  {loading ? 'Saving...' : 'Save'}
                 </Button>
               </div>
             </div>
