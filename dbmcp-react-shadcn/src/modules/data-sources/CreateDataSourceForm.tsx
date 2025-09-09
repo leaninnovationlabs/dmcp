@@ -225,17 +225,10 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
   };
 
   return (
-    <div className="p-4 pt-2">
-          {/* Page Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-black">
-              {isEditMode ? 'Edit Datasource' : 'Create New Datasource'}
-            </h2>
-          </div>
-
+    <div className="h-full flex flex-col p-4">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <div className="flex items-center">
                 <div className="text-red-600 text-sm">{error}</div>
                 <button
@@ -248,11 +241,18 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
             </div>
           )}
 
-          {/* Form */}
-          <div className="bg-white px-8 pb-8 w-full">
-            <form onSubmit={handleSubmit}>
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-b border-gray-200 mb-6 pb-6">
+          {/* Header Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isEditMode ? 'Edit Datasource' : 'Create New Datasource'}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Configure database connection settings and parameters
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
                 <Button
                   type="button"
                   onClick={handleTestConnection}
@@ -272,7 +272,7 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
                     className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span>Delete Datasource</span>
+                    <span>Delete</span>
                   </Button>
                 )}
                 <Button
@@ -286,12 +286,20 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
                 </Button>
                 <Button
                   type="submit"
+                  form="datasource-form"
                   disabled={loading}
                   className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
                 >
-                  {loading ? 'Saving...' : (isEditMode ? 'Update Datasource' : 'Create Datasource')}
+                  {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* Form Section */}
+          <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6">
+              <form id="datasource-form" onSubmit={handleSubmit}>
 
 
               {/* Basic Information */}
@@ -458,7 +466,8 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
                   </div>
                 </div>
               </div>
-            </form>
+              </form>
+            </div>
           </div>
 
           {/* Delete Confirmation Dialog */}

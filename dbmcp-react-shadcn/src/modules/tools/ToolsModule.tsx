@@ -297,10 +297,6 @@ const ToolsModule = ({}: ToolsModuleProps) => {
             </p>
           </div>
 
-          {/* Breadcrumbs */}
-          <div className="flex items-center space-x-2 mb-4">
-            <span className="text-sm text-gray-500">Tools</span>
-          </div>
 
           {/* Error Message */}
           {error && (
@@ -414,8 +410,8 @@ const ToolsModule = ({}: ToolsModuleProps) => {
                     ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
+                    </div>
+                      </div>
             )}
                       </div>
                     </div>
@@ -690,7 +686,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
       setExecuting(true);
       
       // Call the actual API with parameter values
-      const response = await apiService.executeTool(token, tool.id, parameterValues);
+      const response = await apiService.executeTool(token, parseInt(tool.id), parameterValues);
       
       if (response.success && response.data?.success) {
         setExecutionResult({
@@ -794,20 +790,19 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
   };
 
   return (
-    <div className="overflow-auto bg-gray-50">
-        <div className="p-4 pt-2">
-          {/* Page Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-black">
-              {isEditMode ? 'Edit Tool' : 'Create New Tool'}
-            </h2>
+    <div className="h-full flex flex-col p-4">
+          {/* Header Section */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isEditMode ? 'Edit Tool' : 'Create New Tool'}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Configure tool settings and SQL queries for data operations
+                </p>
           </div>
-
-          {/* Form */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-8">
-            <form onSubmit={handleSubmit}>
-              {/* Form Actions */}
-              <div className="flex justify-end space-x-4 pt-6 border-b border-gray-200 mb-6 pb-6">
+              <div className="flex items-center space-x-3">
                 {isEditMode && (
                   <Button
                     type="button"
@@ -816,7 +811,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                     className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center space-x-2"
                   >
                     <Play className="w-4 h-4" />
-                    <span>Execute Tool</span>
+                    <span>Execute</span>
                   </Button>
                 )}
                 {isEditMode && (
@@ -828,7 +823,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                     className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    <span>Delete Tool</span>
+                    <span>Delete</span>
                   </Button>
                 )}
                 <Button
@@ -842,12 +837,20 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                 </Button>
                 <Button
                   type="submit"
+                  form="tool-form"
                   disabled={loading}
                   className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
                 >
-                  {loading ? 'Saving...' : (isEditMode ? 'Update Tool' : 'Create Tool')}
+                  {loading ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}
                 </Button>
               </div>
+            </div>
+              </div>
+
+          {/* Form Section */}
+          <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-6">
+              <form id="tool-form" onSubmit={handleSubmit}>
 
               {/* Basic Information */}
               <div className="mb-8">
@@ -1129,7 +1132,8 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                   )}
                 </div>
               </div>
-            </form>
+              </form>
+            </div>
           </div>
 
           {/* Delete Confirmation Dialog */}
@@ -1337,9 +1341,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                 )}
               </DialogFooter>
             </DialogContent>
-          </Dialog>
-
-        </div>
+          </Dialog>        
     </div>
   );
 };
