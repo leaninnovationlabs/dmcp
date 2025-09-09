@@ -36,12 +36,16 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             Response from the next handler or error response
         """
 
+        # Skip authentication for CORS preflight requests
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip authentication for health endpoint and other excluded paths
         if any(request.url.path.startswith(path) for path in self.excluded_paths):
             return await call_next(request)
         
         # Skip authentication for static files and UI
-        excluded_paths = ["/dmcp/ui", "/dmcp/auth/login", "/favicon.ico"]
+        excluded_paths = ["/ui", "/dmcp/ui", "/dmcp/auth/login", "/favicon.ico", "/logo.svg", "/logo.webp", "/logo.png"]
         if any(request.url.path.startswith(path) for path in excluded_paths):
             return await call_next(request)
             

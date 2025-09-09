@@ -166,4 +166,68 @@ class DatasourceService:
                 "message": f"Failed to connect to database",
                 "connection_time_ms": connection_time,
                 "error": str(e)
+            }
+    
+    async def test_connection_params(self, datasource: DatasourceCreate) -> Dict[str, Any]:
+        """Test database connection with provided parameters without saving."""
+        start_time = time.time()
+        
+        try:
+            # Create a temporary datasource object for testing
+            from ..models.database import Datasource
+            temp_datasource = Datasource(
+                name=datasource.name,
+                database_type=datasource.database_type.value,
+                host=datasource.host,
+                port=datasource.port,
+                database=datasource.database,
+                username=datasource.username,
+                connection_string=datasource.connection_string,
+                ssl_mode=datasource.ssl_mode,
+                additional_params=datasource.additional_params or {},
+            )
+            # Set password using the property to trigger encryption
+            temp_datasource.decrypted_password = datasource.password
+            
+            # Test the connection
+            connection_manager = DatabaseConnectionManager()
+            connection = await connection_manager.get_connection(temp_datasource)
+            
+            # Try to execute a simple query to test the connection
+            if datasource.database_type.value == "sqlite":
+                test_sql = "SELECT 1 as test"
+            elif datasource.database_type.value == "postgresql":
+                test_sql = "SELECT 1 as test"
+            elif datasource.database_type.value == "mysql":
+                test_sql = "SELECT 1 as test"
+            else:
+                test_sql = "SELECT 1 as test"
+            
+            result = await connection.execute(test_sql, {})
+            test_row = await result.fetchone()
+            
+            connection_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+            
+            if test_row and test_row["test"] == 1:
+                return {
+                    "success": True,
+                    "message": f"Successfully connected to {datasource.database_type.value} database '{datasource.database}'",
+                    "connection_time_ms": connection_time,
+                    "error": None
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "Connection test failed - unexpected result",
+                    "connection_time_ms": connection_time,
+                    "error": "Test query did not return expected result"
+                }
+                
+        except Exception as e:
+            connection_time = (time.time() - start_time) * 1000
+            return {
+                "success": False,
+                "message": f"Failed to connect to database: {str(e)}",
+                "connection_time_ms": connection_time,
+                "error": str(e)
             } 

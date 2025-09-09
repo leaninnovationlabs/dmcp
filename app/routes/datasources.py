@@ -308,6 +308,24 @@ async def delete_datasource(
         raise_http_error(500, "Internal server error", [str(e)])
 
 
+@router.post("/test-connection", response_model=StandardAPIResponse)
+async def test_connection_params(
+    datasource: DatasourceCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Test database connection with provided parameters without saving."""
+    try:
+        service = DatasourceService(db)
+        result = await service.test_connection_params(datasource)
+        if not result["success"]:
+            raise_http_error(400, "Connection test failed", [result["message"]])
+        return create_success_response(data=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
+
+
 @router.post("/{datasource_id}/test", response_model=StandardAPIResponse)
 async def test_datasource_connection(
     datasource_id: int,

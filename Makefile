@@ -38,8 +38,8 @@ docker-run:
 		--name dmcp \
 		--env-file .env \
 		-p 8000:8000 \
-		-v $(PWD)/dmcp.db:/app/dmcp.db \
-		public.ecr.aws/p9k6o7t1/lil/datamcp:latest
+		-v $(PWD)/data:/app/data \
+		dmcp:latest
 
 docker-build-run: docker-build docker-run
 
