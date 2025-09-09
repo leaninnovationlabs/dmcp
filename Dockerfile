@@ -66,4 +66,4 @@ USER appuser
 EXPOSE ${PORT}
 
 # Use environment variables for host and port in CMD
-CMD ["sh", "-c", "ls -la && alembic upgrade head && uvicorn main:app --host ${HOST} --port ${PORT}"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host ${HOST} --port ${PORT}"]
