@@ -1,6 +1,9 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { SessionProvider, useSession } from '@/contexts/SessionContext';
 import { Toaster } from '@/components/ui/sonner';
+import SessionExpiredDialog from '@/components/SessionExpiredDialog';
 import CloudStorageLayout from '@/components/CloudStorageLayout';
 import HomePage from '@/pages/HomePage';
 import DataSourcesPage from '@/pages/DataSourcesPage';
@@ -125,13 +128,53 @@ function AppRoutes() {
   );
 }
 
+function SessionHandler() {
+  const { isAuthenticated, logout } = useAuth();
+  const { isSessionExpired, showSessionExpired, hideSessionExpired } = useSession();
+
+
+  // Listen for session expired events
+  React.useEffect(() => {
+    const handleSessionExpired = () => {
+      if (isAuthenticated) {
+        showSessionExpired();
+      }
+    };
+
+    window.addEventListener('session-expired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('session-expired', handleSessionExpired);
+    };
+  }, [isAuthenticated, showSessionExpired]);
+
+  const handleLogout = () => {
+    hideSessionExpired();
+    logout();
+  };
+
+  return (
+    <>
+      <AppRoutes />
+      <Toaster />
+      {isAuthenticated && (
+        <SessionExpiredDialog
+          isOpen={isSessionExpired}
+          onClose={hideSessionExpired}
+          onLogout={handleLogout}
+        />
+      )}
+    </>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-        <Toaster />
-      </Router>
+      <SessionProvider>
+        <Router>
+          <SessionHandler />
+        </Router>
+      </SessionProvider>
     </AuthProvider>
   );
 }

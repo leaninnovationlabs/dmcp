@@ -150,6 +150,13 @@ class ApiService {
       if (!response.ok) {
         console.error('Request failed:', response.status, data);
         console.error('Full error details:', JSON.stringify(data, null, 2));
+        
+        // Handle 401 Unauthorized - trigger session expired
+        if (response.status === 401) {
+          // Dispatch custom event for session expired
+          window.dispatchEvent(new CustomEvent('session-expired'));
+        }
+        
         throw new ApiError(
           data.errors?.[0]?.msg || data.message || data.detail?.[0]?.msg || 'Request failed',
           response.status
@@ -159,6 +166,12 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('Request error:', error);
+      
+      // Handle network errors (CORS, connection issues, etc.) as potential 401s
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        window.dispatchEvent(new CustomEvent('session-expired'));
+      }
+      
       if (error instanceof ApiError) {
         throw error;
       }
@@ -366,7 +379,7 @@ class ApiService {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
-      body: { parameters },
+      body: JSON.stringify({ parameters }),
     });
   }
 
