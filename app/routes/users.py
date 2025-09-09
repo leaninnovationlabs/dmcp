@@ -275,16 +275,27 @@ async def delete_user(
 
 
 
-@router.post("/{user_id}/change-password", response_model=StandardAPIResponse)
-async def change_password(
-    user_id: int,
+@router.post("/me/change-password", response_model=StandardAPIResponse)
+async def change_current_user_password(
+    request: Request,
     password_data: UserPasswordChange,
     db: AsyncSession = Depends(get_db)
 ):
-    """Change a user's password."""
+    """Change the current user's password."""
     try:
+        # Get user info from JWT token (set by auth middleware)
+        user_info = getattr(request.state, 'user', None)
+        
+        if not user_info or 'user_id' not in user_info:
+            return JSONResponse(
+                status_code=401,
+                content=create_error_response(
+                    errors=["User not authenticated"]
+                ).model_dump()
+            )
+        
         user_service = UserService(db)
-        success = await user_service.change_password(user_id, password_data)
+        success = await user_service.change_password(user_info['user_id'], password_data)
         
         if not success:
             return JSONResponse(

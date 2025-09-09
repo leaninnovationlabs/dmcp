@@ -8,6 +8,7 @@ import { PasswordStrengthIndicator } from '@/components/ui/password-strength';
 import { apiService, ApiError } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Key, Undo2, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ChangePasswordModuleProps {
   onSuccess?: () => void;
@@ -102,27 +103,38 @@ export default function ChangePasswordModule({ onSuccess, onCancel }: ChangePass
 
       if (response.success) {
         setSuccess('Password changed successfully!');
+        toast.success(response.data?.message || 'Password changed successfully!');
         resetForm();
         setTimeout(() => {
           onSuccess?.();
         }, 2000);
       } else {
-        setError(response.errors?.[0]?.msg || 'Failed to change password. Please try again.');
+        const errorMessage = response.errors?.[0]?.msg || 'Failed to change password. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 400) {
-          setError('Invalid current password. Please check your current password and try again.');
+          const errorMessage = 'Invalid current password. Please check your current password and try again.';
+          setError(errorMessage);
+          toast.error(errorMessage);
         } else if (err.status === 401) {
-          setError('Authentication failed. Please log in again.');
+          const errorMessage = 'Authentication failed. Please log in again.';
+          setError(errorMessage);
+          toast.error(errorMessage);
           setTimeout(() => {
             window.location.href = '/';
           }, 2000);
         } else {
-          setError('An error occurred while changing your password. Please try again.');
+          const errorMessage = 'An error occurred while changing your password. Please try again.';
+          setError(errorMessage);
+          toast.error(errorMessage);
         }
       } else {
-        setError('An error occurred while changing your password. Please try again.');
+        const errorMessage = 'An error occurred while changing your password. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } finally {
       setIsLoading(false);
@@ -299,7 +311,7 @@ export default function ChangePasswordModule({ onSuccess, onCancel }: ChangePass
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-black hover:bg-gray-800"
+                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
                 >
                   <Key className="h-4 w-4 mr-2" />
                   {isLoading ? 'Changing Password...' : 'Change Password'}

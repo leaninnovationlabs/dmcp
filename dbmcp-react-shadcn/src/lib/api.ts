@@ -187,7 +187,7 @@ class ApiService {
   }
 
   async changePassword(token: string, passwordData: ChangePasswordRequest): Promise<ChangePasswordResponse> {
-    return this.request<ChangePasswordResponse>('/dmcp/users/change-password', {
+    return this.request<ChangePasswordResponse>('/dmcp/users/me/change-password', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
