@@ -139,21 +139,22 @@ const DataSources = ({}: DataSourcesProps) => {
             </div>
           )}
 
-          {/* Action Buttons Row */}
-          <div className="flex items-center space-x-4 mb-6">
-            <Button onClick={handleAddDataSource} className="flex flex-col items-center space-y-2 bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] px-6 py-4 h-auto">
-              <Plus className="w-5 h-5" />
-              <span className="text-sm">Add New Data Source</span>
-            </Button>
-          </div>
-
           {/* Data Sources Overview */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Eye className="w-5 h-5 text-[#FEBF23]" />
-              <h3 className="text-lg font-semibold text-gray-900">Data Sources Overview</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Eye className="w-5 h-5 text-[#FEBF23]" />
+                <h3 className="text-lg font-semibold text-gray-900">Data Sources Overview</h3>
+              </div>
+              <Button 
+                onClick={handleAddDataSource} 
+                className="flex items-center space-x-2 bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] px-4 py-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Data Source</span>
+              </Button>
             </div>
-            <p className="text-gray-600 mb-3">
+            <p className="text-gray-600 mb-4">
               Manage your connected data sources and monitor their status.
               <a href="https://dmcp.opsloom.io/configure-datasources.html" target="_blank" rel="noopener noreferrer" className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium">
                 View documentation
@@ -208,7 +209,7 @@ const DataSources = ({}: DataSourcesProps) => {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead>
+                    <thead className="bg-gray-50 sticky top-0 z-10">
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 px-4 font-medium text-gray-900">Name</th>
                         <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
@@ -221,7 +222,10 @@ const DataSources = ({}: DataSourcesProps) => {
                         <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
                       </tr>
                     </thead>
-                    <tbody>
+                  </table>
+                  <div className="max-h-96 overflow-y-auto">
+                    <table className="w-full">
+                      <tbody>
                       {dataSources.map((dataSource) => (
                         <tr key={dataSource.id} className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4">
@@ -281,8 +285,9 @@ const DataSources = ({}: DataSourcesProps) => {
                           </td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>

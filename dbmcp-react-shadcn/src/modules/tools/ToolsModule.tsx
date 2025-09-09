@@ -274,24 +274,22 @@ const ToolsModule = ({}: ToolsModuleProps) => {
   return (
     <div className="overflow-auto bg-gray-50">
         <div className="p-4 pt-8">
-          {/* Action Buttons Row */}
-          <div className="flex items-center space-x-4 mb-6">
-            <Button 
-              onClick={handleAddTool}
-              className="flex flex-col items-center space-y-2 bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] px-6 py-4 h-auto"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="text-sm">Add New Tool</span>
-            </Button>
-          </div>
-
           {/* Tools Overview */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-            <div className="flex items-center space-x-2 mb-2">
-              <Eye className="w-5 h-5 text-[#FEBF23]" />
-              <h3 className="text-lg font-semibold text-gray-900">Tools Overview</h3>
-            </div>
-            <p className="text-gray-600 mb-3">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Eye className="w-5 h-5 text-[#FEBF23]" />
+                <h3 className="text-lg font-semibold text-gray-900">Tools Overview</h3>
+              </div>
+            <Button 
+              onClick={handleAddTool}
+                className="flex items-center space-x-2 bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] px-4 py-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Tool</span>
+            </Button>
+          </div>
+            <p className="text-gray-600">
               Manage your development and productivity tools.
               <a href="https://dmcp.opsloom.io/create-tools.html" target="_blank" rel="noopener noreferrer" className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium">
                 View documentation
@@ -347,7 +345,7 @@ const ToolsModule = ({}: ToolsModuleProps) => {
               /* Tools Table */
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead>
+                  <thead className="bg-gray-50 sticky top-0 z-10">
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-3 px-4 font-medium text-gray-900">Name</th>
                       <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
@@ -358,7 +356,10 @@ const ToolsModule = ({}: ToolsModuleProps) => {
                       <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                </table>
+                <div className="max-h-96 overflow-y-auto">
+                  <table className="w-full">
+                    <tbody>
                     {tools.map((tool) => (
                       <tr key={tool.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4">
@@ -411,9 +412,10 @@ const ToolsModule = ({}: ToolsModuleProps) => {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-                    </div>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
                       </div>
                     </div>
@@ -442,7 +444,7 @@ const ToolsModule = ({}: ToolsModuleProps) => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-    </div>
+                    </div>
   );
 };
 
@@ -1162,7 +1164,7 @@ const CreateToolForm = ({ tool, datasources, onSave, onCancel, onDelete, navigat
                 <div className="bg-gray-50 rounded-lg p-4 space-y-1">
                   <h3 className="font-semibold text-lg text-black">{tool?.name}</h3>
                   <p className="text-sm text-black">{tool?.description}</p>
-                </div>
+        </div>
 
                 {/* Parameters Section - Only show when no execution result */}
                 {!executionResult && (
