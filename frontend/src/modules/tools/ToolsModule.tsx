@@ -146,9 +146,6 @@ const ToolsModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideb
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
 
   const getDatasourceName = (datasourceId: string) => {
     const datasource = datasources.find(ds => ds.id === parseInt(datasourceId));
@@ -325,21 +322,17 @@ const ToolsModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideb
             ) : (
               /* Tools Table */
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Name</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Description</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Datasource</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Parameters</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Created</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
-                    </tr>
-                  </thead>
-                </table>
                 <div className="max-h-96 overflow-y-auto">
                   <table className="w-full">
+                    <thead className="bg-gray-50 sticky top-0 z-10">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Description</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Datasource</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+                      </tr>
+                    </thead>
                     <tbody>
                     {tools.map((tool) => (
                       <tr key={tool.id} className="border-b border-gray-100 hover:bg-gray-50">
@@ -358,16 +351,6 @@ const ToolsModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideb
                         </td>
                         <td className="py-3 px-4">
                           <span className="text-sm text-gray-600">{getDatasourceName(tool.datasource_id)}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-sm text-gray-600">
-                            {tool.parameters?.length || 0} parameter{(tool.parameters?.length || 0) !== 1 ? 's' : ''}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-sm text-gray-500">
-                            {formatDate(tool.created_at)}
-                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex space-x-1">
