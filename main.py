@@ -2,7 +2,7 @@ from fastmcp import FastMCP
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse, FileResponse
+from starlette.responses import JSONResponse
 from starlette.routing import Mount
 from fastapi.staticfiles import StaticFiles
 
@@ -27,6 +27,7 @@ mcp.add_middleware(CustomizeToolsList())
 mcp_app = mcp.http_app(path="/mcp", stateless_http=True)
 
 starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
+mcp_app.mount("/ui", StaticFiles(directory="frontend/dist", html=True), name="static")
 
 app = FastAPI(
     title="DMCP - Database Backend Server",
@@ -50,40 +51,19 @@ async def test(request: Request):
     server._register_database_tools()
     return JSONResponse({"status": "healthy", "message": "DMCP server is running"})
 
-# Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
-    f"{settings.mcp_path}/auth", 
-    f"{settings.mcp_path}/docs", 
-    f"{settings.mcp_path}/redoc", 
-    f"{settings.mcp_path}/openapi.json"])
-
 app.include_router(health.router, prefix=f"{settings.mcp_path}")
 app.include_router(auth.router, prefix=f"{settings.mcp_path}")
 app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
 app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 app.include_router(users.router, prefix=f"{settings.mcp_path}")
 
-# Serve static assets for React app
-@app.get("/ui/assets/{file_path:path}")
-async def serve_react_assets(file_path: str):
-    return FileResponse(f"frontend/dist/assets/{file_path}")
-
-@app.get("/ui/logo.webp")
-async def serve_logo_webp():
-    return FileResponse("frontend/dist/logo.webp")
-
-@app.get("/ui/logo.png")
-async def serve_logo_png():
-    return FileResponse("frontend/dist/logo.png")
-
-@app.get("/ui/vite.svg")
-async def serve_vite_svg():
-    return FileResponse("frontend/dist/vite.svg")
-
-# Catch-all route for React app - serves index.html for any /ui/ path
-@app.get("/ui/{path:path}")
-async def serve_react_app(path: str):
-    return FileResponse("frontend/dist/index.html")
+# Add Bearer token authentication middleware
+app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
+    f"{settings.mcp_path}/auth", 
+    f"{settings.mcp_path}/docs", 
+    f"{settings.mcp_path}/redoc", 
+    f"{settings.mcp_path}/openapi.json", 
+    f"{settings.mcp_path}/ui"])
 
 app.mount("/", starlette)
 
