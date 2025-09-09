@@ -34,7 +34,7 @@ stop:
 	pkill -f "main.py"
 
 docker-build:
-	docker build -t dmcp:latest .
+	docker build -t datamcp:latest .
 
 docker-run:
 	docker run \
@@ -42,7 +42,7 @@ docker-run:
 		--env-file .env \
 		-p 8000:8000 \
 		-v $(PWD)/data:/app/data \
-		dmcp:latest
+		datamcp:latest
 
 docker-build-run: docker-build docker-run
 
