@@ -49,7 +49,10 @@ COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appuser /app/main.py /app/alembic.ini ./
 COPY --from=builder --chown=appuser:appuser /app/app ./app
 COPY --from=builder --chown=appuser:appuser /app/alembic ./alembic
-COPY --from=builder --chown=appuser:appuser /app/frontend/dist ./frontend
+COPY --from=builder --chown=appuser:appuser /app/public /app/public
+
+# Create data directory for SQLite database
+RUN mkdir -p /app/data && chown appuser:appuser /app/data
 
 ENV PATH="/app/.venv/bin:$PATH"
 
@@ -63,4 +66,4 @@ USER appuser
 EXPOSE ${PORT}
 
 # Use environment variables for host and port in CMD
-CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host ${HOST} --port ${PORT}"]
+CMD ["sh", "-c", "ls -la && alembic upgrade head && uvicorn main:app --host ${HOST} --port ${PORT}"]

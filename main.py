@@ -3,7 +3,7 @@ from fastmcp import FastMCP
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Mount
 from fastapi.staticfiles import StaticFiles
 
@@ -58,6 +58,8 @@ app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
 app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 app.include_router(users.router, prefix=f"{settings.mcp_path}")
 
+
+
 # Serve static assets for React app
 @app.get("/dmcp/ui/assets/{file_path:path}")
 async def serve_react_assets(file_path: str):
@@ -80,6 +82,12 @@ async def serve_vite_svg():
 @app.get("/dmcp/ui/{path:path}")
 async def serve_react_app(path: str):
     return FileResponse("public/index.html")
+
+
+# Add a redirect to the root path to /dmcp/ui
+@app.get("/")
+async def redirect_to_ui():
+    return RedirectResponse(f"{settings.mcp_path}/ui/")
 
 # Add Bearer token authentication middleware
 app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
