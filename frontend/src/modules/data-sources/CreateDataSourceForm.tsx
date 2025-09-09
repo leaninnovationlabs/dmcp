@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,8 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-
-import { DataSource, apiService, ApiError } from '@/lib/api';
+import { DataSource, apiService, ApiError, DatasourceFieldConfig } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateDataSourceFormProps {
@@ -39,19 +38,84 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
     password: '',
     connection_string: dataSource?.connection_string || '',
     ssl_mode: dataSource?.ssl_mode || '',
-    additional_params: dataSource?.additional_params ? JSON.stringify(dataSource.additional_params, null, 2) : ''
+    additional_params: dataSource?.additional_params ? JSON.stringify(dataSource.additional_params, null, 2) : '',
+    // SQLite fields
+    sqlite_database: '',
+    // Databricks fields
+    databricks_host: '',
+    http_path: '',
+    databricks_token: '',
+    catalog: '',
+    schema: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [testingConnection, setTestingConnection] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fieldConfigs, setFieldConfigs] = useState<Record<string, DatasourceFieldConfig> | null>(null);
+  const [loadingFieldConfigs, setLoadingFieldConfigs] = useState(true);
   const isEditMode = !!dataSource;
+
+  // Load field configurations on component mount
+  useEffect(() => {
+    const loadFieldConfigs = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await apiService.getDataSourceFieldConfig(token);
+        if (response.success && response.data) {
+          setFieldConfigs(response.data);
+        } else {
+          toast.error('Failed to load field configurations');
+        }
+      } catch (err) {
+        if (err instanceof ApiError) {
+          toast.error(err.message);
+        } else {
+          toast.error('An unexpected error occurred while loading field configurations');
+        }
+      } finally {
+        setLoadingFieldConfigs(false);
+      }
+    };
+
+    loadFieldConfigs();
+  }, [token]);
+
+  // Populate form with existing datasource data
+  useEffect(() => {
+    if (dataSource && fieldConfigs) {
+      populateForm(dataSource);
+    }
+  }, [dataSource, fieldConfigs]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  // Populate form with datasource data
+  const populateForm = (datasource: DataSource) => {
+    setFormData(prev => ({
+      ...prev,
+      name: datasource.name,
+      database_type: datasource.database_type,
+      host: datasource.host || '',
+      port: datasource.port?.toString() || '',
+      database: datasource.database || '',
+      username: datasource.username || '',
+      connection_string: datasource.connection_string || '',
+      ssl_mode: datasource.ssl_mode || '',
+      additional_params: datasource.additional_params ? JSON.stringify(datasource.additional_params, null, 2) : '',
+      // Populate fields based on database type
+      sqlite_database: datasource.database_type === 'sqlite' ? datasource.database : '',
+      databricks_host: datasource.database_type === 'databricks' ? datasource.host : '',
+      http_path: datasource.database_type === 'databricks' ? (datasource.additional_params?.http_path || '') : '',
+      catalog: datasource.database_type === 'databricks' ? (datasource.additional_params?.catalog || '') : '',
+      schema: datasource.database_type === 'databricks' ? (datasource.additional_params?.schema || '') : ''
     }));
   };
 
@@ -169,10 +233,22 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
 
     try {
       // Validate required fields
-      if (!formData.name || !formData.database_type || !formData.host || !formData.port || !formData.database || !formData.username || !formData.password) {
+      if (!formData.name || !formData.database_type) {
         setError('Please fill in all required fields');
         setLoading(false);
         return;
+      }
+
+      // Type-specific validation using field configurations
+      if (fieldConfigs && fieldConfigs[formData.database_type]) {
+        const config = fieldConfigs[formData.database_type];
+        for (const field of config.fields) {
+          if (field.required && !formData[field.name as keyof typeof formData]) {
+            setError(`Please fill in the required field: ${field.label}`);
+            setLoading(false);
+            return;
+          }
+        }
       }
 
       // Parse additional params if provided
@@ -187,18 +263,8 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
         }
       }
 
-      const dataSourceData = {
-        name: formData.name,
-        database_type: formData.database_type,
-        host: formData.host,
-        port: parseInt(formData.port),
-        database: formData.database,
-        username: formData.username,
-        password: formData.password,
-        connection_string: formData.connection_string || undefined,
-        ssl_mode: formData.ssl_mode || undefined,
-        additional_params: Object.keys(additionalParams).length > 0 ? additionalParams : undefined
-      };
+      // Build data source data based on database type
+      const dataSourceData = getFormDataForDatabaseType(formData, additionalParams);
 
       if (isEditMode && dataSource) {
         // Update existing datasource
@@ -221,6 +287,63 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Get form data based on database type
+  const getFormDataForDatabaseType = (formData: any, additionalParams: any): any => {
+    const baseData = {
+      name: formData.name,
+      database_type: formData.database_type,
+      connection_string: formData.connection_string || undefined,
+      additional_params: Object.keys(additionalParams).length > 0 ? additionalParams : undefined
+    };
+
+    switch (formData.database_type) {
+      case 'sqlite':
+        return {
+          ...baseData,
+          database: formData.sqlite_database,
+          host: '',
+          port: 0,
+          username: '',
+          password: ''
+        };
+      case 'postgresql':
+      case 'mysql':
+        return {
+          ...baseData,
+          host: formData.host,
+          port: parseInt(formData.port),
+          database: formData.database,
+          username: formData.username,
+          password: formData.password,
+          ssl_mode: formData.ssl_mode || undefined
+        };
+      case 'databricks':
+        return {
+          ...baseData,
+          host: formData.databricks_host,
+          password: formData.databricks_token,
+          database: 'databricks',
+          port: 0,
+          username: '',
+          additional_params: {
+            ...additionalParams,
+            http_path: formData.http_path,
+            catalog: formData.catalog,
+            schema: formData.schema
+          }
+        };
+      default:
+        return {
+          ...baseData,
+          host: '',
+          port: 0,
+          database: '',
+          username: '',
+          password: ''
+        };
     }
   };
 
@@ -299,174 +422,152 @@ const CreateDataSourceForm = ({ dataSource, onSave, onCancel, onDelete }: Create
           {/* Form Section */}
           <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col">
             <div className="flex-1 overflow-y-auto p-6">
-              <form id="datasource-form" onSubmit={handleSubmit}>
-
-
-              {/* Basic Information */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
-                  Basic Information
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="My Database"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Database Type <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={formData.database_type}
-                      onChange={(e) => handleInputChange('database_type', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                    >
-                      <option value="">Select database type</option>
-                      <option value="postgresql">PostgreSQL</option>
-                      <option value="mysql">MySQL</option>
-                      <option value="sqlite">SQLite</option>
-                    </select>
-                  </div>
+              {loadingFieldConfigs ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                  <span className="ml-3 text-gray-600">Loading form configuration...</span>
                 </div>
-              </div>
+              ) : (
+                <form id="datasource-form" onSubmit={handleSubmit}>
+                  {/* Basic Information */}
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                      Basic Information
+                    </h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                          placeholder="My Database"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Database Type <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          value={formData.database_type}
+                          onChange={(e) => handleInputChange('database_type', e.target.value)}
+                          required
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                        >
+                          <option value="">Select database type</option>
+                          <option value="postgresql">PostgreSQL</option>
+                          <option value="mysql">MySQL</option>
+                          <option value="sqlite">SQLite</option>
+                          <option value="databricks">Databricks</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Connection Details */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
-                  Connection Details
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Host <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.host}
-                      onChange={(e) => handleInputChange('host', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="localhost"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Port <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.port}
-                      onChange={(e) => handleInputChange('port', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="5432"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Database Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.database}
-                      onChange={(e) => handleInputChange('database', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="mydatabase"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Username <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.username}
-                      onChange={(e) => handleInputChange('username', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="username"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Password <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SSL Mode
-                    </label>
-                    <select
-                      value={formData.ssl_mode}
-                      onChange={(e) => handleInputChange('ssl_mode', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                    >
-                      <option value="">Select SSL mode</option>
-                      <option value="disable">Disable</option>
-                      <option value="prefer">Prefer</option>
-                      <option value="require">Require</option>
-                      <option value="verify-ca">Verify CA</option>
-                      <option value="verify-full">Verify Full</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+                  {/* Dynamic Configuration Sections */}
+                  {fieldConfigs && formData.database_type && fieldConfigs[formData.database_type] && (
+                    <div className="mb-8">
+                      {fieldConfigs[formData.database_type].sections.map((section) => (
+                        <div key={section.id} className="mb-8">
+                          <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                            {section.title}
+                          </h2>
+                          <p className="text-gray-600 mb-4">{section.description}</p>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {fieldConfigs[formData.database_type].fields.map((field) => (
+                              <div key={field.name}>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                                </label>
+                                {field.type === 'password' ? (
+                                  <input
+                                    type="password"
+                                    value={formData[field.name as keyof typeof formData] || ''}
+                                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                    required={field.required}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                    placeholder={field.placeholder || ''}
+                                  />
+                                ) : field.type === 'text' ? (
+                                  <input
+                                    type="text"
+                                    value={formData[field.name as keyof typeof formData] || ''}
+                                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                    required={field.required}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                    placeholder={field.placeholder || ''}
+                                  />
+                                ) : field.type === 'number' ? (
+                                  <input
+                                    type="number"
+                                    value={formData[field.name as keyof typeof formData] || ''}
+                                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                    required={field.required}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                    placeholder={field.placeholder || ''}
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={formData[field.name as keyof typeof formData] || ''}
+                                    onChange={(e) => handleInputChange(field.name, e.target.value)}
+                                    required={field.required}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                    placeholder={field.placeholder || ''}
+                                  />
+                                )}
+                                {field.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{field.description}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-              {/* Advanced Options */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
-                  Advanced Options
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Connection String (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.connection_string}
-                      onChange={(e) => handleInputChange('connection_string', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                      placeholder="postgresql://user:pass@host:port/db"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      If provided, this will override the individual connection parameters above.
-                    </p>
+                  {/* Advanced Options */}
+                  <div className="mb-8">
+                    <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                      Advanced Options
+                    </h2>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Connection String (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.connection_string}
+                          onChange={(e) => handleInputChange('connection_string', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                          placeholder="postgresql://user:pass@host:port/db"
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                          If provided, this will override the individual connection parameters above.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Additional Parameters (JSON)
+                        </label>
+                        <textarea
+                          value={formData.additional_params}
+                          onChange={(e) => handleInputChange('additional_params', e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
+                          placeholder='{"key": "value"}'
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Additional Parameters (JSON)
-                    </label>
-                    <textarea
-                      value={formData.additional_params}
-                      onChange={(e) => handleInputChange('additional_params', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
-                      placeholder='{"key": "value"}'
-                    />
-                  </div>
-                </div>
-              </div>
-              </form>
+                </form>
+              )}
             </div>
           </div>
 

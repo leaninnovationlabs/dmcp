@@ -68,11 +68,11 @@ export interface DataSource {
 export interface DataSourceCreateRequest {
   name: string;
   database_type: string;
-  host: string;
-  port: number;
+  host?: string;
+  port?: number;
   database: string;
-  username: string;
-  password: string;
+  username?: string;
+  password?: string;
   connection_string?: string;
   ssl_mode?: string;
   additional_params?: Record<string, any>;
@@ -87,6 +87,32 @@ export interface DataSourceResponse {
 export interface DataSourcesListResponse {
   success: boolean;
   data?: DataSource[];
+  errors?: Array<{ msg: string }>;
+}
+
+export interface FieldDefinition {
+  name: string;
+  type: string;
+  label: string;
+  required: boolean;
+  placeholder?: string;
+  description?: string;
+  validation?: Record<string, any>;
+}
+
+export interface DatasourceFieldConfig {
+  database_type: string;
+  fields: FieldDefinition[];
+  sections: Array<{
+    id: string;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface FieldConfigResponse {
+  success: boolean;
+  data?: Record<string, DatasourceFieldConfig>;
   errors?: Array<{ msg: string }>;
 }
 
@@ -282,6 +308,15 @@ class ApiService {
   async testExistingDataSourceConnection(token: string, id: number): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
     return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>(`/dmcp/datasources/${id}/test`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async getDataSourceFieldConfig(token: string): Promise<FieldConfigResponse> {
+    return this.request<FieldConfigResponse>('/dmcp/datasources/field-config', {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
