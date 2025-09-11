@@ -1,0 +1,4 @@
+---
+# defaults file for install
+CONTROL_PLANE_URL: "http://localhost:8080/controlplane/api/v1/"
+APP_BUNDLE_FILE_PATH: "../../../appbundle.yml"

@@ -1,0 +1,6 @@
+---
+- name: install
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - uninstall
