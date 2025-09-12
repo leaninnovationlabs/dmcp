@@ -421,6 +421,16 @@ class ApiService {
     });
   }
 
+  async refreshTools(token: string): Promise<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }> {
+    console.log('Refreshing tools with token:', token ? 'exists' : 'missing');
+    return this.request<{ success: boolean; data?: any; errors?: Array<{ msg: string }> }>('/dmcp/tools/refresh', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
 }
 
 export const apiService = new ApiService();

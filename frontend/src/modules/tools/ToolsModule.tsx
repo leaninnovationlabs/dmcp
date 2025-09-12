@@ -167,10 +167,16 @@ const ToolsModule = ({ onModuleChange: _onModuleChange, sidebarCollapsed: _sideb
     setEditingTool(null);
   };
 
-  const handleSaveTool = (_tool: ToolItem) => {
+  const handleSaveTool = async (_tool: ToolItem) => {
     // Refresh the data after saving
     if (token) {
-      fetchData();
+      try {
+        // Trigger tools refresh from API
+        await apiService.refreshTools(token);
+      } catch (err) {
+        console.error('Error refreshing tools after save:', err);
+      }
+      await fetchData();
     }
     setShowCreateForm(false);
     setEditingTool(null);
