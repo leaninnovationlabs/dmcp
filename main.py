@@ -89,6 +89,11 @@ async def serve_react_app(path: str):
 async def redirect_to_ui():
     return RedirectResponse(f"dmcp/ui/")
 
+@app.get("/dmcp")
+async def redirect_to_dmcp_ui():
+    return RedirectResponse(f"dmcp/ui/")
+
+
 # Add Bearer token authentication middleware
 app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
     f"{settings.mcp_path}/auth", 

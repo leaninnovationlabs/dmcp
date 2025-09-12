@@ -23,9 +23,9 @@ class CustomizeToolsList(Middleware):
         tools = await call_next(context)  # list[Tool] (FastMCP component objects)
 
         # Example 1: filter by tag (hide admin-only tools for non-admins)
-        is_admin = False  # swap for your real check (token/claims, etc.)
-        if not is_admin:
-            tools = [t for t in tools if "admin" not in t.tags]
+        # is_admin = False  # swap for your real check (token/claims, etc.)
+        # if not is_admin:
+        #     tools = [t for t in tools if "admin" not in t.tags]
 
         # Example 2: rename/retitle/add meta by returning transformed copies
         # new_tools = []
