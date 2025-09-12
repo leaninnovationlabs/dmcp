@@ -2,6 +2,8 @@
 
 # Default port if not specified
 PORT ?= 8000
+APP_NAME ?= dmcp
+APP_VERSION := $(shell grep "version:" bundles/$(APP_NAME)/appbundle.yml | head -n 1 | awk '{print $$2}')
 
 help:
 	@echo "Available targets:"
@@ -33,7 +35,7 @@ down:
 	pkill -f "main.py"
 
 docker-build:
-	docker build -t datamcp:latest .
+	docker build -t $(APP_NAME):$(APP_VERSION) .
 
 docker-up:
 	docker run \
@@ -47,3 +49,24 @@ docker-down:
 	docker stop dmcp || true
 	docker rm dmcp || true
 
+
+appbundle:
+	@echo "Removing old $(APP_NAME).tar.gz and dist/ folder..."
+	@rm -f $(APP_NAME)-$(APP_VERSION).tar.gz
+	@rm -rf dist
+	@echo "Creating temporary folder dist/$(APP_NAME)..."
+	@mkdir -p dist/$(APP_NAME)
+	@echo "Copying roles/ and actions/..."
+	@cp -r bundles/${APP_NAME}/roles dist/$(APP_NAME)/
+	@cp -r bundles/${APP_NAME}/actions dist/$(APP_NAME)/
+	@cp bundles/${APP_NAME}/appbundle.yml dist/$(APP_NAME)/
+	@cp bundles/${APP_NAME}/ansible.cfg dist/$(APP_NAME)/ansible.cfg
+	@echo "Building Docker image via existing docker target..."
+	@$(MAKE) docker-build
+	@echo "Saving Docker image tar..."
+	@docker save $(APP_NAME):$(APP_VERSION) | gzip > dist/docker-image.tar.gz
+	@mkdir -p dist/$(APP_NAME)/images
+	@mv dist/docker-image.tar.gz dist/$(APP_NAME)/images/$(APP_NAME).tar.gz
+	@echo "Creating final tarball $(APP_NAME)-$(APP_VERSION).tar.gz..."
+	@cd dist/${APP_NAME} && find . -type f -name '*.tgz' -o -name '*.tar.gz' -o -name '*.yml' -o -name 'ansible.cfg' | tar czf ../$(APP_NAME)-$(APP_VERSION).tar.gz -T -
+	@echo "Appbundle created at dist/$(APP_NAME)-$(APP_VERSION).tar.gz"

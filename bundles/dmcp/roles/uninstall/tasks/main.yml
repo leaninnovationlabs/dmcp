@@ -1,0 +1,24 @@
+---
+- name: Load application bundle
+  include_vars:
+    file: "{{ APP_BUNDLE_FILE_PATH }}"
+    name: app_bundle
+
+- name: Uninstall application service directly using application name
+  uri:
+    url: "{{ control_plane_url }}/runtime/uninstall"
+    method: POST
+    body_format: json
+    body:
+      version: "{{ app_bundle.application.version }}"
+      applicationName: "{{ app_bundle.application.name }}"
+      serviceName: "{{ app_bundle.application.services[0].name }}"
+    status_code: 200
+    headers:
+      Content-Type: "application/json"
+      Authorization: "{{ auth_token }}"
+  register: uninstall_response
+
+- name: Display uninstall results
+  debug:
+    msg: "Uninstall response: {{ uninstall_response }}"

@@ -1,0 +1,27 @@
+---
+# This playbook deploys the application service using the application bundle and token file.
+# It retrieves the application bundle and token from extra vars passed via -e,
+# sets the bearer token, and deploys the application service using the control plane URL.
+
+- name: Gather facts
+  ansible.builtin.setup:
+
+- name: Load application bundle
+  include_vars:
+    file: "{{ APP_BUNDLE_FILE_PATH }}"
+    name: app_bundle
+
+- name: Deploy application service directly using application name
+  uri:
+    url: "{{ control_plane_url }}/runtime/deploy"
+    method: POST
+    body_format: json
+    body:
+      version: "{{ app_bundle.application.version }}"
+      applicationName: "{{ app_bundle.application.name }}"
+      serviceName: "{{ app_bundle.service.name }}"
+    status_code: 200
+    headers:
+      Content-Type: "application/json"
+      Authorization: "{{ auth_token }}"
+  register: deploy_response
