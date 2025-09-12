@@ -3,31 +3,30 @@ size: 15M
 application:
   artifact_size: ""
   name: dmcp
-  version: 1.0.1
+  version: 1.0.0
   replica_count: 1
   namespace: dmcp # This would be used for creating a namespace before deployment( if Name space does not exists)
-  brief_description: A Minimal dmcp app
+  brief_description: DataMCP - Data Model Context Protocol
   about: | # Markdown overview of app
-    ### ⚓ dmcp App
-    - This is version 1.0.1.
-    - The **dmcp App** is deployed at naval edge sites to provide low-latency access to operational data, personnel tools, and logistics systems, even with limited or intermittent connectivity.  
-    Designed for resilience, it supports offline-first workflows such as digital ID, mission briefings, supply tracking, and training access.  
-    The edge version runs in lightweight containers (e.g., Docker) orchestrated by Kubernetes (K3s) and stores data locally using embedded databases like SQLite, syncing to central systems when online.  
-    Role-based access and encryption ensure defense-grade security on-site.  
-    This deployment ensures command units stay mission-ready with full functionality, even at the tactical edge.
+    ## DataMCP - Data Model Context Protocol
+    - A Python backend server built with FastAPI that can connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants. The server provides APIs for managing datasources, creating named operations, and executing operations with parameter support and pagination.
+    - You can find the documentation [here](https://dmcp.opsloom.io/)
   whats_new: | # Markdown release Details
-    ### ✅ Key Updates:
-    - Fixed app name to clearly reflect its purpose and deployment context.
-    - App can now be **installed or uninstalled** based on its current state.
-    - If the app is installed, an **Uninstall** option is shown.
-    - From the **App Store page**, users can view details and **install the app** as needed.
+    ## Features:
+    - **Datasource Management**: Ability to connect to various data sources
+    - **Named Operations**: Store and manage parameterized operations with jinja template support
+    - **Operation Execution**: Run operations with parameter support and pagination
+    - **Multiple Data Source Support**: PostgreSQL, MySQL, SQLite, Databricks, APIs, and more coming soon
+    - **MCP Tool Support**: Expose data operations as MCP tools
+    - **Authentication**: Support for bearer token authentication
+    - **UI**: A simple UI for managing datasources and operations
 
   # Environment variables - mix of secrets and static configuration
 image:
   pullPolicy: Always
 env:
   # These will be injected from Kubernetes secrets
-  SECRET_KEY: "{jwt.secret_key}"
+  SECRET_KEY: "{dmcp.jwt.secret_key}"
   # Static configuration values (won't be touched by secret injection)
   PORT: "80"
 service:
