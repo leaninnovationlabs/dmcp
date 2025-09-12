@@ -1,4 +1,4 @@
-.PHONY: help install migrate start stop docker-build docker-run docker-stop docker-clean
+.PHONY: help install migrate up down docker-build docker-up docker-down
 
 # Default port if not specified
 PORT ?= 8000
@@ -8,12 +8,11 @@ help:
 	@echo "  help         - Show this help message"
 	@echo "  install      - Install dependencies with uv"
 	@echo "  migrate      - Run database migrations"
-	@echo "  start        - Start the application (runs migrate first)"
-	@echo "  stop         - Stop the running application"
+	@echo "  up        - Start the application (runs migrate first)"
+	@echo "  down         - Stop the running application"
 	@echo "  docker-build - Build Docker image"
-	@echo "  docker-run   - Build and run Docker container"
-	@echo "  docker-stop  - Stop and remove Docker container"
-	@echo "  docker-clean - Stop container and remove image"
+	@echo "  docker-up   - Build and run Docker container"
+	@echo "  docker-down  - Stop and remove Docker container"
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  PORT         - Port to use (default: 8000)"
@@ -27,28 +26,24 @@ db-migrate:
 db-truncate:
 	uv run alembic downgrade base
 
-start: db-migrate
+up: db-migrate
 	uv run main.py
 
-stop:
+down:
 	pkill -f "main.py"
 
 docker-build:
 	docker build -t datamcp:latest .
 
-docker-run:
+docker-up:
 	docker run \
 		--name dmcp \
 		--env-file .env \
-		-p 8000:8000 \
+		-p 9000:8000 \
 		-v $(PWD)/data:/app/data \
 		datamcp:latest
 
-docker-build-run: docker-build docker-run
-
-docker-stop:
+docker-down:
 	docker stop dmcp || true
 	docker rm dmcp || true
 
-docker-clean: docker-stop
-	docker rmi dmcp:latest || true
