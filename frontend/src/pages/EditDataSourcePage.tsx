@@ -1,8 +1,9 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import CreateDataSourceForm from '@/modules/data-sources/CreateDataSourceForm';
-import { apiService, DataSource } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import CreateDataSourceForm from "@/modules/data-sources/CreateDataSourceForm";
+import { apiService, DataSource } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function EditDataSourcePage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function EditDataSourcePage() {
           setDataSource(response.data);
         }
       } catch (error) {
-        console.error('Error fetching datasource:', error);
+        console.error("Error fetching datasource:", error);
       } finally {
         setLoading(false);
       }
@@ -32,20 +33,23 @@ export default function EditDataSourcePage() {
 
   const handleSave = async (dataSourceData: any) => {
     try {
-      console.log('DataSource updated:', dataSourceData);
+      console.log("DataSource updated:", dataSourceData);
+      // Show success toast
+      toast.success("Datasource updated successfully!");
       // Navigate back to datasources list after successful update
-      navigate('/data-sources');
+      navigate("/data-sources");
     } catch (error) {
-      console.error('Error updating datasource:', error);
+      console.error("Error updating datasource:", error);
+      toast.error("Failed to update datasource");
     }
   };
 
   const handleCancel = () => {
-    navigate('/data-sources');
+    navigate("/data-sources");
   };
 
   const handleDelete = () => {
-    navigate('/data-sources');
+    navigate("/data-sources");
   };
 
   if (loading) {

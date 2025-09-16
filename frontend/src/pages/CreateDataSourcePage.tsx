@@ -1,29 +1,29 @@
-import { useNavigate } from 'react-router-dom';
-import CreateDataSourceForm from '@/modules/data-sources/CreateDataSourceForm';
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import CreateDataSourceForm from "@/modules/data-sources/CreateDataSourceForm";
 
 export default function CreateDataSourcePage() {
   const navigate = useNavigate();
 
-  const handleSave = async (dataSource: any) => {
+  const handleSave = async (_dataSource: any) => {
     try {
-      // This will be handled by the form component itself
-      // The form component already has the API integration
-      console.log('DataSource saved:', dataSource);
+      // Show success toast
+      toast.success("Datasource created successfully!");
+      // Navigate back to datasources list
+      navigate("/data-sources");
     } catch (error) {
-      console.error('Error saving datasource:', error);
+      console.error("Error saving datasource:", error);
+      toast.error("Failed to create datasource");
     }
   };
 
   const handleCancel = () => {
-    navigate('/data-sources');
+    navigate("/data-sources");
   };
 
   return (
     <div className="p-4">
-      <CreateDataSourceForm
-        onSave={handleSave}
-        onCancel={handleCancel}
-      />
+      <CreateDataSourceForm onSave={handleSave} onCancel={handleCancel} />
     </div>
   );
 }

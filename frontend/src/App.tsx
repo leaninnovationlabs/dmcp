@@ -1,19 +1,25 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { SessionProvider, useSession } from '@/contexts/SessionContext';
-import { Toaster } from '@/components/ui/sonner';
-import SessionExpiredDialog from '@/components/SessionExpiredDialog';
-import CloudStorageLayout from '@/components/CloudStorageLayout';
-import HomePage from '@/pages/HomePage';
-import DataSourcesPage from '@/pages/DataSourcesPage';
-import ToolsPage from '@/pages/ToolsPage';
-import LoginPage from '@/pages/LoginPage';
-import GenerateTokenPage from '@/pages/GenerateTokenPage';
-import ChangePasswordPage from '@/pages/ChangePasswordPage';
-import ProfilePage from '@/pages/ProfilePage';
-import CreateDataSourcePage from '@/pages/CreateDataSourcePage';
-import EditDataSourcePage from '@/pages/EditDataSourcePage';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SessionProvider, useSession } from "@/contexts/SessionContext";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import SessionExpiredDialog from "@/components/SessionExpiredDialog";
+import CloudStorageLayout from "@/components/CloudStorageLayout";
+import HomePage from "@/pages/HomePage";
+import DataSourcesPage from "@/pages/DataSourcesPage";
+import ToolsPage from "@/pages/ToolsPage";
+import LoginPage from "@/pages/LoginPage";
+import GenerateTokenPage from "@/pages/GenerateTokenPage";
+import ChangePasswordPage from "@/pages/ChangePasswordPage";
+import ProfilePage from "@/pages/ProfilePage";
+import CreateDataSourcePage from "@/pages/CreateDataSourcePage";
+import EditDataSourcePage from "@/pages/EditDataSourcePage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -63,7 +69,7 @@ function NotFoundPage() {
       <div className="text-center">
         <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
         <p className="text-xl text-gray-600 mb-8">Page not found</p>
-        <button 
+        <button
           onClick={() => window.history.back()}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
@@ -77,18 +83,15 @@ function NotFoundPage() {
 function AppRoutes() {
   return (
     <Routes>
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
           <PublicRoute>
             <LoginPage />
           </PublicRoute>
-        } 
+        }
       />
-      <Route
-        path="/"
-        element={<Navigate to="/app" replace />}
-      />
+      <Route path="/" element={<Navigate to="/app" replace />} />
       <Route
         path="/app"
         element={
@@ -177,8 +180,8 @@ function AppRoutes() {
 
 function SessionHandler() {
   const { isAuthenticated, logout } = useAuth();
-  const { isSessionExpired, showSessionExpired, hideSessionExpired } = useSession();
-
+  const { isSessionExpired, showSessionExpired, hideSessionExpired } =
+    useSession();
 
   // Listen for session expired events
   React.useEffect(() => {
@@ -188,9 +191,9 @@ function SessionHandler() {
       }
     };
 
-    window.addEventListener('session-expired', handleSessionExpired);
+    window.addEventListener("session-expired", handleSessionExpired);
     return () => {
-      window.removeEventListener('session-expired', handleSessionExpired);
+      window.removeEventListener("session-expired", handleSessionExpired);
     };
   }, [isAuthenticated, showSessionExpired]);
 
@@ -216,14 +219,16 @@ function SessionHandler() {
 
 function App() {
   return (
-    <AuthProvider>
-      <SessionProvider>
-        <Router basename="/dmcp/ui">
-          <SessionHandler />
-        </Router>
-      </SessionProvider>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="system" storageKey="dmcp-ui-theme">
+      <AuthProvider>
+        <SessionProvider>
+          <Router basename="/dmcp/ui">
+            <SessionHandler />
+          </Router>
+        </SessionProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
-export default App
+export default App;
