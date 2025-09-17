@@ -76,7 +76,9 @@ const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
               className="w-18 h-14 object-contain rounded-lg"
             />
           </div>
-          <span className="text-lg font-semibold text-foreground">DBMCP</span>
+          <span className="text-lg font-semibold text-foreground">
+            Data MCP
+          </span>
         </Button>
       </div>
 

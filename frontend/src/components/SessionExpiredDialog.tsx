@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { LogOut, Clock } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { LogOut, Clock } from "lucide-react";
 
 interface SessionExpiredDialogProps {
   isOpen: boolean;
@@ -9,7 +15,11 @@ interface SessionExpiredDialogProps {
   onLogout: () => void;
 }
 
-export default function SessionExpiredDialog({ isOpen, onClose, onLogout }: SessionExpiredDialogProps) {
+export default function SessionExpiredDialog({
+  isOpen,
+  onClose,
+  onLogout,
+}: SessionExpiredDialogProps) {
   const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
@@ -52,22 +62,18 @@ export default function SessionExpiredDialog({ isOpen, onClose, onLogout }: Sess
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="py-4">
           <div className="flex items-center justify-center space-x-2 text-gray-700">
             <Clock className="w-4 h-4" />
             <span>Logging you out in</span>
             <span className="font-bold text-lg text-red-600">{countdown}</span>
-            <span>second{countdown !== 1 ? 's' : ''}</span>
+            <span>second{countdown !== 1 ? "s" : ""}</span>
           </div>
         </div>
 
         <div className="flex justify-end space-x-3">
-          <Button
-            variant="outline"
-            onClick={handleLogoutNow}
-            className="text-gray-700 bg-gray-100 hover:bg-gray-200"
-          >
+          <Button variant="secondary" onClick={handleLogoutNow}>
             Logout Now
           </Button>
         </div>

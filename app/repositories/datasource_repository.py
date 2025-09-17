@@ -63,7 +63,8 @@ class DatasourceRepository(BaseRepository[Datasource]):
     
     async def delete_datasource(self, datasource_id: int) -> bool:
         """Delete a datasource with validation."""
-        datasource = await self.get_by_id(datasource_id)
+        # Get datasource with tools relationship loaded
+        datasource = await self.get_with_tools(datasource_id)
         if not datasource:
             raise DatasourceNotFoundError(datasource_id)
         

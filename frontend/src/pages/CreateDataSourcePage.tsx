@@ -9,8 +9,8 @@ export default function CreateDataSourcePage() {
     try {
       // Show success toast
       toast.success("Datasource created successfully!");
-      // Navigate back to datasources list
-      navigate("/data-sources");
+      // Keep form open instead of navigating away
+      // User can manually close or create another datasource
     } catch (error) {
       console.error("Error saving datasource:", error);
       toast.error("Failed to create datasource");

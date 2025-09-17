@@ -1,49 +1,68 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiService, ApiError, UserProfile } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
-import { User, Mail, Calendar, Shield, ArrowLeft, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { apiService, ApiError, UserProfile } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  ArrowLeft,
+  RefreshCw,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfileModule() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const fetchProfile = async () => {
     if (!user?.token) {
-      setError('Authentication required. Please log in again.');
+      setError("Authentication required. Please log in again.");
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      setError('');
+      setError("");
       const response = await apiService.getUserProfile(user.token);
-      
+
       if (response.success && response.data) {
         setProfile(response.data);
       } else {
-        setError(response.errors?.[0]?.msg || 'Failed to load profile information.');
+        setError(
+          response.errors?.[0]?.msg || "Failed to load profile information."
+        );
       }
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setError('Authentication failed. Please log in again.');
+          setError("Authentication failed. Please log in again.");
           setTimeout(() => {
-            window.location.href = '/';
+            window.location.href = "/";
           }, 2000);
         } else {
-          setError('An error occurred while loading your profile. Please try again.');
+          setError(
+            "An error occurred while loading your profile. Please try again."
+          );
         }
       } else {
-        setError('An error occurred while loading your profile. Please try again.');
+        setError(
+          "An error occurred while loading your profile. Please try again."
+        );
       }
     } finally {
       setIsLoading(false);
@@ -55,17 +74,17 @@ export default function ProfileModule() {
   }, []);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const handleBack = () => {
-    navigate('/app');
+    navigate("/app");
   };
 
   const handleRefresh = () => {
@@ -87,8 +106,8 @@ export default function ProfileModule() {
     <div className="h-full w-full flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-[#FEBF23] rounded-lg flex items-center justify-center">
-            <User className="h-6 w-6 text-black" />
+          <div className="mx-auto h-12 w-12 bg-primary rounded-lg flex items-center justify-center">
+            <User className="h-6 w-6 text-primary-foreground" />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             User Profile
@@ -119,7 +138,7 @@ export default function ProfileModule() {
                 <Button
                   size="sm"
                   onClick={handleRefresh}
-                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center space-x-2"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center space-x-2"
                 >
                   <RefreshCw className="h-4 w-4" />
                   <span>Refresh</span>
@@ -130,7 +149,9 @@ export default function ProfileModule() {
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">User ID</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    User ID
+                  </label>
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-400" />
                     <span className="text-sm text-gray-900">{profile.id}</span>
@@ -138,44 +159,64 @@ export default function ProfileModule() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Username</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Username
+                  </label>
                   <div className="flex items-center space-x-2">
                     <Mail className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-900 font-mono">{profile.username}</span>
+                    <span className="text-sm text-gray-900 font-mono">
+                      {profile.username}
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">First Name</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    First Name
+                  </label>
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{profile.first_name}</span>
+                    <span className="text-sm text-gray-900">
+                      {profile.first_name}
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Last Name</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Last Name
+                  </label>
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{profile.last_name}</span>
+                    <span className="text-sm text-gray-900">
+                      {profile.last_name}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Roles */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500">Roles & Permissions</label>
+                <label className="text-sm font-medium text-gray-500">
+                  Roles & Permissions
+                </label>
                 <div className="flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-gray-400" />
                   <div className="flex flex-wrap gap-2">
                     {profile.roles && profile.roles.length > 0 ? (
                       profile.roles.map((role, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {role}
                         </Badge>
                       ))
                     ) : (
-                      <span className="text-sm text-gray-500 italic">No roles assigned</span>
+                      <span className="text-sm text-gray-500 italic">
+                        No roles assigned
+                      </span>
                     )}
                   </div>
                 </div>
@@ -184,18 +225,26 @@ export default function ProfileModule() {
               {/* Account Dates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Account Created</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Account Created
+                  </label>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{formatDate(profile.created_at)}</span>
+                    <span className="text-sm text-gray-900">
+                      {formatDate(profile.created_at)}
+                    </span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Last Updated
+                  </label>
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{formatDate(profile.updated_at)}</span>
+                    <span className="text-sm text-gray-900">
+                      {formatDate(profile.updated_at)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -206,9 +255,9 @@ export default function ProfileModule() {
         {/* Back Button */}
         <div className="flex items-center justify-center">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={handleBack}
-            className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
+            className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Home</span>

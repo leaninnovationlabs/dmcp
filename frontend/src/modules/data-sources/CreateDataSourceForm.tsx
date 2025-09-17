@@ -445,8 +445,8 @@ const CreateDataSourceForm = ({
               type="button"
               onClick={handleTestConnection}
               disabled={testingConnection || loading}
-              variant="outline"
-              className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
+              variant="secondary"
+              className="flex items-center space-x-2"
             >
               <Plug className="w-4 h-4" />
               <span>
@@ -456,10 +456,10 @@ const CreateDataSourceForm = ({
             {isEditMode && (
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={handleDeleteClick}
                 disabled={loading}
-                className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
+                className="flex items-center space-x-2"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete</span>
@@ -467,10 +467,9 @@ const CreateDataSourceForm = ({
             )}
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={onCancel}
               disabled={loading}
-              className="text-gray-700 bg-gray-100 hover:bg-gray-200"
             >
               Cancel
             </Button>
@@ -478,7 +477,7 @@ const CreateDataSourceForm = ({
               type="submit"
               form="datasource-form"
               disabled={loading}
-              className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary"
             >
               {!isEditMode
                 ? loading
@@ -506,7 +505,7 @@ const CreateDataSourceForm = ({
             <form id="datasource-form" onSubmit={handleSubmit}>
               {/* Basic Information */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
                   Basic Information
                 </h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -555,7 +554,7 @@ const CreateDataSourceForm = ({
                     {fieldConfigs[formData.database_type].sections.map(
                       (section) => (
                         <div key={section.id} className="mb-8">
-                          <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                          <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
                             {section.title}
                           </h2>
                           <p className="text-gray-600 mb-4">
@@ -563,94 +562,101 @@ const CreateDataSourceForm = ({
                           </p>
                           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                             {fieldConfigs[formData.database_type].fields.map(
-                              (field) => (
-                                <div key={field.name}>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {field.label}{" "}
-                                    {field.required && (
-                                      <span className="text-red-500">*</span>
+                              (field) => {
+                                // Hide password field in edit mode
+                                if (field.type === "password" && isEditMode) {
+                                  return null;
+                                }
+
+                                return (
+                                  <div key={field.name}>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      {field.label}{" "}
+                                      {field.required && !isEditMode && (
+                                        <span className="text-red-500">*</span>
+                                      )}
+                                    </label>
+                                    {field.type === "password" ? (
+                                      <input
+                                        type="password"
+                                        value={
+                                          formData[
+                                            field.name as keyof typeof formData
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleInputChange(
+                                            field.name,
+                                            e.target.value
+                                          )
+                                        }
+                                        required={field.required}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                        placeholder={field.placeholder || ""}
+                                      />
+                                    ) : field.type === "text" ? (
+                                      <input
+                                        type="text"
+                                        value={
+                                          formData[
+                                            field.name as keyof typeof formData
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleInputChange(
+                                            field.name,
+                                            e.target.value
+                                          )
+                                        }
+                                        required={field.required}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                        placeholder={field.placeholder || ""}
+                                      />
+                                    ) : field.type === "number" ? (
+                                      <input
+                                        type="number"
+                                        value={
+                                          formData[
+                                            field.name as keyof typeof formData
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleInputChange(
+                                            field.name,
+                                            e.target.value
+                                          )
+                                        }
+                                        required={field.required}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                        placeholder={field.placeholder || ""}
+                                      />
+                                    ) : (
+                                      <input
+                                        type="text"
+                                        value={
+                                          formData[
+                                            field.name as keyof typeof formData
+                                          ] || ""
+                                        }
+                                        onChange={(e) =>
+                                          handleInputChange(
+                                            field.name,
+                                            e.target.value
+                                          )
+                                        }
+                                        required={field.required}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                        placeholder={field.placeholder || ""}
+                                      />
                                     )}
-                                  </label>
-                                  {field.type === "password" ? (
-                                    <input
-                                      type="password"
-                                      value={
-                                        formData[
-                                          field.name as keyof typeof formData
-                                        ] || ""
-                                      }
-                                      onChange={(e) =>
-                                        handleInputChange(
-                                          field.name,
-                                          e.target.value
-                                        )
-                                      }
-                                      required={field.required}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                      placeholder={field.placeholder || ""}
-                                    />
-                                  ) : field.type === "text" ? (
-                                    <input
-                                      type="text"
-                                      value={
-                                        formData[
-                                          field.name as keyof typeof formData
-                                        ] || ""
-                                      }
-                                      onChange={(e) =>
-                                        handleInputChange(
-                                          field.name,
-                                          e.target.value
-                                        )
-                                      }
-                                      required={field.required}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                      placeholder={field.placeholder || ""}
-                                    />
-                                  ) : field.type === "number" ? (
-                                    <input
-                                      type="number"
-                                      value={
-                                        formData[
-                                          field.name as keyof typeof formData
-                                        ] || ""
-                                      }
-                                      onChange={(e) =>
-                                        handleInputChange(
-                                          field.name,
-                                          e.target.value
-                                        )
-                                      }
-                                      required={field.required}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                      placeholder={field.placeholder || ""}
-                                    />
-                                  ) : (
-                                    <input
-                                      type="text"
-                                      value={
-                                        formData[
-                                          field.name as keyof typeof formData
-                                        ] || ""
-                                      }
-                                      onChange={(e) =>
-                                        handleInputChange(
-                                          field.name,
-                                          e.target.value
-                                        )
-                                      }
-                                      required={field.required}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                      placeholder={field.placeholder || ""}
-                                    />
-                                  )}
-                                  {field.description && (
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      {field.description}
-                                    </p>
-                                  )}
-                                </div>
-                              )
+                                    {field.description && (
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {field.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              }
                             )}
                           </div>
                         </div>
@@ -661,7 +667,7 @@ const CreateDataSourceForm = ({
 
               {/* Advanced Options */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
                   Advanced Options
                 </h2>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -717,17 +723,16 @@ const CreateDataSourceForm = ({
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleDeleteCancel}
               disabled={loading}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
               onClick={handleDeleteConfirm}
               disabled={loading}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading ? "Deleting..." : "Delete"}
             </Button>
