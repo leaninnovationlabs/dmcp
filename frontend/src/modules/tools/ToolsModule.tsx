@@ -167,19 +167,32 @@ const ToolsModule = ({
     setEditingTool(null);
   };
 
-  const handleSaveTool = async (_tool: ToolItem) => {
+  const handleSaveTool = async (tool: ToolItem) => {
+    // Show success notification
+    const isEdit = !!editingTool;
+    toast.success(
+      isEdit
+        ? `Tool "${tool.name}" updated successfully!`
+        : `Tool "${tool.name}" created successfully!`
+    );
+
     // Refresh the data after saving
     if (token) {
       try {
         // Trigger tools refresh from API
         await apiService.refreshTools(token);
       } catch (err) {
-        console.error('Error refreshing tools after save:', err);
+        console.error("Error refreshing tools after save:", err);
+        // Show warning about refresh failure but don't fail the save
+        toast.warning(
+          "Tool saved but refresh failed. Please refresh the page to see changes."
+        );
       }
       await fetchData();
     }
-    setShowCreateForm(false);
-    setEditingTool(null);
+
+    // Keep form open instead of closing automatically
+    // User can manually close or create another tool
   };
 
   const handleDeleteClick = (toolId: string) => {
@@ -267,14 +280,14 @@ const ToolsModule = ({
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Eye className="w-5 h-5 text-[#FEBF23]" />
+              <Eye className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Tools Overview
               </h3>
             </div>
             <Button
               onClick={handleAddTool}
-              className="flex items-center space-x-2 bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] px-4 py-2"
+              className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary px-4 py-2"
             >
               <Plus className="w-4 h-4" />
               <span>Add New Tool</span>
@@ -286,7 +299,7 @@ const ToolsModule = ({
               href="https://dmcp.opsloom.io/create-tools.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#FEBF23] hover:text-[#FEBF23]/80 ml-1 underline font-medium"
+              className="text-primary hover:text-primary/80 ml-1 underline font-medium"
             >
               View documentation
             </a>
@@ -335,7 +348,7 @@ const ToolsModule = ({
                 </p>
                 <Button
                   onClick={handleAddTool}
-                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Create Your First Tool
@@ -395,7 +408,7 @@ const ToolsModule = ({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEditTool(tool)}
-                                className="text-gray-500 hover:text-black hover:bg-[#FEBF23] p-1"
+                                className="text-gray-500 hover:text-primary-foreground hover:bg-primary p-1"
                                 title="Edit Tool"
                               >
                                 <Edit className="w-4 h-4" />
@@ -404,7 +417,7 @@ const ToolsModule = ({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteClick(tool.id)}
-                                className="text-gray-500 hover:text-red-600 hover:bg-[#FEBF23] p-1"
+                                className="text-gray-500 hover:text-red-600 hover:bg-primary p-1"
                                 title="Delete Tool"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -433,13 +446,13 @@ const ToolsModule = ({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteCancel}>
+            <Button variant="secondary" onClick={handleDeleteCancel}>
               Cancel
             </Button>
             <Button
-              variant="destructive"
               onClick={handleDeleteConfirm}
               disabled={loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading ? "Deleting..." : "Delete"}
             </Button>
@@ -476,6 +489,11 @@ const CreateToolForm = ({
     datasource_id: tool?.datasource_id || "",
     sql: tool?.sql || "",
     parameters: tool?.parameters || [],
+    // HTTP-specific fields
+    endpoint: "",
+    method: "GET",
+    headers: "{}",
+    payload: "",
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -608,15 +626,35 @@ const CreateToolForm = ({
     e.preventDefault();
     if (!token) return;
 
+    // Prevent multiple submissions
+    if (loading) {
+      toast.warning("Please wait, save operation in progress...");
+      return;
+    }
+
     // Validation
     if (!formData.name.trim()) {
       toast.error("Tool name is required");
       return;
     }
-    if (!formData.sql.trim()) {
-      toast.error("SQL query is required");
+    if (!formData.type) {
+      toast.error("Please select a tool type");
       return;
     }
+
+    // Type-specific validation
+    if (formData.type === "query") {
+      if (!formData.sql.trim()) {
+        toast.error("SQL query is required");
+        return;
+      }
+    } else if (formData.type === "http") {
+      if (!formData.endpoint?.trim()) {
+        toast.error("Endpoint URL is required");
+        return;
+      }
+    }
+
     if (!formData.datasource_id) {
       toast.error("Please select a datasource");
       return;
@@ -624,12 +662,15 @@ const CreateToolForm = ({
 
     try {
       setLoading(true);
-      const toolData = {
+      toast.loading(isEditMode ? "Updating tool..." : "Creating tool...", {
+        id: "save-tool",
+      });
+      // Build tool data based on type
+      let toolData: any = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         type: formData.type || "query",
         datasource_id: parseInt(formData.datasource_id),
-        sql: formData.sql.trim(),
         parameters: formData.parameters.map((param) => ({
           name: param.name,
           type: param.type,
@@ -638,6 +679,20 @@ const CreateToolForm = ({
           default: param.default || null,
         })),
       };
+
+      // Add type-specific data
+      if (formData.type === "http") {
+        // For HTTP tools, store configuration in the sql field as JSON
+        toolData.sql = JSON.stringify({
+          endpoint: formData.endpoint.trim(),
+          method: formData.method,
+          headers: formData.headers.trim() || "{}",
+          payload: formData.payload.trim() || "",
+        });
+      } else {
+        // For query tools, use the sql field directly
+        toolData.sql = formData.sql.trim();
+      }
 
       console.log("Sending tool data:", toolData);
 
@@ -648,17 +703,19 @@ const CreateToolForm = ({
           toolData
         );
         if (response.success) {
-          toast.success("Tool updated successfully");
+          toast.dismiss("save-tool");
           onSave(response.data);
         } else {
+          toast.dismiss("save-tool");
           toast.error("Failed to update tool");
         }
       } else {
         const response = await apiService.createTool(token, toolData);
         if (response.success) {
-          toast.success("Tool created successfully");
+          toast.dismiss("save-tool");
           onSave(response.data);
         } else {
+          toast.dismiss("save-tool");
           console.error("Tool creation failed:", response);
           const errorMessage = response.errors?.[0]?.msg || "Unknown error";
           toast.error(`Failed to create tool: ${errorMessage}`);
@@ -667,6 +724,7 @@ const CreateToolForm = ({
       }
     } catch (err) {
       console.error("Error saving tool:", err);
+      toast.dismiss("save-tool");
       if (err instanceof ApiError) {
         toast.error(err.message);
       } else {
@@ -723,28 +781,39 @@ const CreateToolForm = ({
         parameterValues
       );
 
-      if (response.success && response.data?.success) {
-        setExecutionResult({
-          success: true,
-          rows: response.data.data || [],
-          rowCount: response.data.row_count || 0,
-          executionTime: response.data.execution_time_ms || 0,
-        });
+      if (response.success) {
+        // HTTP request was successful, check if there's an error in the data
+        if (response.data?.error) {
+          // Tool execution failed with an error
+          setExecutionResult({
+            success: false,
+            error: response.data.error,
+          });
+        } else {
+          // Tool execution succeeded (even if no rows returned)
+          setExecutionResult({
+            success: true,
+            rows: response.data?.data || [],
+            rowCount: response.data?.row_count || 0,
+            executionTime: response.data?.execution_time_ms || 0,
+          });
+        }
       } else {
+        // HTTP   request failed
         setExecutionResult({
           success: false,
-          error:
-            response.data?.error ||
-            response.errors?.[0]?.msg ||
-            "Execution failed",
+          error: response.errors?.[0]?.msg || "Execution failed",
         });
       }
 
-      toast.success(
-        `Tool executed successfully! ${
-          response.data?.row_count || 0
-        } rows returned`
-      );
+      // Only show success toast if execution was successful
+      if (response.success && !response.data?.error) {
+        toast.success(
+          `Tool executed successfully! ${
+            response.data?.row_count || 0
+          } rows returned`
+        );
+      }
     } catch (err) {
       console.error("Error executing tool:", err);
       setExecutionResult({
@@ -853,7 +922,7 @@ const CreateToolForm = ({
                   type="button"
                   onClick={handleExecuteTool}
                   disabled={loading}
-                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center space-x-2"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center space-x-2"
                 >
                   <Play className="w-4 h-4" />
                   <span>Execute</span>
@@ -864,8 +933,8 @@ const CreateToolForm = ({
                   type="button"
                   onClick={handleDeleteClick}
                   disabled={loading}
-                  variant="outline"
-                  className="text-gray-700 bg-gray-100 hover:bg-gray-200 flex items-center space-x-2"
+                  variant="secondary"
+                  className="flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Delete</span>
@@ -873,10 +942,9 @@ const CreateToolForm = ({
               )}
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={onCancel}
                 disabled={loading}
-                className="text-gray-700 bg-gray-100 hover:bg-gray-200"
               >
                 Cancel
               </Button>
@@ -884,7 +952,7 @@ const CreateToolForm = ({
                 type="submit"
                 form="tool-form"
                 disabled={loading}
-                className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary"
               >
                 {loading ? "Saving..." : "Save"}
               </Button>
@@ -898,7 +966,7 @@ const CreateToolForm = ({
             <form id="tool-form" onSubmit={handleSubmit}>
               {/* Basic Information */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
                   Basic Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -931,9 +999,7 @@ const CreateToolForm = ({
                     >
                       <option value="">Select tool type</option>
                       <option value="query">Query</option>
-                      <option value="http" disabled>
-                        HTTP (Coming Soon)
-                      </option>
+                      <option value="http">HTTP</option>
                       <option value="code" disabled>
                         Code (Coming Soon)
                       </option>
@@ -976,34 +1042,119 @@ const CreateToolForm = ({
                 </div>
               </div>
 
-              {/* SQL Query */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
-                  SQL Query
-                </h2>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    SQL Query <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    value={formData.sql}
-                    onChange={(e) => handleInputChange("sql", e.target.value)}
-                    rows={8}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
-                    placeholder="SELECT * FROM table_name WHERE column = {{ parameter_name }}"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
-                    Use{" "}
-                    <code className="bg-gray-100 px-1 rounded">{`{{ parameter_name }}`}</code>{" "}
-                    for parameter placeholders in your SQL query.
-                  </p>
+              {/* SQL Query - Only for Query tools */}
+              {formData.type === "query" && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
+                    SQL Query
+                  </h2>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SQL Query <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={formData.sql}
+                      onChange={(e) => handleInputChange("sql", e.target.value)}
+                      rows={8}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
+                      placeholder="SELECT * FROM table_name WHERE column = {{ parameter_name }}"
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Use{" "}
+                      <code className="bg-gray-100 px-1 rounded">{`{{ parameter_name }}`}</code>{" "}
+                      for parameter placeholders in your SQL query.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* HTTP Configuration - Only for HTTP tools */}
+              {formData.type === "http" && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
+                    HTTP Configuration
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Endpoint URL <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.endpoint || ""}
+                        onChange={(e) =>
+                          handleInputChange("endpoint", e.target.value)
+                        }
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                        placeholder="https://api.example.com/users"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        HTTP Method <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.method || "GET"}
+                        onChange={(e) =>
+                          handleInputChange("method", e.target.value)
+                        }
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                      >
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Headers (JSON format)
+                    </label>
+                    <textarea
+                      value={formData.headers || "{}"}
+                      onChange={(e) =>
+                        handleInputChange("headers", e.target.value)
+                      }
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
+                      placeholder='{"Authorization": "Bearer {{ token }}", "Content-Type": "application/json"}'
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Use{" "}
+                      <code className="bg-gray-100 px-1 rounded">{`{{ parameter_name }}`}</code>{" "}
+                      for parameter placeholders in headers.
+                    </p>
+                  </div>
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Request Body/Payload (JSON format)
+                    </label>
+                    <textarea
+                      value={formData.payload || ""}
+                      onChange={(e) =>
+                        handleInputChange("payload", e.target.value)
+                      }
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black font-mono text-sm"
+                      placeholder='{"name": "{{ name }}", "email": "{{ email }}"}'
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      Use{" "}
+                      <code className="bg-gray-100 px-1 rounded">{`{{ parameter_name }}`}</code>{" "}
+                      for parameter placeholders in the payload.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Parameters */}
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-black mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
                   Parameters
                 </h2>
                 <div className="space-y-4">
@@ -1015,7 +1166,7 @@ const CreateToolForm = ({
                       <Button
                         type="button"
                         onClick={handleAddParameter}
-                        className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] rounded-lg px-3 py-1 text-sm font-medium"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-lg px-3 py-1 text-sm font-medium"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Add Parameter
@@ -1046,7 +1197,7 @@ const CreateToolForm = ({
                               >
                                 {/* Name Column */}
                                 <div>
-                                  <div className="text-xs text-black mb-2 font-semibold">
+                                  <div className="text-xs text-primary-foreground mb-2 font-semibold">
                                     Name
                                   </div>
                                   <div className="text-sm text-gray-900">
@@ -1056,7 +1207,7 @@ const CreateToolForm = ({
 
                                 {/* Type Column */}
                                 <div>
-                                  <div className="text-xs text-black mb-2 font-semibold">
+                                  <div className="text-xs text-primary-foreground mb-2 font-semibold">
                                     Type
                                   </div>
                                   <div className="text-xs text-gray-700">
@@ -1066,7 +1217,7 @@ const CreateToolForm = ({
 
                                 {/* Description Column */}
                                 <div>
-                                  <div className="text-xs text-black mb-2 font-semibold">
+                                  <div className="text-xs text-primary-foreground mb-2 font-semibold">
                                     Description
                                   </div>
                                   <div className="text-xs text-gray-700 break-words">
@@ -1076,7 +1227,7 @@ const CreateToolForm = ({
 
                                 {/* Default Value Column */}
                                 <div>
-                                  <div className="text-xs text-black mb-2 font-semibold">
+                                  <div className="text-xs text-primary-foreground mb-2 font-semibold">
                                     Default Value
                                   </div>
                                   <div className="text-xs text-gray-700">
@@ -1086,7 +1237,7 @@ const CreateToolForm = ({
 
                                 {/* Required Column */}
                                 <div>
-                                  <div className="text-xs text-black mb-2 font-semibold">
+                                  <div className="text-xs text-primary-foreground mb-2 font-semibold">
                                     Required
                                   </div>
                                   <div className="text-xs text-gray-700">
@@ -1244,15 +1395,14 @@ const CreateToolForm = ({
                         </div>
                         <div className="flex justify-end space-x-3 pt-4">
                           <Button
-                            variant="outline"
+                            variant="secondary"
                             onClick={handleCancelParameter}
-                            className="text-gray-700 bg-gray-100 hover:bg-gray-200"
                           >
                             Cancel
                           </Button>
                           <Button
                             onClick={handleSaveParameter}
-                            className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23]"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary"
                           >
                             {editingParameterIndex !== null
                               ? "Update Parameter"
@@ -1282,17 +1432,16 @@ const CreateToolForm = ({
           </DialogHeader>
           <DialogFooter>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleDeleteCancel}
               disabled={loading}
             >
               Cancel
             </Button>
             <Button
-              variant="destructive"
               onClick={handleDeleteConfirm}
               disabled={loading}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading ? "Deleting..." : "Delete"}
             </Button>
@@ -1315,8 +1464,10 @@ const CreateToolForm = ({
           <div className="space-y-4 py-3 flex-1 overflow-y-auto">
             {/* Tool Information */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-1">
-              <h3 className="font-semibold text-lg text-black">{tool?.name}</h3>
-              <p className="text-sm text-black">{tool?.description}</p>
+              <h3 className="font-semibold text-lg text-gray-900">
+                {tool?.name}
+              </h3>
+              <p className="text-sm text-gray-700">{tool?.description}</p>
             </div>
 
             {/* Parameters Section - Only show when no execution result */}
@@ -1486,17 +1637,16 @@ const CreateToolForm = ({
             {!executionResult ? (
               <>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   onClick={handleCloseExecuteDialog}
                   disabled={executing}
-                  className="text-gray-700 bg-gray-100 hover:bg-gray-200"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleExecuteConfirm}
                   disabled={executing}
-                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black flex items-center space-x-2"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center space-x-2"
                 >
                   <Play className="w-4 h-4" />
                   <span>Execute Tool</span>
@@ -1504,17 +1654,13 @@ const CreateToolForm = ({
               </>
             ) : (
               <>
-                <Button
-                  variant="outline"
-                  onClick={handleCloseExecuteDialog}
-                  className="text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                >
+                <Button variant="secondary" onClick={handleCloseExecuteDialog}>
                   Close
                 </Button>
                 <Button
                   onClick={handleRunAgain}
                   disabled={executing}
-                  className="bg-[#FEBF23] hover:bg-[#FEBF23]/90 text-black border border-[#FEBF23] flex items-center space-x-2"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary flex items-center space-x-2"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Run Again</span>

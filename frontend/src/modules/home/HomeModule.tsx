@@ -44,7 +44,7 @@ const HomeModule = ({
   };
 
   return (
-    <div className="overflow-auto bg-background">
+    <div className="h-full overflow-y-auto bg-background">
       {/* Hero Section */}
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -64,7 +64,7 @@ const HomeModule = ({
                 <div className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start gap-4">
                   <Button
                     onClick={handleTryNow}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary transition-all duration-200 hover:-translate-y-0.5 inline-flex items-center gap-2"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary inline-flex items-center gap-2"
                   >
                     Try now
                     <ChevronRight className="w-4 h-4" />
@@ -75,7 +75,7 @@ const HomeModule = ({
 
             {/* Image Content */}
             {/* <div className="flex-1 lg:max-w-lg">
-                <div className="h-80 w-full bg-[#FEBF23]/10 border-2 border-[#FEBF23] flex items-center justify-center rounded-lg" style={{margin: '25px 0'}}>
+                <div className="h-80 w-full bg-primary/10 border-2 border-primary flex items-center justify-center rounded-lg" style={{margin: '25px 0'}}>
                   <div className="text-black text-center">
                     <div className="text-6xl mb-4">
                       <Database className="w-16 h-16 mx-auto" />
@@ -111,7 +111,7 @@ const HomeModule = ({
           <div className="mt-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Database Connections Card */}
-              <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Card>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
@@ -156,7 +156,7 @@ const HomeModule = ({
               </Card>
 
               {/* Query Tools Card */}
-              <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Card>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center">
@@ -210,7 +210,7 @@ const HomeModule = ({
               </Card>
 
               {/* Security Card */}
-              <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Card>
                 <CardHeader>
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary text-primary-foreground mr-4">
@@ -245,7 +245,7 @@ const HomeModule = ({
               </Card>
 
               {/* Performance Card */}
-              <Card className="transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Card>
                 <CardHeader>
                   <div className="flex items-center">
                     <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary text-primary-foreground mr-4">

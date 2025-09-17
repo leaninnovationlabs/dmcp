@@ -1,15 +1,16 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, ToasterProps } from "sonner"
+import { useTheme } from "next-themes";
+import { Toaster as Sonner, ToasterProps } from "sonner";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { theme = "system" } = useTheme();
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         [data-sonner-toaster][data-theme] {
           --normal-bg: var(--popover);
           --normal-text: var(--popover-foreground);
@@ -42,17 +43,27 @@ const Toaster = ({ ...props }: ToasterProps) => {
           color: #ffffff !important;
           border-color: #dc2626 !important;
         }
-      `}} />
+      `,
+        }}
+      />
       <Sonner
         theme={theme as ToasterProps["theme"]}
         className="toaster group"
         position="top-right"
         richColors
         expand={true}
+        duration={4000}
+        closeButton={true}
+        toastOptions={{
+          style: {
+            fontSize: "14px",
+            fontWeight: "500",
+          },
+        }}
         {...props}
       />
     </>
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

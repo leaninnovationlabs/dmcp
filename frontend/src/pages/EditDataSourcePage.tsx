@@ -36,8 +36,8 @@ export default function EditDataSourcePage() {
       console.log("DataSource updated:", dataSourceData);
       // Show success toast
       toast.success("Datasource updated successfully!");
-      // Navigate back to datasources list after successful update
-      navigate("/data-sources");
+      // Keep form open instead of navigating away
+      // User can manually close or make more changes
     } catch (error) {
       console.error("Error updating datasource:", error);
       toast.error("Failed to update datasource");
