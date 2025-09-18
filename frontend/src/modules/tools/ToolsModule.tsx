@@ -27,6 +27,7 @@ import {
   X,
   Minus,
   Play,
+  ArrowLeftIcon,
 } from "lucide-react";
 
 interface ToolItem {
@@ -917,12 +918,24 @@ const CreateToolForm = ({
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                disabled={loading}
+                className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
+              >
+                <ArrowLeftIcon className="w-4 h-4" />
+                <span>
+                  Cancel
+                </span>
+              </Button>
               {isEditMode && (
                 <Button
                   type="button"
                   onClick={handleExecuteTool}
                   disabled={loading}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center space-x-2"
+                  className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
                 >
                   <Play className="w-4 h-4" />
                   <span>Execute</span>
@@ -934,20 +947,12 @@ const CreateToolForm = ({
                   onClick={handleDeleteClick}
                   disabled={loading}
                   variant="secondary"
-                  className="flex items-center space-x-2"
+                  className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Delete</span>
                 </Button>
               )}
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={onCancel}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
               <Button
                 type="submit"
                 form="tool-form"

@@ -58,7 +58,7 @@ const Sidebar = ({ collapsed = false, onToggle }: SidebarProps) => {
                   collapsed ? "justify-center p-2" : "justify-start p-3"
                 } ${
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground border-2 border-sidebar-primary hover:bg-sidebar-accent"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground border-1 border-sidebar-primary hover:bg-sidebar-accent"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 }`}
               >
@@ -85,7 +85,7 @@ const Sidebar = ({ collapsed = false, onToggle }: SidebarProps) => {
       </div>
 
       {/* Collapse Button - Pushed to bottom */}
-      <div className="p-2 border-t border-sidebar-border bg-sidebar-accent/30">
+      <div className="p-2 border-t ">
         <Button
           variant="ghost"
           onClick={onToggle}

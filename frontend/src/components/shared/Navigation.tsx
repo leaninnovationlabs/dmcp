@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import logoWebp from "/logo.webp";
+import logoWebp from "/logo.png";
 
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Key, LogOut, ChevronDown, Shield, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "@/components/theme-toggle";
+// import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavigationItem =
   | "home"
@@ -67,7 +67,8 @@ const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
         <Button
           variant="ghost"
           onClick={() => navigate("/app")}
-          className="flex items-center p-0 h-auto hover:bg-transparent cursor-pointer"
+          // remove the shadow effect on hover
+          className="flex items-center p-0 h-auto cursor-pointer hover:bg-transparent border-0 hover:border-0 hover:shadow-none"
         >
           <div className="w-20 h-16 flex items-center justify-center">
             <img
@@ -83,7 +84,7 @@ const Navigation = ({ activeModule: _activeModule }: NavigationProps) => {
       </div>
 
       <div className="flex items-center space-x-4">
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
         <Separator orientation="vertical" className="h-6" />
 
         {/* User Menu */}

@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plug, Trash2 } from "lucide-react";
+import { ArrowLeftIcon, Plug, SkipBackIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -443,10 +443,22 @@ const CreateDataSourceForm = ({
           <div className="flex items-center space-x-3">
             <Button
               type="button"
+              variant="secondary"
+              onClick={onCancel}
+              disabled={loading}
+              className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
+            >
+              <ArrowLeftIcon className="w-4 h-4" />
+              <span>
+                Cancel
+              </span>              
+            </Button>
+            <Button
+              type="button"
               onClick={handleTestConnection}
               disabled={testingConnection || loading}
               variant="secondary"
-              className="flex items-center space-x-2"
+              className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
             >
               <Plug className="w-4 h-4" />
               <span>
@@ -459,20 +471,12 @@ const CreateDataSourceForm = ({
                 variant="secondary"
                 onClick={handleDeleteClick}
                 disabled={loading}
-                className="flex items-center space-x-2"
-              >
+                className="bg-tertiary hover:bg-tertiary/90 border-1 text-tertiary-foreground flex items-center space-x-2"
+                >
                 <Trash2 className="w-4 h-4" />
                 <span>Delete</span>
               </Button>
             )}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onCancel}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
             <Button
               type="submit"
               form="datasource-form"

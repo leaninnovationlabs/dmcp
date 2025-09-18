@@ -71,6 +71,10 @@ const HomeModule = ({
                   </Button>
                 </div>
               </div>
+              {/* add a logo image */}
+              <div className="w-1/2 text-center">
+                <img src="logo.png" alt="Data MCP Logo" className="w-1/2 h-1/2 pl-20  object-contain  rounded-lg" />
+              </div>
             </div>
 
             {/* Image Content */}

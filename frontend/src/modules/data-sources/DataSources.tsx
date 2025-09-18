@@ -161,7 +161,7 @@ const DataSources = ({}: DataSourcesProps) => {
           </a>
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+          <div className="bg-primary/10 rounded-lg p-3 ">
             <div className="flex items-center space-x-2">
               <Database className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-gray-700">
@@ -172,7 +172,7 @@ const DataSources = ({}: DataSourcesProps) => {
               {loading ? "..." : dataSources.length}
             </p>
           </div>
-          <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+          <div className="bg-primary/10 rounded-lg p-3 ">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="text-sm font-medium text-gray-700">
@@ -183,7 +183,7 @@ const DataSources = ({}: DataSourcesProps) => {
               {loading ? "..." : dataSources.length}
             </p>
           </div>
-          <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+          <div className="bg-primary/10 rounded-lg p-3 ">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-red-500 rounded-full"></div>
               <span className="text-sm font-medium text-gray-700">
