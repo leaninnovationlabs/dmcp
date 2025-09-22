@@ -1400,12 +1400,14 @@ const CreateToolForm = ({
                         </div>
                         <div className="flex justify-end space-x-3 pt-4">
                           <Button
+                            type="button"
                             variant="secondary"
                             onClick={handleCancelParameter}
                           >
                             Cancel
                           </Button>
                           <Button
+                            type="button"
                             onClick={handleSaveParameter}
                             className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary"
                           >

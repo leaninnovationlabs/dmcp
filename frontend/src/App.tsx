@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider, useSession } from "@/contexts/SessionContext";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import SessionExpiredDialog from "@/components/SessionExpiredDialog";
 import CloudStorageLayout from "@/components/CloudStorageLayout";
@@ -219,7 +218,7 @@ function SessionHandler() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="dmcp-ui-theme">
+    <div className="light">
       <AuthProvider>
         <SessionProvider>
           <Router basename="/dmcp/ui">
@@ -227,7 +226,7 @@ function App() {
           </Router>
         </SessionProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </div>
   );
 }
 
