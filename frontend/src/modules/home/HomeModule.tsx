@@ -104,10 +104,10 @@ const HomeModule = ({
               Features
             </Badge>
             <h2 className="mt-2 text-3xl leading-8 font-bold tracking-tight text-foreground sm:text-4xl">
-              Everything you need to manage databases
+              Everything you need to create data powered mcp tools
             </h2>
             <p className="mt-4 max-w-2xl text-lg text-muted-foreground lg:mx-auto">
-              DMCP provides a comprehensive suite of tools for database
+              Data MCP provides a comprehensive suite of tools for database
               management and query execution.
             </p>
           </div>
