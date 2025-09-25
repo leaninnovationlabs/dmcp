@@ -1,6 +1,6 @@
-# Contributing to DMCP
+# Contributing to Data MCP
 
-Thank you for your interest in contributing to DMCP! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Data MCP! This document provides guidelines and information for contributors.
 
 ## Table of Contents
 
@@ -256,7 +256,7 @@ What actually happens
 ## Environment
 - OS: [e.g., macOS 14.0]
 - Python: [e.g., 3.11.0]
-- DMCP Version: [e.g., 0.1.0]
+- Data MCP Version: [e.g., 0.1.0]
 
 ## Additional Information
 Any other context, logs, or screenshots
@@ -296,8 +296,8 @@ Contributors will be recognized in:
 
 ## License
 
-By contributing to DMCP, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
+By contributing to Data MCP, you agree that your contributions will be licensed under the same license as the project (GNU Affero General Public License v3.0).
 
 ---
 
-Thank you for contributing to DMCP! Your contributions help make this project better for everyone.
+Thank you for contributing to Data MCP! Your contributions help make this project better for everyone.

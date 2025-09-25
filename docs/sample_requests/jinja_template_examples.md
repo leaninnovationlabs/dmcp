@@ -1,6 +1,6 @@
 # Jinja Template Examples for SQL Queries
 
-This document provides practical examples of using Jinja templates in SQL queries with the DMCP API.
+This document provides practical examples of using Jinja templates in SQL queries with the Data MCP API.
 
 ## Example 1: Simple Variable Substitution
 

@@ -1,10 +1,10 @@
 # User Management
 
-This document describes the user management functionality in DMCP, including user creation, authentication, role management, and API endpoints.
+This document describes the user management functionality in Data MCP, including user creation, authentication, role management, and API endpoints.
 
 ## Overview
 
-The user management system provides a complete solution for managing users in the DMCP application. It includes:
+The user management system provides a complete solution for managing users in the Data MCP application. It includes:
 
 - User registration and authentication
 - Role-based access control
@@ -14,7 +14,7 @@ The user management system provides a complete solution for managing users in th
 
 ## Default Admin Account
 
-When you first install DMCP, a default admin account is automatically created with the following credentials:
+When you first install Data MCP, a default admin account is automatically created with the following credentials:
 
 - **Username**: `admin`
 - **Password**: `dochangethispassword`

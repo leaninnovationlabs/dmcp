@@ -4,17 +4,17 @@ outline: deep
 
 # Connect from MCP Clients
 
-Once you have configured your DataSources and created Tools, you can connect AI assistants to your DMCP server through the Model Context Protocol (MCP). This allows AI models to execute your data operations using natural language.
+Once you have configured your DataSources and created Tools, you can connect AI assistants to your Data MCP server through the Model Context Protocol (MCP). This allows AI models to execute your data operations using natural language.
 
 ## What is MCP?
 
-The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. DMCP implements this protocol to expose your data tools to AI models.
+The Model Context Protocol (MCP) is a standard that enables AI assistants to interact with external tools and data sources. Data MCP implements this protocol to expose your data tools to AI models.
 
 ## MCP Server Setup
 
 ### Starting the MCP Server
 
-DMCP provides an MCP server that exposes your tools to AI assistants:
+Data MCP provides an MCP server that exposes your tools to AI assistants:
 
 ```bash
 uv run main.py
@@ -76,7 +76,7 @@ Navigate to the Cursor settings and add the following:
 }
 ```
 
-Now you can use the DMCP server in Cursor chat window.
+Now you can use the Data MCP server in Cursor chat window.
 
 ### 3. Custom MCP Clients
 
@@ -94,7 +94,7 @@ from mcp import ClientSession
 from mcp.client.http import http_client
 
 async def main():
-    # Connect to DMCP server via HTTP
+    # Connect to Data MCP server via HTTP
     server_url = "http://127.0.0.1:8000/dmcp"
     headers = {
         "Authorization": "Bearer YOUR_TOKEN_HERE",
@@ -279,7 +279,7 @@ Each tool includes metadata that helps AI assistants understand how to use it:
 - Verify token hasn't expired
 
 #### 3. Tool Not Found
-- Check if the tool exists in your DMCP instance
+- Check if the tool exists in your Data MCP instance
 - Verify tool names match exactly
 - Ensure the tool is properly configured
 
@@ -320,4 +320,4 @@ Now that you have connected your MCP clients, you can:
 3. **Scale your setup** - Add more tools and datasources
 4. **Integrate with workflows** - Connect to other MCP servers
 
-Your DMCP setup is now complete! You can start using AI assistants to interact with your data sources through natural language. 
+Your Data MCP setup is now complete! You can start using AI assistants to interact with your data sources through natural language. 

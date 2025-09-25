@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Initial Release
 
-DMCP (Data Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants.
+Data MCP (Data Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to any data source via query, API, or code and expose data operations as MCP tools for AI assistants.
 
 #### ✨ Core Features
 

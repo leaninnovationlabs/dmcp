@@ -4,11 +4,11 @@ outline: deep
 
 # Introduction
 
-DMCP (Data Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to any data source via query, API, or code and expose data operations as MCP (Model Context Protocol) tools for AI assistants. This allows AI models to interact with your data through natural language, making data access and analysis more intuitive and accessible.
+Data MCP (Data Model Context Protocol) is a Python backend server built with FastAPI that enables you to connect to any data source via query, API, or code and expose data operations as MCP (Model Context Protocol) tools for AI assistants. This allows AI models to interact with your data through natural language, making data access and analysis more intuitive and accessible.
 
-## What is DMCP?
+## What is Data MCP?
 
-DMCP serves as a bridge between AI assistants and your data sources. It provides:
+Data MCP serves as a bridge between AI assistants and your data sources. It provides:
 
 - **Data Source Connectivity**: Connect to multiple data source types (PostgreSQL, MySQL, SQLite, Databricks, APIs, and more)
 - **Query Management**: Store and manage parameterized queries with Jinja template support
@@ -20,7 +20,7 @@ DMCP serves as a bridge between AI assistants and your data sources. It provides
 
 ```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
-│   AI Assistant  │    │   DMCP       │    │   Data Sources  │
+│   AI Assistant  │    │   Data MCP   │    │   Data Sources  │
 │   (Claude, etc) │◄──►│   Server     │◄──►│   (Data bases,  │
 │                 │    │              │    │    APIs, etc)   │
 └─────────────────┘    └──────────────┘    └─────────────────┘
@@ -61,11 +61,11 @@ Transform your data queries and operations into AI-accessible tools:
 
 The typical workflow involves:
 
-1. **<i class="fas fa-download"></i> Installation** - Set up the DMCP server
+1. **<i class="fas fa-download"></i> Installation** - Set up the Data MCP server
 2. **<i class="fas fa-user-shield"></i> Initial Access** - Login with default admin credentials (admin/dochangethispassword)
 3. **<i class="fas fa-key"></i> Security Setup** - Change the default admin password
 4. **<i class="fas fa-cog"></i> Configuration** - Configure your data source connections
 5. **<i class="fas fa-tools"></i> Tool Creation** - Create MCP tools from your queries and operations
 6. **<i class="fas fa-plug"></i> MCP Integration** - Connect AI assistants to your tools
 
-Ready to get started? Check out the [Installation Guide](./get-started.md) to begin your DMCP journey!
+Ready to get started? Check out the [Installation Guide](./get-started.md) to begin your Data MCP journey!

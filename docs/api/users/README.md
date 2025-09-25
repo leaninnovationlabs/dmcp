@@ -1,10 +1,10 @@
 # Users API
 
-This document describes the user management endpoints for DMCP, including authentication, user creation, and password management.
+This document describes the user management endpoints for Data MCP, including authentication, user creation, and password management.
 
 ## Default Admin Account
 
-When DMCP is first installed, a default admin account is automatically created:
+When Data MCP is first installed, a default admin account is automatically created:
 
 - **Username**: `admin`
 - **Password**: `dochangethispassword`

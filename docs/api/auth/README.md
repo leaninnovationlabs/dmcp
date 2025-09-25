@@ -96,7 +96,6 @@ curl -X POST "http://localhost:8000/dmcp/auth/validate" \
 
 The JWT token generation uses the following configuration from your environment:
 
-- `JWT_SECRET_KEY`: Secret key for signing tokens
 - `JWT_ALGORITHM`: Algorithm used for signing (default: HS256)
 - `JWT_EXPIRATION_MINUTES`: Token expiration time in minutes (default: 60)
 
@@ -151,8 +150,7 @@ The JWT token generation uses the following configuration from your environment:
 
 1. **Token Expiration**: Tokens automatically expire after the configured time period
 2. **Payload Validation**: The endpoint accepts any JSON payload, so validate your data before sending
-3. **Secret Key**: Ensure your `JWT_SECRET_KEY` is secure and unique in production
-4. **HTTPS**: Use HTTPS in production to protect token transmission
+3. **HTTPS**: Use HTTPS in production to protect token transmission
 
 ## Testing
 

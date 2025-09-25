@@ -1,6 +1,6 @@
-# DMCP Theme System
+# Data MCP Theme System
 
-This document describes the comprehensive theming system implemented for the DMCP application.
+This document describes the comprehensive theming system implemented for the Data MCP application.
 
 ## Overview
 

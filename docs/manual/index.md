@@ -8,7 +8,7 @@ hero:
   image:
     src: /icons/logo.png
     width: 400
-    alt: DMCP Logo
+    alt: Data MCP Logo
   actions:
     - theme: brand
       text: Introduction

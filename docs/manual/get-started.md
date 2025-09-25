@@ -4,7 +4,7 @@ outline: deep
 
 # Installation & Setup
 
-This guide will walk you through installing and setting up DMCP on your system.
+This guide will walk you through installing and setting up Data MCP on your system.
 
 
 ## Quick Start with Docker
@@ -35,7 +35,7 @@ This is a manual setup for those who want to run the server without Docker.
 
 ## Prerequisites
 
-Before installing DMCP, ensure you have:
+Before installing Data MCP, ensure you have:
 
 - **Python 3.10 or higher**
 - **uv package manager** (recommended) or pip
@@ -91,25 +91,16 @@ DATABASE_URL=sqlite+aiosqlite:///./dmcp.db
 # Security
 SECRET_KEY=your-secret-key-here-change-this-in-production
 
+
+# Optional config if you want to customize
 # JWT Configuration
-JWT_SECRET_KEY=jwt-secret-key-change-this-in-production
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_MINUTES=60
-
-
-# Server Configuration
 HOST=0.0.0.0
 PORT=8000
 DEBUG=true
-
-# Logging
 LOG_LEVEL=INFO
-
-# CORS, add your frontend url here if its served from a different port and domain
 ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:8000"]
-
-# MCP Server Configuration
-MCP_TRANSPORT=stdio
 MCP_HOST=127.0.0.1
 MCP_PORT=8000
 MCP_PATH=/dmcp
@@ -268,7 +259,6 @@ kill -9 <PID>
 #### <i class="fas fa-key"></i> 3. Authentication Problems
 - Regenerate your token: `uv run scripts/apptoken.py`
 - Ensure you're using the correct token format: `Bearer <token>`
-- Check that your JWT_SECRET_KEY is set correctly
 - **Default Admin Login**: Use username `admin` and password `dochangethispassword` for initial access
 - **Password Reset**: If you've forgotten the admin password, you may need to reset the database and reinitialize
 
@@ -279,7 +269,7 @@ kill -9 <PID>
 
 ## Next Steps
 
-Now that you have DMCP installed and running, you can:
+Now that you have Data MCP installed and running, you can:
 
 1. **[Configure DataSources](./configure-datasources.md)** - Set up your data source connections
 2. **[Create Tools](./create-tools.md)** - Build MCP tools from your queries and operations

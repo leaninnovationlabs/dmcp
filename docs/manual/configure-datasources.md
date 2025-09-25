@@ -4,11 +4,11 @@ outline: deep
 
 # Configure DataSources
 
-DataSources are the foundation of DMCP - they define the connections to your data sources. This guide will walk you through configuring various types of data source connections.
+DataSources are the foundation of Data MCP - they define the connections to your data sources. This guide will walk you through configuring various types of data source connections.
 
 ## Overview
 
-A DataSource in DMCP contains:
+A DataSource in Data MCP contains:
 - **Connection Information**: Host, port, database name, credentials
 - **Data Source Type**: PostgreSQL, MySQL, Databricks, SQLite, APIs, or more
 - **Security Settings**: SSL configuration, connection pooling

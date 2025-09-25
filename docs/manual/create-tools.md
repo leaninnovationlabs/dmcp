@@ -4,11 +4,11 @@ outline: deep
 
 # Create Tools
 
-Tools in DMCP are named operations that can be executed by AI assistants through the MCP protocol. They allow you to expose data operations as simple, reusable functions that AI models can understand and use.
+Tools in Data MCP are named operations that can be executed by AI assistants through the MCP protocol. They allow you to expose data operations as simple, reusable functions that AI models can understand and use.
 
 ## What are Tools?
 
-A Tool in DMCP consists of:
+A Tool in Data MCP consists of:
 - **Name**: Human-readable identifier for the tool
 - **Description**: Clear explanation of what the tool does
 - **Operation**: The actual data operation to execute (SQL query, API call, etc.)
@@ -158,7 +158,7 @@ curl -X POST http://localhost:8000/dmcp/tools \
 
 ## Jinja Template Support
 
-DMCP supports Jinja2 templating in your operations, allowing for dynamic query construction.
+Data MCP supports Jinja2 templating in your operations, allowing for dynamic query construction.
 
 ### Basic Variable Substitution
 

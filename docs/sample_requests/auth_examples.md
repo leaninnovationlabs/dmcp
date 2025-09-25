@@ -2,7 +2,7 @@
 
 ## Default Admin Authentication
 
-When DMCP is first installed, a default admin account is automatically created. You can use these credentials for initial access:
+When Data MCP is first installed, a default admin account is automatically created. You can use these credentials for initial access:
 
 ### Default Admin Login
 
