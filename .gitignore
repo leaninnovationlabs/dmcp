@@ -13,3 +13,4 @@ data/
 public/*
 !public/.gitkeep
 dist
+docs/api/environments
