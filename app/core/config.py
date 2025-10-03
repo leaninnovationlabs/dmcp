@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/dmcp.db"
     
     # Security
-    secret_key: str
-    jwt_secret_key: str = "jwt-secret-key-change-this-in-production"
+    secret_key: str    
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 600000
     
@@ -39,9 +38,6 @@ class Settings(BaseSettings):
     mcp_port: int = 8000
     mcp_path: str = "/dmcp"
     mcp_log_level: str = "debug"
-    
-    # Frontend Configuration
-    vite_api_base_url: str = "http://localhost:8000/dmcp"
 
     # Default Admin Password
     default_admin_username: str = "admin"
