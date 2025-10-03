@@ -11,10 +11,13 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./data/dmcp.db"
     
     # Security
-    secret_key: str
+    secret_key: str    
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 600000
     
+    # Server Configuration
+    host: str = "0.0.0.0"
+    port: int = 8000
     debug: bool = True
     
     # Logging
@@ -35,7 +38,6 @@ class Settings(BaseSettings):
     mcp_port: int = 8000
     mcp_path: str = "/dmcp"
     mcp_log_level: str = "debug"
-
 
     # Default Admin Password
     default_admin_username: str = "admin"
