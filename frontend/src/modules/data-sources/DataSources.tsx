@@ -295,7 +295,7 @@ const DataSources = ({}: DataSourcesProps) => {
           </DialogHeader>
           <DialogFooter className="flex space-x-2">
             <Button variant="secondary" onClick={handleDeleteCancel}>
-              Cancel
+              Back
             </Button>
             <Button
               onClick={handleDeleteConfirm}
