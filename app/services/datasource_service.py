@@ -31,15 +31,30 @@ class DatasourceService:
                 ssl_mode=datasource.ssl_mode,
                 additional_params=datasource.additional_params or {},
             )
-            # Set password using the property to trigger encryption
-            db_datasource.decrypted_password = datasource.password
+            # Set password using the property to trigger encryption (only if password is provided)
+            if datasource.password:
+                db_datasource.decrypted_password = datasource.password
             
             # Save to database
             self.db.add(db_datasource)
             await self.db.commit()
             await self.db.refresh(db_datasource)
             
-            return DatasourceResponse.model_validate(db_datasource)
+            return DatasourceResponse(
+                id=db_datasource.id,
+                name=db_datasource.name,
+                database_type=db_datasource.database_type,
+                host=db_datasource.host,
+                port=db_datasource.port,
+                database=db_datasource.database,
+                username=db_datasource.username,
+                password=db_datasource.decrypted_password,
+                connection_string=db_datasource.connection_string,
+                ssl_mode=db_datasource.ssl_mode,
+                additional_params=db_datasource.additional_params,
+                created_at=db_datasource.created_at,
+                updated_at=db_datasource.updated_at
+            )
         except ValueError as e:
             raise ValueError(str(e))
         except Exception as e:
@@ -58,7 +73,22 @@ class DatasourceService:
         try:
             datasource = await self.repository.get_by_id(datasource_id)
             if datasource:
-                return DatasourceResponse.model_validate(datasource)
+                # Create response with decrypted password
+                return DatasourceResponse(
+                    id=datasource.id,
+                    name=datasource.name,
+                    database_type=datasource.database_type,
+                    host=datasource.host,
+                    port=datasource.port,
+                    database=datasource.database,
+                    username=datasource.username,
+                    password=datasource.decrypted_password,
+                    connection_string=datasource.connection_string,
+                    ssl_mode=datasource.ssl_mode,
+                    additional_params=datasource.additional_params,
+                    created_at=datasource.created_at,
+                    updated_at=datasource.updated_at
+                )
             return None
         except Exception as e:
             raise Exception(f"Failed to get datasource: {str(e)}")
@@ -68,20 +98,37 @@ class DatasourceService:
         try:
             # Handle password encryption if password is being updated
             if 'password' in kwargs:
+                password_value = kwargs.pop('password')
                 # Get the existing datasource
                 datasource = await self.repository.get_by_id(datasource_id)
                 if not datasource:
                     raise DatasourceNotFoundError(datasource_id)
                 
-                # Set the password using the property to trigger encryption
-                datasource.decrypted_password = kwargs.pop('password')
+                # Only update password if it's not empty
+                if password_value:
+                    datasource.decrypted_password = password_value
+                
                 # Update other fields
                 for key, value in kwargs.items():
                     setattr(datasource, key, value)
                 
                 await self.db.commit()
                 await self.db.refresh(datasource)
-                return DatasourceResponse.model_validate(datasource)
+                return DatasourceResponse(
+                    id=datasource.id,
+                    name=datasource.name,
+                    database_type=datasource.database_type,
+                    host=datasource.host,
+                    port=datasource.port,
+                    database=datasource.database,
+                    username=datasource.username,
+                    password=datasource.decrypted_password,
+                    connection_string=datasource.connection_string,
+                    ssl_mode=datasource.ssl_mode,
+                    additional_params=datasource.additional_params,
+                    created_at=datasource.created_at,
+                    updated_at=datasource.updated_at
+                )
             else:
                 # No password update, use normal repository method
                 updated_datasource = await self.repository.update_datasource(datasource_id, **kwargs)

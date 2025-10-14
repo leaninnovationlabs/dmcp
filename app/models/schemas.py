@@ -107,6 +107,7 @@ class DatasourceResponse(BaseModel):
     port: Optional[int]
     database: str
     username: Optional[str]
+    password: Optional[str] = None  # Decrypted password for editing
     connection_string: Optional[str] = None
     ssl_mode: Optional[str]
     additional_params: Dict[str, Any]
