@@ -448,7 +448,7 @@ const ToolsModule = ({
           </DialogHeader>
           <DialogFooter>
             <Button variant="secondary" onClick={handleDeleteCancel}>
-              Cancel
+              Back
             </Button>
             <Button
               onClick={handleDeleteConfirm}

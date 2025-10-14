@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..repositories.tool_repository import ToolRepository
 from ..repositories.datasource_repository import DatasourceRepository
-from ..models.schemas import ToolCreate, ToolType, ToolUpdate, ToolResponse
+from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
 from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
@@ -22,9 +22,10 @@ class ToolService:
             if not datasource:
                 raise DatasourceNotFoundError(tool.datasource_id)
 
-            # Check if the tool type is Query or not, if not raise an error
-            if tool.type != ToolType.QUERY:
-                raise ValueError("Tool type must be Query")
+            # Validate tool type (optional validation)
+            valid_types = ["query", "http", "code"]
+            if tool.type not in valid_types:
+                raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
             
             # Convert ParameterDefinition objects to dictionaries for JSON storage
             parameters_dict = []
@@ -36,6 +37,7 @@ class ToolService:
             db_tool = await self.repository.create_tool(
                 name=tool.name,
                 description=tool.description,
+                type=tool.type,
                 sql=tool.sql,
                 datasource_id=tool.datasource_id,
                 parameters=parameters_dict,

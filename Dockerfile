@@ -50,7 +50,7 @@ COPY --from=builder --chown=appuser:appuser /app/app ./app
 COPY --from=builder --chown=appuser:appuser /app/alembic ./alembic
 COPY --from=builder --chown=appuser:appuser /app/public /app/public
 
-# Create data directory for SQLite database
+# Create data directory for SQLite database in case of SQLite database
 RUN mkdir -p /app/data && chown appuser:appuser /app/data
 
 ENV PATH="/app/.venv/bin:$PATH"
