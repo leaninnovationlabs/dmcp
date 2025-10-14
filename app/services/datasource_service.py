@@ -74,6 +74,7 @@ class DatasourceService:
                     raise DatasourceNotFoundError(datasource_id)
                 
                 # Set the password using the property to trigger encryption
+                # Empty password will clear the existing password
                 datasource.decrypted_password = kwargs.pop('password')
                 # Update other fields
                 for key, value in kwargs.items():
