@@ -2,7 +2,7 @@
 
 # Default port if not specified
 PORT ?= 8000
-APP_NAME ?= dmcp
+APP_NAME ?= datamcp
 APP_VERSION := $(shell grep "version:" bundles/$(APP_NAME)/appbundle.yml | head -n 1 | awk '{print $$2}')
 
 help:

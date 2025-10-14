@@ -1,11 +1,11 @@
-bundle_name: dmcp-bundle
+bundle_name: datamcp-bundle
 size: 15M
 application:
   artifact_size: ""
-  name: dmcp
+  name: datamcp
   version: 1.0.0
   replica_count: 1
-  namespace: dmcp # This would be used for creating a namespace before deployment( if Name space does not exists)
+  namespace: datamcp # This would be used for creating a namespace before deployment( if Name space does not exists)
   brief_description: DataMCP - Data Model Context Protocol
   about: | # Markdown overview of app
     ## DataMCP - Data Model Context Protocol

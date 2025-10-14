@@ -35,6 +35,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
     
+    # Create default admin user by default
     # Create indexes
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
