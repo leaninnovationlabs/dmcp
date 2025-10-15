@@ -107,6 +107,7 @@ class DatasourceResponse(BaseModel):
     port: Optional[int]
     database: str
     username: Optional[str]
+    # password field removed - not returned in API responses for security
     connection_string: Optional[str] = None
     ssl_mode: Optional[str]
     additional_params: Dict[str, Any]
@@ -146,7 +147,6 @@ class ToolResponse(BaseModel):
     sql: str
     datasource_id: int
     parameters: List[ParameterDefinition]
-    created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

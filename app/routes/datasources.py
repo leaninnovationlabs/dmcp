@@ -81,7 +81,7 @@ async def get_datasource_field_config():
                         name="password",
                         type="password",
                         label="Password",
-                        required=True,
+                        required=False,
                         placeholder="mypassword"
                     ),
                     FieldDefinition(
@@ -140,7 +140,7 @@ async def get_datasource_field_config():
                         name="password",
                         type="password",
                         label="Password",
-                        required=True,
+                        required=False,
                         placeholder="mypassword"
                     ),
                     FieldDefinition(

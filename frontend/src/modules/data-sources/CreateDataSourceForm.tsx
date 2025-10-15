@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeftIcon, Plug, SkipBackIcon, Trash2 } from "lucide-react";
+import { ArrowLeftIcon, Plug, SkipBackIcon, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -42,7 +42,7 @@ const CreateDataSourceForm = ({
     port: dataSource?.port?.toString() || "",
     database: dataSource?.database || "",
     username: dataSource?.username || "",
-    password: "",
+    password: "", // Always initialize password as empty for security
     connection_string: dataSource?.connection_string || "",
     ssl_mode: dataSource?.ssl_mode || "",
     additional_params: dataSource?.additional_params
@@ -67,6 +67,7 @@ const CreateDataSourceForm = ({
     DatasourceFieldConfig
   > | null>(null);
   const [loadingFieldConfigs, setLoadingFieldConfigs] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const isEditMode = !!dataSource;
 
   // Load field configurations on component mount
@@ -291,6 +292,11 @@ const CreateDataSourceForm = ({
       if (fieldConfigs && fieldConfigs[formData.database_type]) {
         const config = fieldConfigs[formData.database_type];
         for (const field of config.fields) {
+          // Skip password field validation entirely
+          if (field.type === "password") {
+            continue;
+          }
+          
           if (
             field.required &&
             !formData[field.name as keyof typeof formData]
@@ -364,6 +370,17 @@ const CreateDataSourceForm = ({
         Object.keys(additionalParams).length > 0 ? additionalParams : undefined,
     };
 
+    // Helper function to conditionally include password field
+    const includePasswordField = (passwordValue: string) => {
+      if (isEditMode) {
+        // In edit mode, only include password if it's not empty
+        return passwordValue && passwordValue.trim() !== "" ? { password: passwordValue } : {};
+      } else {
+        // In create mode, always include password field
+        return { password: passwordValue };
+      }
+    };
+
     switch (formData.database_type) {
       case "sqlite":
         return {
@@ -372,7 +389,7 @@ const CreateDataSourceForm = ({
           host: "",
           port: 0,
           username: "",
-          password: "",
+          ...includePasswordField(""),
         };
       case "postgresql":
       case "mysql":
@@ -382,14 +399,14 @@ const CreateDataSourceForm = ({
           port: parseInt(formData.port),
           database: formData.database,
           username: formData.username,
-          password: formData.password,
+          ...includePasswordField(formData.password),
           ssl_mode: formData.ssl_mode || undefined,
         };
       case "databricks":
         return {
           ...baseData,
           host: formData.databricks_host,
-          password: formData.databricks_token,
+          ...includePasswordField(formData.databricks_token),
           database: "databricks",
           port: 0,
           username: "",
@@ -407,7 +424,7 @@ const CreateDataSourceForm = ({
           port: 0,
           database: "",
           username: "",
-          password: "",
+          ...includePasswordField(""),
         };
     }
   };
@@ -567,37 +584,44 @@ const CreateDataSourceForm = ({
                           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                             {fieldConfigs[formData.database_type].fields.map(
                               (field) => {
-                                // Hide password field in edit mode
-                                if (field.type === "password" && isEditMode) {
-                                  return null;
-                                }
-
                                 return (
                                   <div key={field.name}>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                       {field.label}{" "}
-                                      {field.required && !isEditMode && (
+                                      {field.required && !isEditMode && field.type !== "password" && (
                                         <span className="text-red-500">*</span>
                                       )}
                                     </label>
                                     {field.type === "password" ? (
-                                      <input
-                                        type="password"
-                                        value={
-                                          formData[
-                                            field.name as keyof typeof formData
-                                          ] || ""
-                                        }
-                                        onChange={(e) =>
-                                          handleInputChange(
-                                            field.name,
-                                            e.target.value
-                                          )
-                                        }
-                                        required={field.required}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                        placeholder={field.placeholder || ""}
-                                      />
+                                      <div className="relative">
+                                        <input
+                                          type={showPassword ? "text" : "password"}
+                                          value={
+                                            formData[
+                                              field.name as keyof typeof formData
+                                            ] || ""
+                                          }
+                                          onChange={(e) =>
+                                            handleInputChange(
+                                              field.name,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                          placeholder={field.placeholder || ""}
+                                        />
+                                        <button
+                                          type="button"
+                                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                          onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                          {showPassword ? (
+                                            <Eye className="h-4 w-4 text-gray-400" />
+                                          ) : (
+                                            <EyeOff className="h-4 w-4 text-gray-400" />
+                                          )}
+                                        </button>
+                                      </div>
                                     ) : field.type === "text" ? (
                                       <input
                                         type="text"
