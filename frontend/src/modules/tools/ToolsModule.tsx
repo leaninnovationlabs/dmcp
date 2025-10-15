@@ -17,7 +17,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Plus,
-  Eye,
   Edit,
   Wrench,
   Trash2,
@@ -38,7 +37,6 @@ interface ToolItem {
   datasource_id: string;
   sql: string;
   parameters?: ToolParameter[];
-  created_at: string;
 }
 
 interface ToolParameter {
@@ -67,17 +65,19 @@ interface ToolsModuleProps {
   onModuleChange?: () => void;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
+  editingTool?: ToolItem | null;
 }
 
 const ToolsModule = ({
   onModuleChange: _onModuleChange,
   sidebarCollapsed: _sidebarCollapsed,
   onToggleSidebar: _onToggleSidebar,
+  editingTool: propEditingTool,
 }: ToolsModuleProps) => {
   const { token } = useAuth();
   const navigate = useNavigate();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTool, setEditingTool] = useState<ToolItem | null>(null);
+  const [showCreateForm, setShowCreateForm] = useState(propEditingTool !== undefined);
+  const [editingTool, setEditingTool] = useState<ToolItem | null>(propEditingTool || null);
   const [tools, setTools] = useState<ToolItem[]>([]);
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,16 +154,20 @@ const ToolsModule = ({
   };
 
   const handleAddTool = () => {
-    setShowCreateForm(true);
-    setEditingTool(null);
+    navigate("/tools/create");
   };
 
   const handleEditTool = (tool: ToolItem) => {
-    setEditingTool(tool);
-    setShowCreateForm(true);
+    navigate(`/tools/${tool.id}`);
   };
 
   const handleCancelForm = () => {
+    // If we're in a dedicated page (create or edit), navigate back to tools list
+    if (propEditingTool !== undefined) {
+      navigate("/tools");
+      return;
+    }
+    
     setShowCreateForm(false);
     setEditingTool(null);
   };
@@ -176,6 +180,18 @@ const ToolsModule = ({
         ? `Tool "${tool.name}" updated successfully!`
         : `Tool "${tool.name}" created successfully!`
     );
+
+    // If we're in a dedicated page (create or edit), navigate appropriately
+    if (propEditingTool !== undefined) {
+      if (isEdit) {
+        // Editing existing tool - stay on edit page
+        navigate(`/tools/${tool.id}`);
+      } else {
+        // Creating new tool - go to edit page of new tool
+        navigate(`/tools/${tool.id}`);
+      }
+      return;
+    }
 
     // Refresh the data after saving
     if (token) {
@@ -281,7 +297,7 @@ const ToolsModule = ({
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Eye className="w-5 h-5 text-primary" />
+              <Wrench className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-semibold text-gray-900">
                 Tools Overview
               </h3>
@@ -483,13 +499,15 @@ const CreateToolForm = ({
   navigate: _navigate,
 }: CreateToolFormProps) => {
   const { token } = useAuth();
+  const [toolDetails, setToolDetails] = useState<ToolItem | null>(tool || null);
+  const [loadingToolDetails, setLoadingToolDetails] = useState(false);
   const [formData, setFormData] = useState({
-    name: tool?.name || "",
-    description: tool?.description || "",
-    type: tool?.type || "",
-    datasource_id: tool?.datasource_id || "",
-    sql: tool?.sql || "",
-    parameters: tool?.parameters || [],
+    name: "",
+    description: "",
+    type: "",
+    datasource_id: "",
+    sql: "",
+    parameters: [] as ToolParameter[],
     // HTTP-specific fields
     endpoint: "",
     method: "GET",
@@ -518,6 +536,73 @@ const CreateToolForm = ({
   });
 
   const isEditMode = !!tool;
+
+  // Fetch tool details when in edit mode
+  useEffect(() => {
+    const fetchToolDetails = async () => {
+      if (!isEditMode || !tool || !token) {
+        return;
+      }
+
+      try {
+        setLoadingToolDetails(true);
+        const response = await apiService.getTool(token, parseInt(tool.id));
+        
+        if (response.success && response.data) {
+          setToolDetails(response.data);
+          
+          // Parse HTTP configuration if it's an HTTP tool
+          let httpConfig = {
+            endpoint: "",
+            method: "GET",
+            headers: "{}",
+            payload: "",
+          };
+          
+          if (response.data.type?.toLowerCase() === "http") {
+            try {
+              const config = JSON.parse(response.data.sql);
+              httpConfig = {
+                endpoint: config.endpoint || "",
+                method: config.method || "GET",
+                headers: config.headers || "{}",
+                payload: config.payload || "",
+              };
+            } catch (error) {
+              console.error("Error parsing HTTP config:", error);
+            }
+          }
+          
+          // Update form data with fetched tool details
+          setFormData({
+            name: response.data.name || "",
+            description: response.data.description || "",
+            type: (response.data.type || "").toLowerCase(), // Normalize to lowercase for UI
+            datasource_id: response.data.datasource_id || "",
+            sql: response.data.type?.toLowerCase() === "http" ? "" : (response.data.sql || ""),
+            parameters: response.data.parameters || [],
+            endpoint: httpConfig.endpoint,
+            method: httpConfig.method,
+            headers: httpConfig.headers,
+            payload: httpConfig.payload,
+          });
+        } else {
+          toast.error("Failed to fetch tool details");
+        }
+      } catch (err) {
+        console.error("Error fetching tool details:", err);
+        if (err instanceof ApiError) {
+          toast.error(err.message);
+        } else {
+          toast.error("An unexpected error occurred while fetching tool details");
+        }
+      } finally {
+        setLoadingToolDetails(false);
+      }
+    };
+
+    fetchToolDetails();
+  }, [isEditMode, tool, token]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -742,8 +827,9 @@ const CreateToolForm = ({
 
     // Initialize parameter values with defaults
     const initialValues: Record<string, string> = {};
-    if (tool?.parameters) {
-      tool.parameters.forEach((param) => {
+    const currentTool = toolDetails || tool;
+    if (currentTool?.parameters) {
+      currentTool.parameters.forEach((param) => {
         initialValues[param.name] = param.default || "";
       });
     }
@@ -753,9 +839,11 @@ const CreateToolForm = ({
   const handleExecuteConfirm = async () => {
     if (!token || !tool) return;
 
+    const currentTool = toolDetails || tool;
+
     // Validate required parameters
-    if (tool.parameters) {
-      const missingRequired = tool.parameters.filter(
+    if (currentTool.parameters) {
+      const missingRequired = currentTool.parameters.filter(
         (param) =>
           param.required &&
           (!parameterValues[param.name] ||
@@ -965,10 +1053,19 @@ const CreateToolForm = ({
           </div>
         </div>
 
+        {/* Loading State for Tool Details */}
+        {loadingToolDetails && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <span className="ml-3 text-gray-600">Loading tool details...</span>
+          </div>
+        )}
+
         {/* Form Section */}
-        <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto p-6">
-            <form id="tool-form" onSubmit={handleSubmit}>
+        {!loadingToolDetails && (
+          <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto p-6">
+              <form id="tool-form" onSubmit={handleSubmit}>
               {/* Basic Information */}
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
@@ -1424,6 +1521,7 @@ const CreateToolForm = ({
             </form>
           </div>
         </div>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}

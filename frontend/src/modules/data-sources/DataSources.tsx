@@ -73,7 +73,7 @@ const DataSources = ({}: DataSourcesProps) => {
   };
 
   const handleEditDataSource = (dataSource: DataSource) => {
-    navigate(`/data-sources/edit/${dataSource.id}`);
+    navigate(`/data-sources/${dataSource.id}`);
   };
 
   const handleDeleteClick = (dataSource: DataSource) => {
