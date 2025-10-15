@@ -73,7 +73,7 @@ class DatasourceService:
         try:
             datasource = await self.repository.get_by_id(datasource_id)
             if datasource:
-                # Create response with decrypted password
+                # Create response without password for security
                 return DatasourceResponse(
                     id=datasource.id,
                     name=datasource.name,
@@ -82,7 +82,6 @@ class DatasourceService:
                     port=datasource.port,
                     database=datasource.database,
                     username=datasource.username,
-                    password=datasource.decrypted_password,
                     connection_string=datasource.connection_string,
                     ssl_mode=datasource.ssl_mode,
                     additional_params=datasource.additional_params,
@@ -104,8 +103,8 @@ class DatasourceService:
                 if not datasource:
                     raise DatasourceNotFoundError(datasource_id)
                 
-                # Only update password if it's not empty
-                if password_value:
+                # Only update password if it's not empty or None
+                if password_value and password_value.strip():
                     datasource.decrypted_password = password_value
                 
                 # Update other fields
@@ -122,7 +121,6 @@ class DatasourceService:
                     port=datasource.port,
                     database=datasource.database,
                     username=datasource.username,
-                    password=datasource.decrypted_password,
                     connection_string=datasource.connection_string,
                     ssl_mode=datasource.ssl_mode,
                     additional_params=datasource.additional_params,
