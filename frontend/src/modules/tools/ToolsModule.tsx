@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +16,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import {
   Plus,
-  Edit,
   Wrench,
   Trash2,
   CheckCircle,
@@ -133,18 +131,6 @@ const ToolsModule = ({
     fetchData();
   }, [token]);
 
-  const getToolTypeColor = (toolType: string) => {
-    switch (toolType) {
-      case "query":
-        return "bg-gray-100 text-gray-800";
-      case "http":
-        return "bg-gray-100 text-gray-800";
-      case "code":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const getDatasourceName = (datasourceId: string) => {
     const datasource = datasources.find(
@@ -277,6 +263,212 @@ const ToolsModule = ({
     }
   };
 
+  // Render Methods
+  const renderToolsOverview = () => (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <Wrench className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-gray-900">
+            Tools Overview
+          </h3>
+        </div>
+        <Button
+          onClick={handleAddTool}
+          className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary px-4 py-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add New Tool</span>
+        </Button>
+      </div>
+      <p className="text-gray-600">
+        Manage your development and productivity tools.
+        <a
+          href="https://dmcp.opsloom.io/create-tools.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary/80 ml-1 underline font-medium"
+        >
+          View documentation
+        </a>
+      </p>
+    </div>
+  );
+
+  const renderError = () => (
+    error && (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex-shrink-0">
+        <div className="flex items-center">
+          <div className="text-red-600 text-sm">{error}</div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setError(null)}
+            className="ml-auto text-red-600 hover:text-red-700"
+          >
+            ×
+          </Button>
+        </div>
+      </div>
+    )
+  );
+
+  const renderToolsTable = () => (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="overflow-auto flex-1">
+        <table className="w-full">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-3 px-4 font-medium text-gray-900">
+                Name
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900">
+                Type
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900">
+                Description
+              </th>
+              <th className="text-left py-3 px-4 font-medium text-gray-900">
+                Data Source
+              </th>
+              <th className="text-right py-3 px-4 font-medium text-gray-900">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {tools.map((tool) => (
+              <tr key={tool.id} className="hover:bg-gray-50">
+                <td className="py-4 px-4">
+                  <div className="font-medium text-gray-900">{tool.name}</div>
+                </td>
+                <td className="py-4 px-4">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      tool.type === "query"
+                        ? "bg-blue-100 text-blue-800"
+                        : tool.type === "http"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-purple-100 text-purple-800"
+                    }`}
+                  >
+                    {tool.type.toUpperCase()}
+                  </span>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="text-gray-600 text-sm max-w-xs truncate">
+                    {tool.description || "No description"}
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="text-gray-600 text-sm">
+                    {getDatasourceName(tool.datasource_id)}
+                  </div>
+                </td>
+                <td className="py-4 px-4 text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <Button
+                      onClick={() => handleEditTool(tool)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteClick(tool.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderToolsList = () => (
+    <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col min-h-0">
+      <div className="p-6 flex-shrink-0">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Manage and execute your database tools
+        </h2>
+      </div>
+
+      <div className="flex-1 flex flex-col px-6 pb-6 min-h-0">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <span className="ml-3 text-gray-600">Loading tools...</span>
+          </div>
+        ) : tools.length === 0 ? (
+          <div className="text-center py-12">
+            <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No Tools Found
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Create your first tool to get started with database management
+            </p>
+            <Button
+              onClick={handleAddTool}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Tool
+            </Button>
+          </div>
+        ) : (
+          renderToolsTable()
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDeleteDialog = () => (
+    <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Tool</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this tool? This action cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="secondary" onClick={handleDeleteCancel}>
+            Back
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            disabled={loading}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (showCreateForm) {
     return (
       <CreateToolForm
@@ -293,189 +485,11 @@ const ToolsModule = ({
   return (
     <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
       <div className="p-4 flex-1 flex flex-col min-h-0">
-        {/* Tools Overview */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4 flex-shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <Wrench className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Tools Overview
-              </h3>
-            </div>
-            <Button
-              onClick={handleAddTool}
-              className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground border border-primary px-4 py-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Tool</span>
-            </Button>
-          </div>
-          <p className="text-gray-600">
-            Manage your development and productivity tools.
-            <a
-              href="https://dmcp.opsloom.io/create-tools.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:text-primary/80 ml-1 underline font-medium"
-            >
-              View documentation
-            </a>
-          </p>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex-shrink-0">
-            <div className="flex items-center">
-              <div className="text-red-600 text-sm">{error}</div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setError(null)}
-                className="ml-auto text-red-600 hover:text-red-700"
-              >
-                ×
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Tools List */}
-        <div className="bg-white rounded-lg border border-gray-200 flex-1 flex flex-col min-h-0">
-          <div className="p-6 flex-shrink-0">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Manage and execute your database tools
-            </h2>
-          </div>
-
-          <div className="flex-1 flex flex-col px-6 pb-6 min-h-0">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <span className="ml-3 text-gray-600">Loading tools...</span>
-              </div>
-            ) : tools.length === 0 ? (
-              <div className="text-center py-12">
-                <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No Tools Found
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Create your first tool to get started with database management
-                </p>
-                <Button
-                  onClick={handleAddTool}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Tool
-                </Button>
-              </div>
-            ) : (
-              /* Tools Table */
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="overflow-auto flex-1">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 sticky top-0 z-10">
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">
-                          Name
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">
-                          Type
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">
-                          Description
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">
-                          Datasource
-                        </th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-900">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {tools.map((tool) => (
-                        <tr
-                          key={tool.id}
-                          className="border-b border-gray-100 hover:bg-gray-50"
-                        >
-                          <td className="py-3 px-4">
-                            <span className="text-gray-900">{tool.name}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <Badge className={getToolTypeColor(tool.type)}>
-                              {tool.type.toUpperCase()}
-                            </Badge>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600 max-w-xs truncate block">
-                              {tool.description || "No description"}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-600">
-                              {getDatasourceName(tool.datasource_id)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex space-x-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditTool(tool)}
-                                className="text-gray-500 hover:text-primary-foreground hover:bg-primary p-1"
-                                title="Edit Tool"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteClick(tool.id)}
-                                className="text-gray-500 hover:text-red-600 hover:bg-primary p-1"
-                                title="Delete Tool"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        {renderToolsOverview()}
+        {renderError()}
+        {renderToolsList()}
       </div>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Tool</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this tool? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="secondary" onClick={handleDeleteCancel}>
-              Back
-            </Button>
-            <Button
-              onClick={handleDeleteConfirm}
-              disabled={loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {loading ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {renderDeleteDialog()}
     </div>
   );
 };
@@ -523,7 +537,7 @@ const CreateToolForm = ({
   const [parameterValues, setParameterValues] = useState<
     Record<string, string>
   >({});
-  const [showParameterForm, setShowParameterForm] = useState(false);
+  const [showParameterDialog, setShowParameterDialog] = useState(false);
   const [editingParameterIndex, setEditingParameterIndex] = useState<
     number | null
   >(null);
@@ -620,7 +634,7 @@ const CreateToolForm = ({
       required: false,
     });
     setEditingParameterIndex(null);
-    setShowParameterForm(true);
+    setShowParameterDialog(true);
   };
 
   const handleEditParameter = (index: number) => {
@@ -633,7 +647,7 @@ const CreateToolForm = ({
       required: parameter.required,
     });
     setEditingParameterIndex(index);
-    setShowParameterForm(true);
+    setShowParameterDialog(true);
   };
 
   const handleParameterFormChange = (
@@ -678,7 +692,7 @@ const CreateToolForm = ({
       }
     });
 
-    setShowParameterForm(false);
+    setShowParameterDialog(false);
     setEditingParameterIndex(null);
     setParameterFormData({
       name: "",
@@ -690,7 +704,7 @@ const CreateToolForm = ({
   };
 
   const handleCancelParameter = () => {
-    setShowParameterForm(false);
+    setShowParameterDialog(false);
     setEditingParameterIndex(null);
     setParameterFormData({
       name: "",
@@ -1264,19 +1278,17 @@ const CreateToolForm = ({
                     <p className="text-sm text-gray-600">
                       Define parameters that users can pass to this tool
                     </p>
-                    {!showParameterForm && (
-                      <Button
-                        type="button"
-                        onClick={handleAddParameter}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-lg px-3 py-1 text-sm font-medium"
-                      >
-                        <Plus className="w-4 h-4 mr-1" />
-                        Add Parameter
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      onClick={handleAddParameter}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary rounded-lg px-3 py-1 text-sm font-medium"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add Parameter
+                    </Button>
                   </div>
 
-                  {formData.parameters.length === 0 && !showParameterForm ? (
+                  {formData.parameters.length === 0 ? (
                     <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
                       No parameters defined. Click "Add Parameter" to add one.
                     </div>
@@ -1387,135 +1399,6 @@ const CreateToolForm = ({
                     </div>
                   ) : null}
 
-                  {/* Section 3: Add Parameter Form (shown when showParameterForm is true) */}
-                  {showParameterForm && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium text-gray-900">
-                          {editingParameterIndex !== null
-                            ? "Edit Parameter"
-                            : "Add New Parameter"}
-                        </h4>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={parameterFormData.name}
-                              onChange={(e) =>
-                                handleParameterFormChange(
-                                  "name",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="e.g., start_date"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Type <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                              value={parameterFormData.type}
-                              onChange={(e) =>
-                                handleParameterFormChange(
-                                  "type",
-                                  e.target.value
-                                )
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                            >
-                              <option value="string">String</option>
-                              <option value="integer">Integer</option>
-                              <option value="float">Float</option>
-                              <option value="boolean">Boolean</option>
-                              <option value="date">Date</option>
-                              <option value="datetime">DateTime</option>
-                              <option value="array">Array</option>
-                              <option value="object">Object</option>
-                            </select>
-                          </div>
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Description
-                            </label>
-                            <textarea
-                              value={parameterFormData.description}
-                              onChange={(e) =>
-                                handleParameterFormChange(
-                                  "description",
-                                  e.target.value
-                                )
-                              }
-                              rows={2}
-                              placeholder="Brief description of this parameter"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                            />
-                          </div>
-                          <div className="flex gap-4">
-                            <div className="flex-1">
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Default Value
-                              </label>
-                              <input
-                                type="text"
-                                value={parameterFormData.default}
-                                onChange={(e) =>
-                                  handleParameterFormChange(
-                                    "default",
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Optional default value"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                              />
-                            </div>
-                            <div className="flex items-end pb-2">
-                              <label className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  checked={parameterFormData.required}
-                                  onChange={(e) =>
-                                    handleParameterFormChange(
-                                      "required",
-                                      e.target.checked
-                                    )
-                                  }
-                                  className="mr-2"
-                                />
-                                <span className="text-sm font-medium text-gray-700">
-                                  Required
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end space-x-3 pt-4">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={handleCancelParameter}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="button"
-                            onClick={handleSaveParameter}
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground border border-primary"
-                          >
-                            {editingParameterIndex !== null
-                              ? "Update Parameter"
-                              : "Save Parameter"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </form>
@@ -1549,6 +1432,126 @@ const CreateToolForm = ({
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {loading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Parameter Dialog */}
+      <Dialog open={showParameterDialog} onOpenChange={setShowParameterDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingParameterIndex !== null
+                ? "Edit Parameter"
+                : "Add New Parameter"}
+            </DialogTitle>
+            <DialogDescription>
+              Define the parameter details for this tool.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={parameterFormData.name}
+                  onChange={(e) =>
+                    handleParameterFormChange("name", e.target.value)
+                  }
+                  placeholder="e.g., start_date"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={parameterFormData.type}
+                  onChange={(e) =>
+                    handleParameterFormChange("type", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                >
+                  <option value="string">String</option>
+                  <option value="integer">Integer</option>
+                  <option value="float">Float</option>
+                  <option value="boolean">Boolean</option>
+                  <option value="date">Date</option>
+                  <option value="datetime">DateTime</option>
+                  <option value="array">Array</option>
+                  <option value="object">Object</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={parameterFormData.description}
+                  onChange={(e) =>
+                    handleParameterFormChange("description", e.target.value)
+                  }
+                  rows={2}
+                  placeholder="Brief description of this parameter"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Default Value
+                  </label>
+                  <input
+                    type="text"
+                    value={parameterFormData.default}
+                    onChange={(e) =>
+                      handleParameterFormChange("default", e.target.value)
+                    }
+                    placeholder="Optional default value"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                  />
+                </div>
+                <div className="flex items-end pb-2">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={parameterFormData.required}
+                      onChange={(e) =>
+                        handleParameterFormChange("required", e.target.checked)
+                      }
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Required
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleCancelParameter}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveParameter}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {editingParameterIndex !== null
+                ? "Update Parameter"
+                : "Save Parameter"}
             </Button>
           </DialogFooter>
         </DialogContent>
