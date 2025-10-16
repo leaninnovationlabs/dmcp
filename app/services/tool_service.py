@@ -39,6 +39,7 @@ class ToolService:
                 sql=tool.sql,
                 datasource_id=tool.datasource_id,
                 parameters=parameters_dict,
+                tags=tool.tags or [],
             )
             return ToolResponse.model_validate(db_tool)
         except (DatasourceNotFoundError, ValueError):
@@ -98,6 +99,8 @@ class ToolService:
             else:
                 update_data['parameters'] = current_tool.parameters
             
+            update_data['tags'] = tool_update.tags if tool_update.tags is not None else current_tool.tags
+            
             updated_tool = await self.repository.update_tool(
                 tool_id,
                 **update_data
@@ -132,4 +135,4 @@ class ToolService:
         except DatasourceNotFoundError:
             raise
         except Exception as e:
-            raise Exception(f"Failed to get tools by datasource: {str(e)}") 
+            raise Exception(f"Failed to get tools by datasource: {str(e)}")    

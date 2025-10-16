@@ -131,6 +131,7 @@ class ToolCreate(BaseModel):
     parameters: Optional[List[ParameterDefinition]] = Field(
         default_factory=list, description="Parameter definitions"
     )
+    tags: Optional[List[str]] = Field(default_factory=list, description="Tags for the tool")
 
 
 class ToolUpdate(BaseModel):
@@ -142,6 +143,7 @@ class ToolUpdate(BaseModel):
     parameters: Optional[List[ParameterDefinition]] = Field(
         None, description="Parameter definitions"
     )
+    tags: Optional[List[str]] = Field(None, description="Tags for the tool")
 
 
 class ToolResponse(BaseModel):
@@ -152,6 +154,7 @@ class ToolResponse(BaseModel):
     sql: str
     datasource_id: int
     parameters: List[ParameterDefinition]
+    tags: List[str]
     created_at: datetime
     updated_at: datetime
 

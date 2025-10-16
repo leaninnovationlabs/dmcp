@@ -112,6 +112,7 @@ class Tool(Base):
     sql = Column(Text, nullable=False)
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
+    tags = Column(JSON, default=[])
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
@@ -119,4 +120,4 @@ class Tool(Base):
     datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type.value}', datasource_id={self.datasource_id})>" 
+        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type.value}', datasource_id={self.datasource_id})>"  
