@@ -130,14 +130,7 @@ class DatasourceService:
             connection = await connection_manager.get_connection(datasource)
             
             # Try to execute a simple query to test the connection
-            if datasource.database_type == "sqlite":
-                test_sql = "SELECT 1 as test"
-            elif datasource.database_type == "postgresql":
-                test_sql = "SELECT 1 as test"
-            elif datasource.database_type == "mysql":
-                test_sql = "SELECT 1 as test"
-            else:
-                test_sql = "SELECT 1 as test"
+            test_sql = "SELECT 1 as test"
             
             result = await connection.execute(test_sql, {})
             test_row = await result.fetchone()
@@ -195,14 +188,7 @@ class DatasourceService:
             connection = await connection_manager.get_connection(temp_datasource)
             
             # Try to execute a simple query to test the connection
-            if datasource.database_type.value == "sqlite":
-                test_sql = "SELECT 1 as test"
-            elif datasource.database_type.value == "postgresql":
-                test_sql = "SELECT 1 as test"
-            elif datasource.database_type.value == "mysql":
-                test_sql = "SELECT 1 as test"
-            else:
-                test_sql = "SELECT 1 as test"
+            test_sql = "SELECT 1 as test"
             
             result = await connection.execute(test_sql, {})
             test_row = await result.fetchone()
@@ -231,4 +217,4 @@ class DatasourceService:
                 "message": f"Failed to connect to database: {str(e)}",
                 "connection_time_ms": connection_time,
                 "error": str(e)
-            } 
+            }    
