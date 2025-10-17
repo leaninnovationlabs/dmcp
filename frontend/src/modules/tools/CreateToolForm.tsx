@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 import ParameterDialog from "./ParameterDialog";
 import ToolExecutionDialog from "./ToolExecutionDialog";
+import { TagSelector } from "@/components/TagSelector";
 import { apiService, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ interface ToolItem {
   datasource_id: string;
   sql: string;
   parameters?: ToolParameter[];
+  tags?: string[];
 }
 
 interface ToolParameter {
@@ -46,6 +48,13 @@ interface Datasource {
   id: number;
   name: string;
   database_type: string;
+}
+
+interface Tag {
+  id: number;
+  name: string;
+  description?: string;
+  color?: string;
 }
 
 interface CreateToolFormProps {
@@ -75,7 +84,7 @@ const CreateToolForm = ({
     datasource_id: "",
     sql: "",
     parameters: [] as ToolParameter[],
-    // HTTP-specific fields
+    tags: [] as string[],
     endpoint: "",
     method: "GET",
     headers: "{}",
@@ -83,6 +92,8 @@ const CreateToolForm = ({
   });
   const [loading, setLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [loadingTags, setLoadingTags] = useState(false);
   const [showExecuteDialog, setShowExecuteDialog] = useState(false);
   const [executionResult, setExecutionResult] =
     useState<ExecutionResult | null>(null);
@@ -104,7 +115,31 @@ const CreateToolForm = ({
 
   const isEditMode = !!tool;
 
-  // Fetch tool details when in edit mode
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (!token) return;
+
+      try {
+        setLoadingTags(true);
+        const response = await apiService.getTags(token);
+        if (response.success && response.data) {
+          setAvailableTags(response.data);
+        } else {
+          toast.error("Failed to fetch tags");
+        }
+      } catch (err) {
+        console.error("Error fetching tags:", err);
+        if (err instanceof ApiError) {
+          toast.error(err.message);
+        }
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, [token]);
+
   useEffect(() => {
     const fetchToolDetails = async () => {
       if (!isEditMode || !tool || !token) {
@@ -140,14 +175,14 @@ const CreateToolForm = ({
             }
           }
           
-          // Update form data with fetched tool details
           setFormData({
             name: response.data.name || "",
             description: response.data.description || "",
-            type: (response.data.type || "").toLowerCase(), // Normalize to lowercase for UI
+            type: (response.data.type || "").toLowerCase(),
             datasource_id: response.data.datasource_id || "",
             sql: response.data.type?.toLowerCase() === "http" ? "" : (response.data.sql || ""),
             parameters: response.data.parameters || [],
+            tags: response.data.tags || [],
             endpoint: httpConfig.endpoint,
             method: httpConfig.method,
             headers: httpConfig.headers,
@@ -171,7 +206,7 @@ const CreateToolForm = ({
     fetchToolDetails();
   }, [isEditMode, tool, token]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -275,6 +310,22 @@ const CreateToolForm = ({
     }));
   };
 
+  const handleCreateTag = async (name: string) => {
+    if (!token) return;
+
+    try {
+      const response = await apiService.createTag(token, { name });
+      if (response.success && response.data) {
+        setAvailableTags((prev) => [...prev, response.data]);
+      } else {
+        throw new Error("Failed to create tag");
+      }
+    } catch (err) {
+      console.error("Error creating tag:", err);
+      throw err;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
@@ -318,7 +369,6 @@ const CreateToolForm = ({
       toast.loading(isEditMode ? "Updating tool..." : "Creating tool...", {
         id: "save-tool",
       });
-      // Build tool data based on type
       let toolData: any = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
@@ -331,6 +381,7 @@ const CreateToolForm = ({
           required: param.required,
           default: param.default || null,
         })),
+        tags: formData.tags,
       };
 
       // Add type-specific data
@@ -709,6 +760,28 @@ const CreateToolForm = ({
                     </select>
                   </div>
                 </div>
+              </div>
+
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
+                  Tags
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Add tags to categorize and organize your tools
+                </p>
+                {loadingTags ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                    <span className="ml-3 text-gray-600">Loading tags...</span>
+                  </div>
+                ) : (
+                  <TagSelector
+                    selectedTags={formData.tags}
+                    onTagsChange={(tags) => handleInputChange("tags", tags)}
+                    availableTags={availableTags}
+                    onCreateTag={handleCreateTag}
+                  />
+                )}
               </div>
 
               {/* SQL Query - Only for Query tools */}

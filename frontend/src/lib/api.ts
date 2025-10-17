@@ -117,6 +117,33 @@ export interface FieldConfigResponse {
   errors?: Array<{ msg: string }>;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  description?: string;
+  color?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TagCreateRequest {
+  name: string;
+  description?: string;
+  color?: string;
+}
+
+export interface TagResponse {
+  success: boolean;
+  data?: Tag;
+  errors?: Array<{ msg: string }>;
+}
+
+export interface TagsListResponse {
+  success: boolean;
+  data?: Tag[];
+  errors?: Array<{ msg: string }>;
+}
+
 class ApiError extends Error {
   status: number;
 
@@ -429,6 +456,25 @@ class ApiService {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+    });
+  }
+
+  async getTags(token: string): Promise<TagsListResponse> {
+    return this.request<TagsListResponse>('/dmcp/tags', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createTag(token: string, tag: TagCreateRequest): Promise<TagResponse> {
+    return this.request<TagResponse>('/dmcp/tags', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(tag),
     });
   }
 
