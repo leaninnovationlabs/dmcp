@@ -3,34 +3,35 @@
 Simple test script to verify the /users/me endpoint is working.
 """
 
+import json
 import os
 import sys
+
 import requests
-import json
 
 # Add the app directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.core.jwt_validator import jwt_validator
 
 
 def test_users_me_endpoint():
     """Test the /users/me endpoint."""
-    
+
     # API base URL
     base_url = "http://localhost:8000/dmcp"
-    
+
     # Generate a test token
     payload = {
         "user_id": 1,  # Assuming user ID 1 exists
         "username": "test_user",
-        "email": "test@example.com"
+        "email": "test@example.com",
     }
     token = jwt_validator.create_token(payload)
-    
+
     print("🔐 Testing /users/me endpoint")
     print("=" * 50)
-    
+
     # Test 1: Without token (should fail)
     print("\n1. Testing without token...")
     try:
@@ -42,7 +43,7 @@ def test_users_me_endpoint():
             print("   ❌ Should have returned 401")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     # Test 2: With invalid token (should fail)
     print("\n2. Testing with invalid token...")
     try:
@@ -55,14 +56,14 @@ def test_users_me_endpoint():
             print("   ❌ Should have returned 401")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     # Test 3: With valid token (should succeed)
     print("\n3. Testing with valid token...")
     try:
         headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(f"{base_url}/users/me", headers=headers)
         print(f"   Status: {response.status_code}")
-        
+
         if response.status_code == 200:
             data = response.json()
             print("   ✅ Successfully retrieved user data")
@@ -73,10 +74,10 @@ def test_users_me_endpoint():
         else:
             print(f"   ❌ Unexpected status code: {response.status_code}")
             print(f"   Response: {response.text}")
-            
+
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     print("\n" + "=" * 50)
     print("Test completed!")
     print("\n💡 If you see a 404 error, it means user ID 1 doesn't exist.")
