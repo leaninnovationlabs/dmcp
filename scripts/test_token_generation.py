@@ -53,9 +53,7 @@ def test_token_generation():
     }
 
     try:
-        token_response = requests.post(
-            f"{base_url}/users/me/generate-token", headers=headers
-        )
+        token_response = requests.post(f"{base_url}/users/me/generate-token", headers=headers)
 
         if token_response.status_code != 200:
             print(f"❌ Token generation failed: {token_response.status_code}")

@@ -47,15 +47,17 @@ def upgrade() -> None:
     connection.execute(sa.text("""
         INSERT INTO users (username, password, first_name, last_name, roles, created_at, updated_at)
         VALUES (:username, :password, :first_name, :last_name, :roles, :created_at, :updated_at)
-    """), {
-        'username': 'admin',
-        'password': 'Z0FBQUFBQm91R1RKVkdqRnlvMFlWcVdXVW9aS2tzRkxhaENybUV0eERJN09helF5X2ltdUNJN2tuTU4tQUg1Ukt1S3dlb3QxR2djOFNoeXRhMGdFNm01U2h2UVA0TkZrTWtHSDczdlpQek83ZS0xZW55czR2QXM9',
-        'first_name': 'Admin',
-        'last_name': 'Admin',
-        'roles': 'admin',
-        'created_at': current_time,
-        'updated_at': current_time
-    })
+    """),
+        {
+            "username": "admin",
+            "password": "Z0FBQUFBQm91R1RKVkdqRnlvMFlWcVdXVW9aS2tzRkxhaENybUV0eERJN09helF5X2ltdUNJN2tuTU4tQUg1Ukt1S3dlb3QxR2djOFNoeXRhMGdFNm01U2h2UVA0TkZrTWtHSDczdlpQek83ZS0xZW55czR2QXM9",  # noqa: E501
+            "first_name": "Admin",
+            "last_name": "Admin",
+            "roles": "admin",
+            "created_at": current_time,
+            "updated_at": current_time,
+        },
+    )
 
 
 def downgrade() -> None:

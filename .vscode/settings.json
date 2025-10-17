@@ -1,4 +1,14 @@
 {
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        }
+    },
+    "python.formatting.provider": "none",
+    "ruff.lineLength": 120,
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true,

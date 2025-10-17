@@ -18,7 +18,9 @@ class User(Base):
     last_name = Column(String(255), nullable=False)
     roles = Column(String(500), default="", nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     @property
     def decrypted_password(self) -> str:
@@ -53,7 +55,7 @@ class User(Base):
             self.roles = ""
 
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}', first_name='{self.first_name}', last_name='{self.last_name}')>"
+        return f"<User(id={self.id}, username='{self.username}',last_name='{self.last_name}', roles='{self.roles}')>"
 
 
 class Datasource(Base):
@@ -71,7 +73,9 @@ class Datasource(Base):
     ssl_mode = Column(String(50))
     additional_params = Column(JSON, default={})
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationship
     tools = relationship("Tool", back_populates="datasource")
@@ -106,7 +110,9 @@ class Tool(Base):
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
 
     # Relationship
     datasource = relationship("Datasource", back_populates="tools")

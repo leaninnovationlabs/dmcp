@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import DMCPException
+from app.core.exceptions import DMCPError
 from app.models.database import User
 from app.models.schemas import UserCreate, UserLogin, UserPasswordChange, UserUpdate
 from app.repositories.user_repository import UserRepository
@@ -93,9 +93,7 @@ class TestUserRepository:
     async def test_username_exists(self, user_repo):
         """Test checking if username exists."""
         # Test when username exists
-        user_repo.get_by_username = AsyncMock(
-            return_value=User(id=1, username="testuser")
-        )
+        user_repo.get_by_username = AsyncMock(return_value=User(id=1, username="testuser"))
         assert await user_repo.username_exists("testuser") is True
 
         # Test when username doesn't exist
@@ -110,9 +108,7 @@ class TestUserService:
     async def test_create_user_success(self, user_service, sample_user_data):
         """Test successful user creation."""
         user_service.user_repo.username_exists = AsyncMock(return_value=False)
-        user_service.user_repo.create_user = AsyncMock(
-            return_value=User(**sample_user_data, id=1)
-        )
+        user_service.user_repo.create_user = AsyncMock(return_value=User(**sample_user_data, id=1))
 
         user_data = UserCreate(**sample_user_data)
         user = await user_service.create_user(user_data)
@@ -129,7 +125,7 @@ class TestUserService:
 
         user_data = UserCreate(**sample_user_data)
 
-        with pytest.raises(DMCPException, match="Username already exists"):
+        with pytest.raises(DMCPError, match="Username already exists"):
             await user_service.create_user(user_data)
 
     @pytest.mark.asyncio
@@ -231,9 +227,7 @@ class TestUserSchemas:
 
     def test_user_password_change_schema(self):
         """Test UserPasswordChange schema validation."""
-        password_data = UserPasswordChange(
-            current_password="oldpass", new_password="newpass"
-        )
+        password_data = UserPasswordChange(current_password="oldpass", new_password="newpass")
 
         assert password_data.current_password == "oldpass"
         assert password_data.new_password == "newpass"

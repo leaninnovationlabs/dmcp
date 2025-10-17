@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class SQLiteConnection(DatabaseConnection):
-    def _convert_parameters(
-        self, sql: str, parameters: Dict[str, Any]
-    ) -> Tuple[str, List[Any]]:
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
         """Convert named parameters to SQLite ? placeholders."""
         if not parameters:
             return sql, []
@@ -23,9 +21,7 @@ class SQLiteConnection(DatabaseConnection):
 
         return sql, list(parameters.values())
 
-    async def _execute_query(
-        self, sql: str, param_values: List[Any]
-    ) -> Tuple[List[Tuple], List[str]]:
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Tuple], List[str]]:
         """Execute SQLite query and return results with column names."""
         cursor = await self.connection.execute(sql, param_values)
         result = await cursor.fetchall()
@@ -46,9 +42,7 @@ class SQLiteConnection(DatabaseConnection):
             if datasource.connection_string:
                 # Extract database path from connection string
                 if datasource.connection_string.startswith("sqlite:///"):
-                    db_path = datasource.connection_string[
-                        10:
-                    ]  # Remove 'sqlite:///' prefix
+                    db_path = datasource.connection_string[10:]  # Remove 'sqlite:///' prefix
                 else:
                     db_path = datasource.database
             else:

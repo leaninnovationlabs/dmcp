@@ -26,9 +26,7 @@ class DatabaseConnection(ABC):
     def __init__(self, connection):
         self.connection = connection
 
-    async def execute(
-        self, sql: str, parameters: Dict[str, Any] = None
-    ) -> ResultWrapper:
+    async def execute(self, sql: str, parameters: Dict[str, Any] = None) -> ResultWrapper:
         """Execute a SQL query with parameters using template method pattern."""
         # Convert parameters to database-specific format
         converted_sql, param_values = self._convert_parameters(sql, parameters or {})
@@ -42,27 +40,19 @@ class DatabaseConnection(ABC):
         return ResultWrapper(data, columns)
 
     @abstractmethod
-    async def _execute_query(
-        self, sql: str, param_values: List[Any]
-    ) -> Tuple[Any, List[str]]:
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[Any, List[str]]:
         """Execute the actual query and return raw results and column names."""
         pass
 
     @abstractmethod
-    def _convert_parameters(
-        self, sql: str, parameters: Dict[str, Any]
-    ) -> Tuple[str, List[Any]]:
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
         """Convert named parameters to database-specific format."""
         pass
 
-    def _process_results(
-        self, raw_result: Any, columns: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _process_results(self, raw_result: Any, columns: List[str]) -> List[Dict[str, Any]]:
         """Process raw results into list of dictionaries - can be overridden."""
         if raw_result and columns:
-            if hasattr(raw_result, "__iter__") and not isinstance(
-                raw_result, (str, bytes)
-            ):
+            if hasattr(raw_result, "__iter__") and not isinstance(raw_result, (str, bytes)):
                 # Handle different result formats
                 if isinstance(raw_result[0], dict):
                     # Already dictionaries (PostgreSQL case)
@@ -86,7 +76,5 @@ class DatabaseConnection(ABC):
     @classmethod
     def _handle_connection_error(cls, datasource, error: Exception):
         """Common error handling for connection creation."""
-        logger.error(
-            f"Failed to create {cls.__name__} for datasource {datasource.id}: {error}"
-        )
+        logger.error(f"Failed to create {cls.__name__} for datasource {datasource.id}: {error}")
         raise

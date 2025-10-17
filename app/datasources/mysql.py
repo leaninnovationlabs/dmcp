@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class MySQLConnection(DatabaseConnection):
-    def _convert_parameters(
-        self, sql: str, parameters: Dict[str, Any]
-    ) -> Tuple[str, List[Any]]:
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
         """Convert named parameters to MySQL %s placeholders."""
         if not parameters:
             return sql, []
@@ -24,18 +22,14 @@ class MySQLConnection(DatabaseConnection):
 
         return sql, list(parameters.values())
 
-    async def _execute_query(
-        self, sql: str, param_values: List[Any]
-    ) -> Tuple[List[Tuple], List[str]]:
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Tuple], List[str]]:
         """Execute MySQL query and return results with column names."""
         async with self.connection.cursor() as cursor:
             await cursor.execute(sql, param_values)
             result = await cursor.fetchall()
 
             # Get column names from cursor description
-            columns = (
-                [desc[0] for desc in cursor.description] if cursor.description else []
-            )
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
 
             return result, columns
 

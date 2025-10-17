@@ -18,9 +18,7 @@ router = APIRouter()
 class AuthRequest(BaseModel):
     """Request model for JWT token generation."""
 
-    config: Union[str, Dict[str, Any]] = Field(
-        ..., description="Config from tidd personas - can be string or object"
-    )
+    config: Union[str, Dict[str, Any]] = Field(..., description="Config from tidd personas - can be string or object")
 
 
 class AuthResponse(BaseModel):
@@ -54,16 +52,12 @@ async def generate_token(request: AuthRequest):
             token = jwt_validator.create_token({})
 
         # Return the token with expiration info
-        return AuthResponse(
-            token=token, expires_in_minutes=jwt_validator.expiration_minutes
-        )
+        return AuthResponse(token=token, expires_in_minutes=jwt_validator.expiration_minutes)
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=create_error_response(
-                errors=[f"Token generation failed: {str(e)}"]
-            ).model_dump(),
+            detail=create_error_response(errors=[f"Token generation failed: {str(e)}"]).model_dump(),
         )
 
 
@@ -85,9 +79,7 @@ async def validate_token(request: Request):
         if not auth_header:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=["Authorization header is required"]
-                ).model_dump(),
+                content=create_error_response(errors=["Authorization header is required"]).model_dump(),
             )
 
         # Validate the token and get payload
@@ -95,24 +87,18 @@ async def validate_token(request: Request):
 
         return JSONResponse(
             status_code=200,
-            content=create_success_response(
-                data={"payload": payload, "valid": True}
-            ).model_dump(),
+            content=create_success_response(data={"payload": payload, "valid": True}).model_dump(),
         )
 
     except AuthenticationError as e:
         return JSONResponse(
             status_code=401,
-            content=create_error_response(
-                errors=[f"Authentication failed: {e.message}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Authentication failed: {e.message}"]).model_dump(),
         )
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Token validation error: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Token validation error: {str(e)}"]).model_dump(),
         )
 
 
@@ -126,26 +112,18 @@ async def login_user(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
         if not user:
             raise HTTPException(
                 status_code=401,
-                detail=create_error_response(
-                    errors=["Invalid username or password"]
-                ).model_dump(),
+                detail=create_error_response(errors=["Invalid username or password"]).model_dump(),
             )
 
         # Create token with empty payload - we don't need the config data
-        token = jwt_validator.create_token(
-            {"user_id": user.id, "username": user.username, "roles": user.roles}
-        )
+        token = jwt_validator.create_token({"user_id": user.id, "username": user.username, "roles": user.roles})
 
         # Return the token with expiration info
-        return AuthResponse(
-            token=token, expires_in_minutes=jwt_validator.expiration_minutes
-        )
+        return AuthResponse(token=token, expires_in_minutes=jwt_validator.expiration_minutes)
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=create_error_response(
-                errors=[f"Login failed: {str(e)}"]
-            ).model_dump(),
+            detail=create_error_response(errors=[f"Login failed: {str(e)}"]).model_dump(),
         )

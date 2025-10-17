@@ -152,9 +152,7 @@ class JinjaTemplateService:
         except Exception as e:
             raise ToolExecutionError(None, f"Template processing error: {str(e)}")
 
-    def _validate_template_security(
-        self, template_string: str, parameters: Dict[str, Any]
-    ):
+    def _validate_template_security(self, template_string: str, parameters: Dict[str, Any]):
         """Validate template for security concerns."""
         # Check for potentially dangerous Jinja constructs
         dangerous_patterns = [
@@ -168,9 +166,7 @@ class JinjaTemplateService:
 
         for pattern in dangerous_patterns:
             if re.search(pattern, template_string, re.IGNORECASE):
-                raise SecurityError(
-                    f"Potentially dangerous template construct detected: {pattern}"
-                )
+                raise SecurityError(f"Potentially dangerous template construct detected: {pattern}")
 
         # Check for file system access attempts
         file_access_patterns = [
@@ -183,9 +179,7 @@ class JinjaTemplateService:
 
         for pattern in file_access_patterns:
             if re.search(pattern, template_string, re.IGNORECASE):
-                raise SecurityError(
-                    f"Potentially dangerous function call detected: {pattern}"
-                )
+                raise SecurityError(f"Potentially dangerous function call detected: {pattern}")
 
     def _post_process_sql(self, sql: str) -> str:
         """Post-process the rendered SQL for common issues."""
@@ -198,9 +192,7 @@ class JinjaTemplateService:
 
         return sql
 
-    def validate_template_variables(
-        self, template_string: str, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def validate_template_variables(self, template_string: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """
         Validate that all required template variables are provided.
 
@@ -216,9 +208,7 @@ class JinjaTemplateService:
 
             for var_name in template_vars:
                 if var_name not in parameters and not var_name.startswith("_"):
-                    missing_vars[var_name] = (
-                        f"Required template variable '{var_name}' is missing"
-                    )
+                    missing_vars[var_name] = f"Required template variable '{var_name}' is missing"
 
             return missing_vars
 
@@ -304,9 +294,7 @@ class JinjaTemplateService:
 
         return missing_vars
 
-    def validate_template(
-        self, sql: str, required_variables: Optional[Set[str]] = None
-    ) -> Dict[str, Any]:
+    def validate_template(self, sql: str, required_variables: Optional[Set[str]] = None) -> Dict[str, Any]:
         """
         Validate SQL template without executing it.
 

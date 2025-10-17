@@ -22,9 +22,7 @@ class DatabricksConnection(DatabaseConnection):
 
         return value
 
-    def _convert_parameters(
-        self, sql: str, parameters: Dict[str, Any]
-    ) -> Tuple[str, List[Any]]:
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
         """Convert named parameters to Databricks positional parameters."""
         if not parameters:
             return sql, []
@@ -36,9 +34,7 @@ class DatabricksConnection(DatabaseConnection):
 
         return sql, list(parameters.values())
 
-    async def _execute_query(
-        self, sql: str, param_values: List[Any]
-    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
         """Execute Databricks query and return results with column names."""
         # Since databricks-sql-connector is synchronous, we need to run it in a thread pool
         loop = asyncio.get_event_loop()
@@ -47,9 +43,7 @@ class DatabricksConnection(DatabaseConnection):
             cursor = self.connection.cursor()
             cursor.execute(sql, param_values)
             result = cursor.fetchall()
-            columns = (
-                [desc[0] for desc in cursor.description] if cursor.description else []
-            )
+            columns = [desc[0] for desc in cursor.description] if cursor.description else []
             cursor.close()
             return result, columns
 
@@ -68,9 +62,7 @@ class DatabricksConnection(DatabaseConnection):
 
         return data, columns
 
-    def _process_results(
-        self, raw_result: List[Dict[str, Any]], columns: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _process_results(self, raw_result: List[Dict[str, Any]], columns: List[str]) -> List[Dict[str, Any]]:
         """Databricks results are already processed by _execute_query."""
         return raw_result
 
@@ -86,9 +78,7 @@ class DatabricksConnection(DatabaseConnection):
             # Build connection parameters
             connection_params = {
                 "server_hostname": datasource.host,
-                "http_path": datasource.additional_params.get(
-                    "http_path", "/sql/1.0/warehouses/default"
-                ),
+                "http_path": datasource.additional_params.get("http_path", "/sql/1.0/warehouses/default"),
                 "access_token": datasource.decrypted_password,
             }
 

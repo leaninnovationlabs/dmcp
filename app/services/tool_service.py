@@ -26,7 +26,6 @@ class ToolService:
 
             # Validate tool type (optional validation) - accept both uppercase and lowercase
             valid_types = ["query", "http", "code"]
-            valid_types_upper = [t.upper() for t in valid_types]
             normalized_type = tool.type.lower() if tool.type else ""
             
             if normalized_type not in valid_types:
@@ -86,9 +85,7 @@ class ToolService:
 
             # Verify datasource exists if it's being changed
             datasource_id = (
-                tool_update.datasource_id
-                if tool_update.datasource_id is not None
-                else current_tool.datasource_id
+                tool_update.datasource_id if tool_update.datasource_id is not None else current_tool.datasource_id
             )
             datasource = await self.datasource_repository.get_by_id(datasource_id)
             if not datasource:
@@ -105,11 +102,13 @@ class ToolService:
             
             # Prepare update data, using current values if not provided
             update_data = {
-                'name': tool_update.name if tool_update.name is not None else current_tool.name,
-                'description': tool_update.description if tool_update.description is not None else current_tool.description,
-                'type': tool_type,
-                'sql': tool_update.sql if tool_update.sql is not None else current_tool.sql,
-                'datasource_id': datasource_id,
+                "name": tool_update.name if tool_update.name is not None else current_tool.name,
+                "description": tool_update.description
+                if tool_update.description is not None
+                else current_tool.description,
+                "type": tool_type,
+                "sql": tool_update.sql if tool_update.sql is not None else current_tool.sql,
+                "datasource_id": datasource_id,
             }
 
             # Convert ParameterDefinition objects to dictionaries for JSON storage

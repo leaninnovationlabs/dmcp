@@ -58,9 +58,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             "/logo.png",
         ]
         if request.url.path in excluded_paths:
-            logger.debug(
-                f"++++++ BearerTokenMiddleware excluded paths {request.url.path} ++++++"
-            )
+            logger.debug(f"++++++ BearerTokenMiddleware excluded paths {request.url.path} ++++++")
             return await call_next(request)
 
         # Get authorization header
@@ -70,9 +68,7 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=401,
                 content=create_error_response(
-                    errors=[
-                        "Missing authorization header. Please provide a Bearer token."
-                    ]
+                    errors=["Missing authorization header. Please provide a Bearer token."]
                 ).model_dump(),
             )
 
@@ -94,16 +90,12 @@ class BearerTokenMiddleware(BaseHTTPMiddleware):
         except AuthenticationError as e:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=[f"Authentication failed: {e.message}"]
-                ).model_dump(),
+                content=create_error_response(errors=[f"Authentication failed: {e.message}"]).model_dump(),
             )
         except Exception as e:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=[f"Token validation error: {str(e)}"]
-                ).model_dump(),
+                content=create_error_response(errors=[f"Token validation error: {str(e)}"]).model_dump(),
             )
 
         # Continue to the next middleware or route handler
