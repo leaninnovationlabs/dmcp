@@ -129,6 +129,7 @@ class ToolCreate(BaseModel):
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(default_factory=list, description="Parameter definitions")
+    tags: Optional[List[str]] = Field(default_factory=list, description="List of tags for categorizing the tool")
 
 
 class ToolUpdate(BaseModel):
@@ -138,6 +139,7 @@ class ToolUpdate(BaseModel):
     sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
     datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(None, description="Parameter definitions")
+    tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the tool")
 
 
 class ToolResponse(BaseModel):
