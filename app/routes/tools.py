@@ -110,9 +110,7 @@ async def execute_named_tool(
     """Execute a named tool with parameters and pagination."""
     try:
         service = ToolExecutionService(db)
-        result = await service.execute_named_tool(
-            tool_id, execution_request.parameters, execution_request.pagination
-        )
+        result = await service.execute_named_tool(tool_id, execution_request.parameters, execution_request.pagination)
         if result.error:
             raise_http_error(400, "Tool execution failed", [result.error])
         return create_success_response(data=result)

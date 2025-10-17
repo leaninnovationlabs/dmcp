@@ -4,16 +4,10 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.exceptions import DMCPException
+from ..core.exceptions import DMCPError
 from ..core.responses import create_error_response, create_success_response
 from ..database import get_db
-from ..models.schemas import (
-    StandardAPIResponse,
-    TokenResponse,
-    UserCreate,
-    UserPasswordChange,
-    UserUpdate,
-)
+from ..models.schemas import StandardAPIResponse, TokenResponse, UserCreate, UserPasswordChange, UserUpdate
 from ..services.auth_service import AuthService
 from ..services.user_service import UserService
 
@@ -28,16 +22,12 @@ async def create_user(user_data: UserCreate, db: AsyncSession = Depends(get_db))
         user = await user_service.create_user(user_data)
 
         return create_success_response(data=user)
-    except DMCPException as e:
-        return JSONResponse(
-            status_code=400, content=create_error_response(errors=[str(e)]).model_dump()
-        )
+    except DMCPError as e:
+        return JSONResponse(status_code=400, content=create_error_response(errors=[str(e)]).model_dump())
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to create user: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to create user: {str(e)}"]).model_dump(),
         )
 
 
@@ -53,9 +43,7 @@ async def get_all_users(db: AsyncSession = Depends(get_db)):
         print(f"Failed to get users: {str(e)}")
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to get users: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to get users: {str(e)}"]).model_dump(),
         )
 
 
@@ -69,9 +57,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         if not user_info or "user_id" not in user_info:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=["User not authenticated"]
-                ).model_dump(),
+                content=create_error_response(errors=["User not authenticated"]).model_dump(),
             )
 
         user_service = UserService(db)
@@ -87,9 +73,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to get current user: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to get current user: {str(e)}"]).model_dump(),
         )
 
 
@@ -103,9 +87,7 @@ async def generate_token(request: Request, db: AsyncSession = Depends(get_db)):
         if not user_info or "user_id" not in user_info:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=["User not authenticated"]
-                ).model_dump(),
+                content=create_error_response(errors=["User not authenticated"]).model_dump(),
             )
 
         user_service = UserService(db)
@@ -124,11 +106,7 @@ async def generate_token(request: Request, db: AsyncSession = Depends(get_db)):
         token_payload = {
             "user_id": user.id,
             "username": user.username,
-            "roles": user.roles
-            if isinstance(user.roles, list)
-            else user.roles.split(",")
-            if user.roles
-            else [],
+            "roles": user.roles if isinstance(user.roles, list) else user.roles.split(",") if user.roles else [],
         }
 
         # Generate token
@@ -139,22 +117,16 @@ async def generate_token(request: Request, db: AsyncSession = Depends(get_db)):
 
         from ..core.jwt_validator import jwt_validator
 
-        decoded_token = jwt.decode(
-            token, jwt_validator.secret_key, algorithms=[jwt_validator.algorithm]
-        )
+        decoded_token = jwt.decode(token, jwt_validator.secret_key, algorithms=[jwt_validator.algorithm])
         expires_at = datetime.fromtimestamp(decoded_token["exp"], tz=timezone.utc)
 
-        token_response = TokenResponse(
-            token=token, expires_at=expires_at, user_id=user.id, username=user.username
-        )
+        token_response = TokenResponse(token=token, expires_at=expires_at, user_id=user.id, username=user.username)
 
         return create_success_response(data=token_response)
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to generate token: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to generate token: {str(e)}"]).model_dump(),
         )
 
 
@@ -175,16 +147,12 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to get user: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to get user: {str(e)}"]).model_dump(),
         )
 
 
 @router.put("/{user_id}", response_model=StandardAPIResponse)
-async def update_user(
-    user_id: int, user_data: UserUpdate, db: AsyncSession = Depends(get_db)
-):
+async def update_user(user_id: int, user_data: UserUpdate, db: AsyncSession = Depends(get_db)):
     """Update a user."""
     try:
         user_service = UserService(db)
@@ -197,16 +165,12 @@ async def update_user(
             )
 
         return create_success_response(data=user)
-    except DMCPException as e:
-        return JSONResponse(
-            status_code=400, content=create_error_response(errors=[str(e)]).model_dump()
-        )
+    except DMCPError as e:
+        return JSONResponse(status_code=400, content=create_error_response(errors=[str(e)]).model_dump())
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to update user: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to update user: {str(e)}"]).model_dump(),
         )
 
 
@@ -227,9 +191,7 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to delete user: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to delete user: {str(e)}"]).model_dump(),
         )
 
 
@@ -247,33 +209,23 @@ async def change_current_user_password(
         if not user_info or "user_id" not in user_info:
             return JSONResponse(
                 status_code=401,
-                content=create_error_response(
-                    errors=["User not authenticated"]
-                ).model_dump(),
+                content=create_error_response(errors=["User not authenticated"]).model_dump(),
             )
 
         user_service = UserService(db)
-        success = await user_service.change_password(
-            user_info["user_id"], password_data
-        )
+        success = await user_service.change_password(user_info["user_id"], password_data)
 
         if not success:
             return JSONResponse(
                 status_code=400,
-                content=create_error_response(
-                    errors=["Invalid current password or user not found"]
-                ).model_dump(),
+                content=create_error_response(errors=["Invalid current password or user not found"]).model_dump(),
             )
 
-        return create_success_response(
-            data={"message": "Password changed successfully"}
-        )
+        return create_success_response(data={"message": "Password changed successfully"})
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to change password: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to change password: {str(e)}"]).model_dump(),
         )
 
 
@@ -294,16 +246,12 @@ async def add_role_to_user(user_id: int, role: str, db: AsyncSession = Depends(g
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to add role: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to add role: {str(e)}"]).model_dump(),
         )
 
 
 @router.delete("/{user_id}/roles/{role}", response_model=StandardAPIResponse)
-async def remove_role_from_user(
-    user_id: int, role: str, db: AsyncSession = Depends(get_db)
-):
+async def remove_role_from_user(user_id: int, role: str, db: AsyncSession = Depends(get_db)):
     """Remove a role from a user."""
     try:
         user_service = UserService(db)
@@ -319,9 +267,7 @@ async def remove_role_from_user(
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to remove role: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to remove role: {str(e)}"]).model_dump(),
         )
 
 
@@ -336,7 +282,5 @@ async def get_users_by_role(role: str, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         return JSONResponse(
             status_code=500,
-            content=create_error_response(
-                errors=[f"Failed to get users by role: {str(e)}"]
-            ).model_dump(),
+            content=create_error_response(errors=[f"Failed to get users by role: {str(e)}"]).model_dump(),
         )

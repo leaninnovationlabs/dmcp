@@ -100,9 +100,7 @@ class TestDatasourceAPI:
             self.datasource_id = data["data"]["id"]
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -120,16 +118,12 @@ class TestDatasourceAPI:
         }
 
         try:
-            response = self.client.post(
-                f"{self.base_url}/dmcp/datasources", json=datasource_data
-            )
+            response = self.client.post(f"{self.base_url}/dmcp/datasources", json=datasource_data)
 
             assert response.status_code == 401
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -154,18 +148,14 @@ class TestDatasourceAPI:
             assert len(data["errors"]) > 0
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
     def test_list_datasources(self):
         """Test listing all datasources."""
         try:
-            response = self.client.get(
-                f"{self.base_url}/dmcp/datasources", headers=self.headers
-            )
+            response = self.client.get(f"{self.base_url}/dmcp/datasources", headers=self.headers)
 
             assert response.status_code == 200
             data = response.json()
@@ -174,9 +164,7 @@ class TestDatasourceAPI:
             assert isinstance(data["data"], list)
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -188,9 +176,7 @@ class TestDatasourceAPI:
             assert response.status_code == 401
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -232,18 +218,14 @@ class TestDatasourceAPI:
             assert data["data"]["name"] == "Test Get Datasource"
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
     def test_get_nonexistent_datasource(self):
         """Test getting a datasource that doesn't exist."""
         try:
-            response = self.client.get(
-                f"{self.base_url}/dmcp/datasources/99999", headers=self.headers
-            )
+            response = self.client.get(f"{self.base_url}/dmcp/datasources/99999", headers=self.headers)
 
             assert response.status_code == 200  # API returns 200 with error in response
             data = response.json()
@@ -251,9 +233,7 @@ class TestDatasourceAPI:
             assert "Datasource not found" in str(data["errors"])
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -305,18 +285,14 @@ class TestDatasourceAPI:
                 assert "error" in connection_data
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
     def test_test_connection_nonexistent_datasource(self):
         """Test testing connection for a datasource that doesn't exist."""
         try:
-            response = self.client.post(
-                f"{self.base_url}/dmcp/datasources/99999/test", headers=self.headers
-            )
+            response = self.client.post(f"{self.base_url}/dmcp/datasources/99999/test", headers=self.headers)
 
             assert response.status_code == 200  # API returns 200 with error in response
             data = response.json()
@@ -324,9 +300,7 @@ class TestDatasourceAPI:
             assert len(data["errors"]) > 0
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -374,9 +348,7 @@ class TestDatasourceAPI:
             assert data["data"]["port"] == 5433
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -429,18 +401,14 @@ class TestDatasourceAPI:
             assert "Datasource not found" in str(get_data["errors"])
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
     def test_delete_nonexistent_datasource(self):
         """Test deleting a datasource that doesn't exist."""
         try:
-            response = self.client.delete(
-                f"{self.base_url}/dmcp/datasources/99999", headers=self.headers
-            )
+            response = self.client.delete(f"{self.base_url}/dmcp/datasources/99999", headers=self.headers)
 
             assert response.status_code == 200  # API returns 200 with error in response
             data = response.json()
@@ -448,9 +416,7 @@ class TestDatasourceAPI:
             assert "Datasource not found" in str(data["errors"])
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -541,15 +507,11 @@ class TestDatasourceConnection:
                 assert "message" in connection_data
                 assert connection_data["connection_time_ms"] > 0
             else:
-                print(
-                    f"❌ Connection test failed: {connection_data.get('error', 'Unknown error')}"
-                )
+                print(f"❌ Connection test failed: {connection_data.get('error', 'Unknown error')}")
                 assert "error" in connection_data
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -597,9 +559,7 @@ class TestDatasourceConnection:
             assert "error" in connection_data
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 

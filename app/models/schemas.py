@@ -10,12 +10,8 @@ class StandardAPIResponse(BaseModel):
 
     data: Optional[Any] = Field(None, description="Response payload")
     success: bool = Field(..., description="Whether the operation was successful")
-    errors: List[Dict[str, str]] = Field(
-        default_factory=list, description="List of error messages"
-    )
-    warnings: List[Dict[str, str]] = Field(
-        default_factory=list, description="List of warning messages"
-    )
+    errors: List[Dict[str, str]] = Field(default_factory=list, description="List of error messages")
+    warnings: List[Dict[str, str]] = Field(default_factory=list, description="List of warning messages")
 
 
 class ErrorMessage(BaseModel):
@@ -63,16 +59,12 @@ class FieldDefinition(BaseModel):
     """Definition of a form field for datasource configuration."""
 
     name: str = Field(..., description="Field name")
-    type: str = Field(
-        ..., description="Field type (text, password, number, select, etc.)"
-    )
+    type: str = Field(..., description="Field type (text, password, number, select, etc.)")
     label: str = Field(..., description="Display label for the field")
     required: bool = Field(False, description="Whether the field is required")
     placeholder: Optional[str] = Field(None, description="Placeholder text")
     description: Optional[str] = Field(None, description="Field description")
-    options: Optional[List[Dict[str, str]]] = Field(
-        None, description="Options for select fields"
-    )
+    options: Optional[List[Dict[str, str]]] = Field(None, description="Options for select fields")
     validation: Optional[Dict[str, Any]] = Field(None, description="Validation rules")
 
 
@@ -81,9 +73,7 @@ class DatasourceFieldConfig(BaseModel):
 
     database_type: DatabaseType = Field(..., description="Database type")
     fields: List[FieldDefinition] = Field(..., description="List of field definitions")
-    sections: List[Dict[str, Any]] = Field(
-        ..., description="Form sections configuration"
-    )
+    sections: List[Dict[str, Any]] = Field(..., description="Form sections configuration")
 
 
 class DatasourceCreate(BaseModel):
@@ -111,9 +101,7 @@ class DatasourceUpdate(BaseModel):
     password: Optional[str] = Field(None, description="Database password")
     connection_string: Optional[str] = Field(None, description="Full connection string")
     ssl_mode: Optional[str] = Field(None, description="SSL mode for connection")
-    additional_params: Optional[Dict[str, Any]] = Field(
-        None, description="Additional connection parameters"
-    )
+    additional_params: Optional[Dict[str, Any]] = Field(None, description="Additional connection parameters")
 
 
 class DatasourceResponse(BaseModel):
@@ -140,9 +128,7 @@ class ToolCreate(BaseModel):
     type: str = Field(default="query", description="Type of the tool (query, http, code)")
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
-    parameters: Optional[List[ParameterDefinition]] = Field(
-        default_factory=list, description="Parameter definitions"
-    )
+    parameters: Optional[List[ParameterDefinition]] = Field(default_factory=list, description="Parameter definitions")
 
 
 class ToolUpdate(BaseModel):
@@ -151,9 +137,7 @@ class ToolUpdate(BaseModel):
     type: Optional[str] = Field(None, description="Type of the tool (query, http, code)")
     sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
     datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
-    parameters: Optional[List[ParameterDefinition]] = Field(
-        None, description="Parameter definitions"
-    )
+    parameters: Optional[List[ParameterDefinition]] = Field(None, description="Parameter definitions")
 
 
 class ToolResponse(BaseModel):
@@ -202,26 +186,28 @@ class PaginationResponse(BaseModel):
 
 
 class ToolExecutionRequest(BaseModel):
-    parameters: Optional[Dict[str, Any]] = Field(
-        default_factory=dict, description="Tool parameters"
-    )
-    pagination: Optional[PaginationRequest] = Field(
-        None, description="Pagination settings"
-    )
+    parameters: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Tool parameters")
+    pagination: Optional[PaginationRequest] = Field(None, description="Pagination settings")
 
 
 class RawQueryRequest(BaseModel):
     datasource_id: int = Field(..., description="ID of the datasource to use")
     sql: str = Field(..., description="Raw SQL query")
-    parameters: Optional[Dict[str, Any]] = Field(
-        default_factory=dict, description="Query parameters"
-    )
-    pagination: Optional[PaginationRequest] = Field(
-        None, description="Pagination settings"
-    )
+    parameters: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Query parameters")
+    pagination: Optional[PaginationRequest] = Field(None, description="Pagination settings")
 
 
 class ToolExecutionResponse(BaseModel):
+    success: bool
+    data: List[Dict[str, Any]]
+    columns: List[str]
+    row_count: int
+    execution_time_ms: float
+    pagination: Optional[PaginationResponse]
+    error: Optional[str] = None
+
+
+class QueryExecutionResponse(BaseModel):
     success: bool
     data: List[Dict[str, Any]]
     columns: List[str]
@@ -237,16 +223,12 @@ class UserCreate(BaseModel):
     password: str = Field(..., description="User password (will be encrypted)")
     first_name: str = Field(..., description="User's first name")
     last_name: str = Field(..., description="User's last name")
-    roles: Optional[List[str]] = Field(
-        default_factory=list, description="List of user roles"
-    )
+    roles: Optional[List[str]] = Field(default_factory=list, description="List of user roles")
 
 
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, description="Unique username for the user")
-    password: Optional[str] = Field(
-        None, description="User password (will be encrypted)"
-    )
+    password: Optional[str] = Field(None, description="User password (will be encrypted)")
     first_name: Optional[str] = Field(None, description="User's first name")
     last_name: Optional[str] = Field(None, description="User's last name")
     roles: Optional[List[str]] = Field(None, description="List of user roles")
@@ -269,9 +251,7 @@ class UserResponse(BaseModel):
         if hasattr(obj, "roles") and isinstance(obj.roles, str):
             # Convert comma-separated string to list
             if obj.roles:
-                obj.roles = [
-                    role.strip() for role in obj.roles.split(",") if role.strip()
-                ]
+                obj.roles = [role.strip() for role in obj.roles.split(",") if role.strip()]
             else:
                 obj.roles = []
 

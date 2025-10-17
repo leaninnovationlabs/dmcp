@@ -48,9 +48,7 @@ class ToolExecutionService:
             if not datasource:
                 raise DatasourceNotFoundError(tool.datasource_id)
 
-            return await self._execute_query(
-                datasource, tool.sql, parameters or {}, pagination
-            )
+            return await self._execute_query(datasource, tool.sql, parameters or {}, pagination)
         except (ToolNotFoundError, DatasourceNotFoundError):
             raise
         except Exception as e:
@@ -71,9 +69,7 @@ class ToolExecutionService:
             if not datasource:
                 raise DatasourceNotFoundError(datasource_id)
 
-            return await self._execute_query(
-                datasource, sql, parameters or {}, pagination
-            )
+            return await self._execute_query(datasource, sql, parameters or {}, pagination)
         except DatasourceNotFoundError:
             raise
         except Exception as e:
@@ -115,9 +111,7 @@ class ToolExecutionService:
                 result_data = await result_wrapper.fetchall()
 
                 # Get total count for pagination info
-                count_sql = (
-                    f"SELECT COUNT(*) as total FROM ({processed_sql}) as count_query"
-                )
+                count_sql = f"SELECT COUNT(*) as total FROM ({processed_sql}) as count_query"
                 print(count_sql)
 
                 count_result_wrapper = await connection.execute(count_sql)
@@ -125,9 +119,7 @@ class ToolExecutionService:
                 total_items = count_result_data[0]["total"] if count_result_data else 0
 
                 # Calculate pagination info
-                total_pages = (
-                    total_items + pagination.page_size - 1
-                ) // pagination.page_size
+                total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
                 pagination_response = PaginationResponse(
                     page=pagination.page,
                     page_size=pagination.page_size,
@@ -142,9 +134,7 @@ class ToolExecutionService:
                 result_data = await result_wrapper.fetchall()
                 pagination_response = None
 
-            execution_time = (
-                time.time() - start_time
-            ) * 1000  # Convert to milliseconds
+            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
             # result_data is now a list of dictionaries from all database connections
             data = result_data or []
@@ -206,9 +196,7 @@ class ToolExecutionService:
         if self._contains_jinja_syntax(sql):
             try:
                 # Validate template variables
-                missing_vars = self.template_service.validate_template_variables(
-                    sql, parameters
-                )
+                missing_vars = self.template_service.validate_template_variables(sql, parameters)
                 if missing_vars:
                     missing_var_names = list(missing_vars.keys())
                     raise ToolExecutionError(

@@ -22,17 +22,13 @@ class DatasourceRepository(BaseRepository[Datasource]):
     async def get_with_tools(self, datasource_id: int) -> Optional[Datasource]:
         """Get datasource with its associated tools."""
         result = await self.db.execute(
-            select(Datasource)
-            .where(Datasource.id == datasource_id)
-            .options(selectinload(Datasource.tools))
+            select(Datasource).where(Datasource.id == datasource_id).options(selectinload(Datasource.tools))
         )
         return result.scalar_one_or_none()
 
     async def get_all_with_tools(self) -> List[Datasource]:
         """Get all datasources with their associated tools."""
-        result = await self.db.execute(
-            select(Datasource).options(selectinload(Datasource.tools))
-        )
+        result = await self.db.execute(select(Datasource).options(selectinload(Datasource.tools)))
         return result.scalars().all()
 
     async def create_datasource(self, **kwargs) -> Datasource:
@@ -54,9 +50,7 @@ class DatasourceRepository(BaseRepository[Datasource]):
         if "name" in kwargs and kwargs["name"] != datasource.name:
             existing = await self.get_by_name(kwargs["name"])
             if existing:
-                raise ValueError(
-                    f"Datasource with name '{kwargs['name']}' already exists"
-                )
+                raise ValueError(f"Datasource with name '{kwargs['name']}' already exists")
 
         updated = await self.update(datasource_id, **kwargs)
         if not updated:

@@ -104,13 +104,9 @@ class MCPServer:
             self._log_debug(f"Registered tool: {tool['name']}")
 
         except Exception as tool_error:
-            self._log_error(
-                f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}"
-            )
+            self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
 
-    def ping(
-        self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]
-    ) -> Dict[str, Any]:
+    def ping(self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]) -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
 
         headers = get_http_headers()
@@ -135,8 +131,6 @@ class MCPServer:
 
     def list_database_tools(self, ctx: Context) -> Dict[str, Any]:
         """List all available database tools"""
-        headers = get_http_headers()
-        authorization = headers.get("authorization", "")
 
         try:
             tools = self._list_tools()
@@ -168,9 +162,7 @@ class MCPServer:
         description = tool_data.get("description", f"Execute {tool_name}")
 
         if tool_data.get("parameters"):
-            return self._create_parameterized_tool_function(
-                tool_id, tool_name, description, tool_data["parameters"]
-            )
+            return self._create_parameterized_tool_function(tool_id, tool_name, description, tool_data["parameters"])
         else:
             return self._create_simple_tool_function(tool_id, tool_name, description)
 
@@ -191,14 +183,10 @@ class MCPServer:
             parameters = self._map_parameters(kwargs, param_mapping)
             return self.execute_tool_by_id(tool_id, parameters)
 
-        self._set_function_metadata(
-            tool_function, tool_name, description, valid_param_names
-        )
+        self._set_function_metadata(tool_function, tool_name, description, valid_param_names)
         return tool_function
 
-    def _create_simple_tool_function(
-        self, tool_id: int, tool_name: str, description: str
-    ) -> Callable:
+    def _create_simple_tool_function(self, tool_id: int, tool_name: str, description: str) -> Callable:
         """Create a tool function without parameters."""
 
         def tool_function():
@@ -210,9 +198,7 @@ class MCPServer:
         self._set_function_metadata(tool_function, tool_name, description, [])
         return tool_function
 
-    def _sanitize_parameter_names(
-        self, param_names: List[str]
-    ) -> tuple[List[str], Dict[str, str]]:
+    def _sanitize_parameter_names(self, param_names: List[str]) -> tuple[List[str], Dict[str, str]]:
         """Sanitize parameter names to avoid Python reserved keywords."""
         valid_param_names = []
         param_mapping = {}
@@ -222,18 +208,14 @@ class MCPServer:
                 sanitized_name = f"param_{param_name}"
                 valid_param_names.append(sanitized_name)
                 param_mapping[sanitized_name] = param_name
-                self._log_debug(
-                    f"Sanitized parameter name '{param_name}' to '{sanitized_name}'"
-                )
+                self._log_debug(f"Sanitized parameter name '{param_name}' to '{sanitized_name}'")
             else:
                 valid_param_names.append(param_name)
                 param_mapping[param_name] = param_name
 
         return valid_param_names, param_mapping
 
-    def _map_parameters(
-        self, kwargs: Dict[str, Any], param_mapping: Dict[str, str]
-    ) -> Dict[str, Any]:
+    def _map_parameters(self, kwargs: Dict[str, Any], param_mapping: Dict[str, str]) -> Dict[str, Any]:
         """Map sanitized parameter names back to original names."""
         parameters = {}
         for sanitized_name, value in kwargs.items():
@@ -260,18 +242,14 @@ class MCPServer:
         """Set the function signature with the given parameter names."""
         sig = inspect.signature(func)
         new_params = [
-            inspect.Parameter(
-                param_name, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=None
-            )
+            inspect.Parameter(param_name, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=None)
             for param_name in param_names
         ]
 
         func.__signature__ = sig.replace(parameters=new_params)
         self._log_debug(f"Tool function signature: {func.__signature__}")
 
-    def execute_tool_by_id(
-        self, tool_id: int, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def execute_tool_by_id(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool by its ID with parameters."""
         try:
             self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")
@@ -285,9 +263,7 @@ class MCPServer:
             # Preserve the response envelope expected by MCP clients
             return {**DEFAULT_ERROR_RESPONSE, "error": str(e)}
 
-    def _execute_tool_async(
-        self, tool_id: int, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _execute_tool_async(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute tool asynchronously in a separate thread."""
 
         async def _execute_tool_async():

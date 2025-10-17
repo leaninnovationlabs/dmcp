@@ -74,15 +74,11 @@ def databricks_config():
     return {
         "name": "Test Databricks Database",
         "database_type": DatabaseType.DATABRICKS.value,
-        "host": os.getenv(
-            "TEST_DATABRICKS_HOST", "adb-1234567890123456.7.azuredatabricks.net"
-        ),
+        "host": os.getenv("TEST_DATABRICKS_HOST", "adb-1234567890123456.7.azuredatabricks.net"),
         "database": os.getenv("TEST_DATABRICKS_DATABASE", "default"),
         "password": os.getenv("TEST_DATABRICKS_TOKEN", "dapi1234567890abcdef"),
         "additional_params": {
-            "http_path": os.getenv(
-                "TEST_DATABRICKS_HTTP_PATH", "/sql/1.0/warehouses/1234567890abcdef"
-            ),
+            "http_path": os.getenv("TEST_DATABRICKS_HTTP_PATH", "/sql/1.0/warehouses/1234567890abcdef"),
             "catalog": os.getenv("TEST_DATABRICKS_CATALOG", "hive_metastore"),
             "schema": os.getenv("TEST_DATABRICKS_SCHEMA", "default"),
         },
@@ -103,6 +99,4 @@ def server_health_check(api_base_url, http_client):
 def require_server_running(server_health_check):
     """Skip tests if server is not running."""
     if not server_health_check:
-        pytest.skip(
-            "API server at http://localhost:8000 is not running. Please start the server first."
-        )
+        pytest.skip("API server at http://localhost:8000 is not running. Please start the server first.")

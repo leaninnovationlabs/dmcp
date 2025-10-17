@@ -35,8 +35,12 @@ class TestDatabaseManager:
         self.ssl_mode = os.getenv("TEST_DB_SSL_MODE", "disable")
 
         # Build connection strings
-        self.connection_string = f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
-        self.admin_connection_string = f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/postgres"
+        self.connection_string = (
+            f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+        self.admin_connection_string = (
+            f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/postgres"
+        )
 
         self.engine = None
         self.SessionLocal = None
@@ -53,9 +57,7 @@ class TestDatabaseManager:
         )
 
         # Create session factory
-        self.SessionLocal = sessionmaker(
-            autocommit=False, autoflush=False, bind=self.engine
-        )
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
         # Create tables
         self._create_tables()
@@ -401,9 +403,7 @@ class TestDatabaseManager:
             raise RuntimeError("Database not initialized. Call init_db() first.")
         return self.SessionLocal()
 
-    def execute_query(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> list:
+    def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> list:
         """
         Execute a SQL query and return results.
 
@@ -508,9 +508,7 @@ class TestDatabaseManager:
 
             with conn.cursor() as cursor:
                 # Check if database exists
-                cursor.execute(
-                    "SELECT 1 FROM pg_database WHERE datname = %s", (self.db_name,)
-                )
+                cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (self.db_name,))
                 exists = cursor.fetchone()
 
                 if not exists:

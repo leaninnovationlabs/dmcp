@@ -46,30 +46,20 @@ class TestUsersMeEndpoint:
         """Test /users/me endpoint with valid authentication token."""
         try:
             # Make API request
-            response = self.client.get(
-                f"{self.base_url}/dmcp/users/me", headers=self.headers
-            )
+            response = self.client.get(f"{self.base_url}/dmcp/users/me", headers=self.headers)
 
             # Assert response
-            assert response.status_code == 200, (
-                f"Expected 200, got {response.status_code}. Response: {response.text}"
-            )
+            assert response.status_code == 200, f"Expected 200, got {response.status_code}. Response: {response.text}"
 
             data = response.json()
-            assert data["success"] is True, (
-                f"Expected success=True, got {data.get('success')}"
-            )
+            assert data["success"] is True, f"Expected success=True, got {data.get('success')}"
             assert "data" in data, "Response should contain 'data' field"
 
             user_data = data["data"]
             assert "id" in user_data, "User data should contain 'id' field"
             assert "username" in user_data, "User data should contain 'username' field"
-            assert "first_name" in user_data, (
-                "User data should contain 'first_name' field"
-            )
-            assert "last_name" in user_data, (
-                "User data should contain 'last_name' field"
-            )
+            assert "first_name" in user_data, "User data should contain 'first_name' field"
+            assert "last_name" in user_data, "User data should contain 'last_name' field"
 
             print("✅ /users/me endpoint working correctly!")
             print(f"User data: {user_data}")
@@ -85,9 +75,7 @@ class TestUsersMeEndpoint:
             response = self.client.get(f"{self.base_url}/dmcp/users/me")
 
             # Should return 401 Unauthorized
-            assert response.status_code == 401, (
-                f"Expected 401, got {response.status_code}"
-            )
+            assert response.status_code == 401, f"Expected 401, got {response.status_code}"
 
             data = response.json()
             assert "detail" in data, "Error response should contain 'detail' field"
@@ -103,21 +91,15 @@ class TestUsersMeEndpoint:
         try:
             # Make API request with invalid token
             invalid_headers = {"Authorization": "Bearer invalid_token_here"}
-            response = self.client.get(
-                f"{self.base_url}/dmcp/users/me", headers=invalid_headers
-            )
+            response = self.client.get(f"{self.base_url}/dmcp/users/me", headers=invalid_headers)
 
             # Should return 401 Unauthorized
-            assert response.status_code == 401, (
-                f"Expected 401, got {response.status_code}"
-            )
+            assert response.status_code == 401, f"Expected 401, got {response.status_code}"
 
             data = response.json()
             assert "detail" in data, "Error response should contain 'detail' field"
 
-            print(
-                "✅ /users/me endpoint correctly rejects requests with invalid token!"
-            )
+            print("✅ /users/me endpoint correctly rejects requests with invalid token!")
 
         except Exception as e:
             print(f"❌ Test failed: {e}")

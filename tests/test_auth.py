@@ -25,11 +25,7 @@ def test_token_generation():
 
     # Generate a test token
     token = generate_test_token()
-    print(
-        f"Generated token: {token[:50]}..."
-        if len(token) > 50
-        else f"Generated token: {token}"
-    )
+    print(f"Generated token: {token[:50]}..." if len(token) > 50 else f"Generated token: {token}")
 
     # Test validation
     try:
