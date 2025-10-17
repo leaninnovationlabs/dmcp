@@ -148,6 +148,7 @@ class ToolResponse(BaseModel):
     sql: str
     datasource_id: int
     parameters: List[ParameterDefinition]
+    tags: List[str]
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
