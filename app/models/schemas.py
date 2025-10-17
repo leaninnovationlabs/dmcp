@@ -29,12 +29,6 @@ class DatabaseType(str, Enum):
     DATABRICKS = "databricks"
 
 
-class ToolType(str, Enum):
-    QUERY = "query"
-    HTTP = "http"
-    CODE = "code"
-
-
 class ParameterType(str, Enum):
     STRING = "string"
     INTEGER = "integer"
@@ -113,6 +107,7 @@ class DatasourceResponse(BaseModel):
     port: Optional[int]
     database: str
     username: Optional[str]
+    # password field removed - not returned in API responses for security
     connection_string: Optional[str] = None
     ssl_mode: Optional[str]
     additional_params: Dict[str, Any]
@@ -125,7 +120,7 @@ class DatasourceResponse(BaseModel):
 class ToolCreate(BaseModel):
     name: str = Field(..., description="Name of the tool")
     description: Optional[str] = Field(None, description="Tool description")
-    type: ToolType = Field(ToolType.QUERY, description="Type of the tool")
+    type: str = Field(default="query", description="Type of the tool (query, http, code)")
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(
@@ -136,7 +131,7 @@ class ToolCreate(BaseModel):
 class ToolUpdate(BaseModel):
     name: Optional[str] = Field(None, description="Name of the tool")
     description: Optional[str] = Field(None, description="Tool description")
-    type: Optional[ToolType] = Field(None, description="Type of the tool")
+    type: Optional[str] = Field(None, description="Type of the tool (query, http, code)")
     sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
     datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(
@@ -148,11 +143,10 @@ class ToolResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
-    type: ToolType
+    type: str
     sql: str
     datasource_id: int
     parameters: List[ParameterDefinition]
-    created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

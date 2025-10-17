@@ -23,13 +23,13 @@ class AuthMiddleware(Middleware):
         auth_header = headers.get("authorization", "")
 
         # Skip the authentication check for the tools/list method
-        if context.method != 'tools/list' :
-            try:
-                decoded_payload = jwt_validator.validate_token(auth_header)
-                logger.debug(f"User ID: {decoded_payload}")
-            except AuthenticationError as e:
-                logger.warning(f"Authentication failed: {e.message}")
-                return {"error": True}
+        # if context.method != 'tools/list' :
+        try:
+            decoded_payload = jwt_validator.validate_token(auth_header)
+            logger.debug(f"User ID: {decoded_payload}")
+        except AuthenticationError as e:
+            logger.warning(f"Authentication failed: {e.message}")
+            return {"error": True}
             
         result = await call_next(context)
         

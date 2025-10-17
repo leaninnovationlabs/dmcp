@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeftIcon, Plug, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeftIcon, Plug, SkipBackIcon, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -42,7 +42,7 @@ const CreateDataSourceForm = ({
     port: dataSource?.port?.toString() || "",
     database: dataSource?.database || "",
     username: dataSource?.username || "",
-    password: "", // Always start empty, user can optionally enter new password
+    password: "", // Always initialize password as empty for security
     connection_string: dataSource?.connection_string || "",
     ssl_mode: dataSource?.ssl_mode || "",
     additional_params: dataSource?.additional_params
@@ -68,6 +68,7 @@ const CreateDataSourceForm = ({
     DatasourceFieldConfig
   > | null>(null);
   const [loadingFieldConfigs, setLoadingFieldConfigs] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const isEditMode = !!dataSource;
 
   // Load field configurations on component mount
@@ -292,8 +293,8 @@ const CreateDataSourceForm = ({
       if (fieldConfigs && fieldConfigs[formData.database_type]) {
         const config = fieldConfigs[formData.database_type];
         for (const field of config.fields) {
-          // Skip password validation in edit mode (it's optional)
-          if (field.type === "password" && isEditMode) {
+          // Skip password field validation entirely
+          if (field.type === "password") {
             continue;
           }
           
@@ -370,14 +371,15 @@ const CreateDataSourceForm = ({
         Object.keys(additionalParams).length > 0 ? additionalParams : undefined,
     };
 
-    // Helper function to conditionally include password
-    const getPasswordField = (password: string) => {
-      // In edit mode, only include password if it's not empty
+    // Helper function to conditionally include password field
+    const includePasswordField = (passwordValue: string) => {
       if (isEditMode) {
-        return password.trim() ? { password } : {};
+        // In edit mode, only include password if it's not empty
+        return passwordValue && passwordValue.trim() !== "" ? { password: passwordValue } : {};
+      } else {
+        // In create mode, always include password field
+        return { password: passwordValue };
       }
-      // In create mode, always include password
-      return { password };
     };
 
     switch (formData.database_type) {
@@ -388,7 +390,7 @@ const CreateDataSourceForm = ({
           host: "",
           port: 0,
           username: "",
-          ...getPasswordField(""),
+          ...includePasswordField(""),
         };
       case "postgresql":
       case "mysql":
@@ -398,14 +400,14 @@ const CreateDataSourceForm = ({
           port: parseInt(formData.port),
           database: formData.database,
           username: formData.username,
-          ...getPasswordField(formData.password),
+          ...includePasswordField(formData.password),
           ssl_mode: formData.ssl_mode || undefined,
         };
       case "databricks":
         return {
           ...baseData,
           host: formData.databricks_host,
-          ...getPasswordField(formData.databricks_token),
+          ...includePasswordField(formData.databricks_token),
           database: "databricks",
           port: 0,
           username: "",
@@ -423,7 +425,7 @@ const CreateDataSourceForm = ({
           port: 0,
           database: "",
           username: "",
-          ...getPasswordField(""),
+          ...includePasswordField(""),
         };
     }
   };
@@ -466,7 +468,7 @@ const CreateDataSourceForm = ({
             >
               <ArrowLeftIcon className="w-4 h-4" />
               <span>
-                Cancel
+                Back
               </span>              
             </Button>
             <Button
@@ -587,7 +589,7 @@ const CreateDataSourceForm = ({
                                   <div key={field.name}>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                       {field.label}{" "}
-                                      {field.required && !isEditMode && (
+                                      {field.required && !isEditMode && field.type !== "password" && (
                                         <span className="text-red-500">*</span>
                                       )}
                                       {field.type === "password" && isEditMode && (
@@ -595,39 +597,34 @@ const CreateDataSourceForm = ({
                                       )}
                                     </label>
                                     {field.type === "password" ? (
-                                      <div>
-                                        <div className="relative">
-                                          <input
-                                            type={showPassword ? "text" : "password"}
-                                            value={
-                                              formData[
-                                                field.name as keyof typeof formData
-                                              ] || ""
-                                            }
-                                            onChange={(e) =>
-                                              handleInputChange(
-                                                field.name,
-                                                e.target.value
-                                              )
-                                            }
-                                            required={field.required && !isEditMode}
-                                            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                                            placeholder=""
-                                          />
-                                          {isEditMode && (
-                                            <button
-                                              type="button"
-                                              onClick={() => setShowPassword(!showPassword)}
-                                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                            >
-                                              {showPassword ? (
-                                                <EyeOff className="h-4 w-4" />
-                                              ) : (
-                                                <Eye className="h-4 w-4" />
-                                              )}
-                                            </button>
+                                      <div className="relative">
+                                        <input
+                                          type={showPassword ? "text" : "password"}
+                                          value={
+                                            formData[
+                                              field.name as keyof typeof formData
+                                            ] || ""
+                                          }
+                                          onChange={(e) =>
+                                            handleInputChange(
+                                              field.name,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                                          placeholder={field.placeholder || ""}
+                                        />
+                                        <button
+                                          type="button"
+                                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                          onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                          {showPassword ? (
+                                            <Eye className="h-4 w-4 text-gray-400" />
+                                          ) : (
+                                            <EyeOff className="h-4 w-4 text-gray-400" />
                                           )}
-                                        </div>
+                                        </button>
                                       </div>
                                     ) : field.type === "text" ? (
                                       <input

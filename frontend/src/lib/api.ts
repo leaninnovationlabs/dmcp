@@ -58,6 +58,7 @@ export interface DataSource {
   port: number;
   database: string;
   username: string;
+  password?: string;
   connection_string?: string;
   ssl_mode?: string;
   additional_params?: Record<string, any>;
