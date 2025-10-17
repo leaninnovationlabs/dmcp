@@ -1,8 +1,7 @@
-from datetime import datetime, timezone
-
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
 
 from ..core.encryption import password_encryption
 
@@ -106,7 +105,7 @@ class Tool(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
     description = Column(Text)
-    type = Column(String(50), nullable=False, default="query")
+    type = Column(String(50), nullable=False, default='query')
     sql = Column(Text, nullable=False)
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
@@ -119,4 +118,4 @@ class Tool(Base):
     datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>"
+        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>" 
