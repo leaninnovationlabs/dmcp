@@ -42,7 +42,7 @@ class Settings(BaseSettings):
     # Default Admin Password
     default_admin_username: str = "admin"
     default_admin_password: str = "dochangethispassword"
-    default_admin_password_encrypted: str = "Z0FBQUFBQm91R1RKVkdqRnlvMFlWcVdXVW9aS2tzRkxhaENybUV0eERJN09helF5X2ltdUNJN2tuTU4tQUg1Ukt1S3dlb3QxR2djOFNoeXRhMGdFNm01U2h2UVA0TkZrTWtHSDczdlpQek83ZS0xZW55czR2QXM9"
+    default_admin_password_encrypted: str = "Z0FBQUFBQm91R1RKVkdqRnlvMFlWcVdXVW9aS2tzRkxhaENybUV0eERJN09helF5X2ltdUNJN2tuTU4tQUg1Ukt1S3dlb3QxR2djOFNoeXRhMGdFNm01U2h2UVA0TkZrTWtHSDczdlpQek83ZS0xZW55czR2QXM9"  # noqa: E501
 
     @field_validator("secret_key")
     @classmethod
@@ -70,8 +70,7 @@ class Settings(BaseSettings):
         # Ensure minimum length for security
         if len(v.strip()) < 32:
             raise ValueError(
-                "SECRET_KEY must be at least 32 characters long for security. "
-                f"Current length: {len(v.strip())}"
+                f"SECRET_KEY must be at least 32 characters long for security. Current length: {len(v.strip())}"
             )
 
         return v

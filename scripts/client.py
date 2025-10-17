@@ -19,8 +19,8 @@ async def main():
         tools = await client.list_tools()
         print(tools)
 
-        resources = await client.list_resources()
-        prompts = await client.list_prompts()
+        await client.list_resources()
+        # prompts = await client.list_prompts()
 
         # Execute operations
         result = await client.call_tool("get_hotels", {"location": "Zurich"})

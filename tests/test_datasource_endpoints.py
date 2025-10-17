@@ -100,9 +100,7 @@ class TestDatasourceEndpoints:
             )
 
             # Assert response status
-            assert response.status_code == 200, (
-                f"Expected 200, got {response.status_code}"
-            )
+            assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
             # Parse response data
             data = response.json()
@@ -114,24 +112,18 @@ class TestDatasourceEndpoints:
 
             # Assert datasource data matches input
             datasource = data["data"]
-            assert datasource["name"] == config["name"], (
-                f"Expected name {config['name']}, got {datasource['name']}"
-            )
-            assert datasource["database_type"] == config["database_type"], (
-                f"Expected database_type {config['database_type']}, got {datasource['database_type']}"
-            )
-            assert datasource["host"] == config["host"], (
-                f"Expected host {config['host']}, got {datasource['host']}"
-            )
-            assert datasource["port"] == config["port"], (
-                f"Expected port {config['port']}, got {datasource['port']}"
-            )
-            assert datasource["database"] == config["database"], (
-                f"Expected database {config['database']}, got {datasource['database']}"
-            )
-            assert datasource["username"] == config["username"], (
-                f"Expected username {config['username']}, got {datasource['username']}"
-            )
+            assert datasource["name"] == config["name"], f"Expected name {config['name']}, got {datasource['name']}"
+            assert (
+                datasource["database_type"] == config["database_type"]
+            ), f"Expected database_type {config['database_type']}, got {datasource['database_type']}"
+            assert datasource["host"] == config["host"], f"Expected host {config['host']}, got {datasource['host']}"
+            assert datasource["port"] == config["port"], f"Expected port {config['port']}, got {datasource['port']}"
+            assert (
+                datasource["database"] == config["database"]
+            ), f"Expected database {config['database']}, got {datasource['database']}"
+            assert (
+                datasource["username"] == config["username"]
+            ), f"Expected username {config['username']}, got {datasource['username']}"
 
             # Store datasource ID for the next test
             self.datasource_id = datasource["id"]
@@ -140,9 +132,7 @@ class TestDatasourceEndpoints:
             return self.datasource_id
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -169,9 +159,7 @@ class TestDatasourceEndpoints:
             )
 
             # Assert response status
-            assert response.status_code == 200, (
-                f"Expected 200, got {response.status_code}"
-            )
+            assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
             # Parse response data
             data = response.json()
@@ -183,37 +171,25 @@ class TestDatasourceEndpoints:
 
             # Get connection test results
             connection_data = data["data"]
-            assert "success" in connection_data, (
-                "Expected 'success' field in connection data"
-            )
-            assert "connection_time_ms" in connection_data, (
-                "Expected 'connection_time_ms' field in connection data"
-            )
+            assert "success" in connection_data, "Expected 'success' field in connection data"
+            assert "connection_time_ms" in connection_data, "Expected 'connection_time_ms' field in connection data"
 
             # Check if connection was successful
             if connection_data.get("success"):
                 print("✅ Connection test successful!")
-                assert "message" in connection_data, (
-                    "Expected 'message' field for successful connection"
-                )
-                assert connection_data["connection_time_ms"] > 0, (
-                    "Expected positive connection time"
-                )
+                assert "message" in connection_data, "Expected 'message' field for successful connection"
+                assert connection_data["connection_time_ms"] > 0, "Expected positive connection time"
                 print(f"⏱️  Connection time: {connection_data['connection_time_ms']}ms")
                 print(f"📝 Message: {connection_data.get('message', 'No message')}")
             else:
                 print("❌ Connection test failed!")
-                assert "error" in connection_data, (
-                    "Expected 'error' field for failed connection"
-                )
+                assert "error" in connection_data, "Expected 'error' field for failed connection"
                 print(f"🚨 Error: {connection_data.get('error', 'Unknown error')}")
                 # Don't fail the test if connection fails (database might not be running)
                 pytest.skip("Database connection failed - skipping test")
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -282,15 +258,11 @@ class TestDatasourceEndpoints:
                 assert "message" in connection_data
                 assert connection_data["connection_time_ms"] > 0
             else:
-                print(
-                    f"❌ Integration test failed: {connection_data.get('error', 'Unknown error')}"
-                )
+                print(f"❌ Integration test failed: {connection_data.get('error', 'Unknown error')}")
                 pytest.skip("Database connection failed in integration test")
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error: {e}")
 
@@ -312,17 +284,13 @@ class TestDatasourceEndpoints:
             if response.status_code == 200:
                 data = response.json()
                 print(f"✅ Health check successful: {data}")
-                assert "status" in data or "message" in data, (
-                    "Expected health status in response"
-                )
+                assert "status" in data or "message" in data, "Expected health status in response"
             else:
                 print(f"⚠️  Health check returned status {response.status_code}")
                 print(f"Response: {response.text}")
 
         except httpx.ConnectError:
-            pytest.skip(
-                "Cannot connect to API server at http://localhost:8000. Please ensure the server is running."
-            )
+            pytest.skip("Cannot connect to API server at http://localhost:8000. Please ensure the server is running.")
         except Exception as e:
             pytest.fail(f"Unexpected error during health check: {e}")
 

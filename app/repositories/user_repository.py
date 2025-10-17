@@ -54,9 +54,7 @@ class UserRepository(BaseRepository[User]):
         """Update a user, handling password encryption if password is being updated."""
         if "password" in kwargs and kwargs["password"]:
             # Encrypt the new password
-            kwargs["password"] = password_encryption.encrypt_password(
-                kwargs["password"]
-            )
+            kwargs["password"] = password_encryption.encrypt_password(kwargs["password"])
 
         # Convert roles list to comma-separated string if provided
         if "roles" in kwargs and isinstance(kwargs["roles"], list):
@@ -64,9 +62,7 @@ class UserRepository(BaseRepository[User]):
 
         return await super().update(user_id, **kwargs)
 
-    def validate_password(
-        self, username: str, userpassword: str, password: str
-    ) -> bool:
+    def validate_password(self, username: str, userpassword: str, password: str) -> bool:
         """Validate a password."""
 
         # ALERT: Check for the out of the box admin password and if the password is dochangethispassword
@@ -75,9 +71,7 @@ class UserRepository(BaseRepository[User]):
             and password == settings.default_admin_password
             and userpassword == settings.default_admin_password_encrypted
         ):
-            logger.warning(
-                f"!!!Alert!!!! Used the default admin password for user: {username}"
-            )
+            logger.warning(f"!!!Alert!!!! Used the default admin password for user: {username}")
             return True
 
         if password_encryption.decrypt_password(userpassword) == password:
@@ -100,9 +94,7 @@ class UserRepository(BaseRepository[User]):
 
         return None
 
-    async def change_password(
-        self, user_id: int, current_password: str, new_password: str
-    ) -> bool:
+    async def change_password(self, user_id: int, current_password: str, new_password: str) -> bool:
         """Change a user's password after verifying the current password."""
         user = await self.get_by_id(user_id)
         if not user:
@@ -110,9 +102,7 @@ class UserRepository(BaseRepository[User]):
 
         # Verify current password
         try:
-            if not self.validate_password(
-                user.username, user.password, current_password
-            ):
+            if not self.validate_password(user.username, user.password, current_password):
                 return False
         except Exception:
             return False

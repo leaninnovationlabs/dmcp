@@ -29,9 +29,7 @@ class JWTValidator:
             Encoded JWT token string
         """
         # Add expiration time to payload
-        expiration = datetime.now(timezone.utc) + timedelta(
-            minutes=self.expiration_minutes
-        )
+        expiration = datetime.now(timezone.utc) + timedelta(minutes=self.expiration_minutes)
         payload.update({"exp": expiration, "iat": datetime.now(timezone.utc)})
 
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
