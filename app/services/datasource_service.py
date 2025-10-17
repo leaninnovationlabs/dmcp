@@ -1,25 +1,29 @@
-from typing import List, Optional, Dict, Any
 import time
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..repositories.datasource_repository import DatasourceRepository
-from ..models.schemas import DatasourceCreate, DatasourceResponse
 from ..core.exceptions import DatasourceNotFoundError
 from ..database_connections import DatabaseConnectionManager
+from ..models.schemas import DatasourceCreate, DatasourceResponse
+from ..repositories.datasource_repository import DatasourceRepository
 
 
 class DatasourceService:
     """Service for datasource operations."""
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
         self.repository = DatasourceRepository(db)
-    
-    async def create_datasource(self, datasource: DatasourceCreate) -> DatasourceResponse:
+
+    async def create_datasource(
+        self, datasource: DatasourceCreate
+    ) -> DatasourceResponse:
         """Create a new datasource."""
         try:
             # Create the datasource instance first to handle password encryption
             from ..models.database import Datasource
+
             db_datasource = Datasource(
                 name=datasource.name,
                 database_type=datasource.database_type.value,
@@ -59,7 +63,7 @@ class DatasourceService:
             raise ValueError(str(e))
         except Exception as e:
             raise Exception(f"Failed to create datasource: {str(e)}")
-    
+
     async def list_datasources(self) -> List[DatasourceResponse]:
         """List all datasources."""
         try:
@@ -67,7 +71,7 @@ class DatasourceService:
             return [DatasourceResponse.model_validate(ds) for ds in datasources]
         except Exception as e:
             raise Exception(f"Failed to list datasources: {str(e)}")
-    
+
     async def get_datasource(self, datasource_id: int) -> Optional[DatasourceResponse]:
         """Get a specific datasource by ID."""
         try:
@@ -91,8 +95,10 @@ class DatasourceService:
             return None
         except Exception as e:
             raise Exception(f"Failed to get datasource: {str(e)}")
-    
-    async def update_datasource(self, datasource_id: int, **kwargs) -> DatasourceResponse:
+
+    async def update_datasource(
+        self, datasource_id: int, **kwargs
+    ) -> DatasourceResponse:
         """Update a datasource."""
         try:
             # Handle password encryption if password is being updated
@@ -110,7 +116,7 @@ class DatasourceService:
                 # Update other fields
                 for key, value in kwargs.items():
                     setattr(datasource, key, value)
-                
+
                 await self.db.commit()
                 await self.db.refresh(datasource)
                 return DatasourceResponse(
@@ -129,7 +135,9 @@ class DatasourceService:
                 )
             else:
                 # No password update, use normal repository method
-                updated_datasource = await self.repository.update_datasource(datasource_id, **kwargs)
+                updated_datasource = await self.repository.update_datasource(
+                    datasource_id, **kwargs
+                )
                 return DatasourceResponse.model_validate(updated_datasource)
         except DatasourceNotFoundError:
             raise
@@ -137,7 +145,7 @@ class DatasourceService:
             raise ValueError(str(e))
         except Exception as e:
             raise Exception(f"Failed to update datasource: {str(e)}")
-    
+
     async def delete_datasource(self, datasource_id: int) -> bool:
         """Delete a datasource by ID."""
         try:
@@ -148,8 +156,10 @@ class DatasourceService:
             raise ValueError(str(e))
         except Exception as e:
             raise Exception(f"Failed to delete datasource: {str(e)}")
-    
-    async def get_datasource_with_queries(self, datasource_id: int) -> Optional[DatasourceResponse]:
+
+    async def get_datasource_with_queries(
+        self, datasource_id: int
+    ) -> Optional[DatasourceResponse]:
         """Get a datasource with its associated queries."""
         try:
             datasource = await self.repository.get_with_queries(datasource_id)
@@ -158,21 +168,21 @@ class DatasourceService:
             return None
         except Exception as e:
             raise Exception(f"Failed to get datasource with queries: {str(e)}")
-    
+
     async def test_connection(self, datasource_id: int) -> Dict[str, Any]:
         """Test the database connection for a specific datasource."""
         start_time = time.time()
-        
+
         try:
             # Get the datasource
             datasource = await self.repository.get_by_id(datasource_id)
             if not datasource:
                 raise DatasourceNotFoundError(datasource_id)
-            
+
             # Test the connection
             connection_manager = DatabaseConnectionManager()
             connection = await connection_manager.get_connection(datasource)
-            
+
             # Try to execute a simple query to test the connection
             if datasource.database_type == "sqlite":
                 test_sql = "SELECT 1 as test"
@@ -182,44 +192,49 @@ class DatasourceService:
                 test_sql = "SELECT 1 as test"
             else:
                 test_sql = "SELECT 1 as test"
-            
+
             result = await connection.execute(test_sql, {})
             test_row = await result.fetchone()
-            
-            connection_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            
+
+            connection_time = (
+                time.time() - start_time
+            ) * 1000  # Convert to milliseconds
+
             if test_row and test_row["test"] == 1:
                 return {
                     "success": True,
                     "message": f"Successfully connected to {datasource.database_type} database '{datasource.database}'",
                     "connection_time_ms": connection_time,
-                    "error": None
+                    "error": None,
                 }
             else:
                 return {
                     "success": False,
                     "message": "Connection test failed - unexpected result",
                     "connection_time_ms": connection_time,
-                    "error": "Test query did not return expected result"
+                    "error": "Test query did not return expected result",
                 }
-                
+
         except Exception as e:
             # Debug logging - removed print statement to avoid stdout pollution
             connection_time = (time.time() - start_time) * 1000
             return {
                 "success": False,
-                "message": f"Failed to connect to database",
+                "message": "Failed to connect to database",
                 "connection_time_ms": connection_time,
-                "error": str(e)
+                "error": str(e),
             }
-    
-    async def test_connection_params(self, datasource: DatasourceCreate) -> Dict[str, Any]:
+
+    async def test_connection_params(
+        self, datasource: DatasourceCreate
+    ) -> Dict[str, Any]:
         """Test database connection with provided parameters without saving."""
         start_time = time.time()
-        
+
         try:
             # Create a temporary datasource object for testing
             from ..models.database import Datasource
+
             temp_datasource = Datasource(
                 name=datasource.name,
                 database_type=datasource.database_type.value,
@@ -233,11 +248,11 @@ class DatasourceService:
             )
             # Set password using the property to trigger encryption
             temp_datasource.decrypted_password = datasource.password
-            
+
             # Test the connection
             connection_manager = DatabaseConnectionManager()
             connection = await connection_manager.get_connection(temp_datasource)
-            
+
             # Try to execute a simple query to test the connection
             if datasource.database_type.value == "sqlite":
                 test_sql = "SELECT 1 as test"
@@ -247,32 +262,34 @@ class DatasourceService:
                 test_sql = "SELECT 1 as test"
             else:
                 test_sql = "SELECT 1 as test"
-            
+
             result = await connection.execute(test_sql, {})
             test_row = await result.fetchone()
-            
-            connection_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            
+
+            connection_time = (
+                time.time() - start_time
+            ) * 1000  # Convert to milliseconds
+
             if test_row and test_row["test"] == 1:
                 return {
                     "success": True,
                     "message": f"Successfully connected to {datasource.database_type.value} database '{datasource.database}'",
                     "connection_time_ms": connection_time,
-                    "error": None
+                    "error": None,
                 }
             else:
                 return {
                     "success": False,
                     "message": "Connection test failed - unexpected result",
                     "connection_time_ms": connection_time,
-                    "error": "Test query did not return expected result"
+                    "error": "Test query did not return expected result",
                 }
-                
+
         except Exception as e:
             connection_time = (time.time() - start_time) * 1000
             return {
                 "success": False,
                 "message": f"Failed to connect to database: {str(e)}",
                 "connection_time_ms": connection_time,
-                "error": str(e)
-            } 
+                "error": str(e),
+            }

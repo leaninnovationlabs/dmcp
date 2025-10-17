@@ -26,7 +26,7 @@ class User(Base):
         if not self.password:
             return ""
         return password_encryption.decrypt_password(self.password)
-    
+
     @decrypted_password.setter
     def decrypted_password(self, value: str):
         """Set the password (will be encrypted before storage)."""
@@ -41,14 +41,14 @@ class User(Base):
         print(f"Getting roles from list: {self.roles}")
         if not self.roles:
             return []
-        return [role.strip() for role in self.roles.split(',') if role.strip()]
-    
+        return [role.strip() for role in self.roles.split(",") if role.strip()]
+
     @roles_list.setter
     def roles_list(self, value: list):
         """Set roles from a list (will be stored as comma-separated string)."""
         print(f"Setting roles from list: {value}")
         if value:
-            self.roles = ','.join([role.strip() for role in value if role.strip()])
+            self.roles = ",".join([role.strip() for role in value if role.strip()])
         else:
             self.roles = ""
 
@@ -82,7 +82,7 @@ class Datasource(Base):
         if not self.password:
             return ""
         return password_encryption.decrypt_password(self.password)
-    
+
     @decrypted_password.setter
     def decrypted_password(self, value: str):
         """Set the password (will be encrypted before storage)."""

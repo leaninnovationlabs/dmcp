@@ -1,14 +1,20 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.tool_execution_service import ToolExecutionService
 
-from ..models.schemas import ToolCreate, ToolExecutionRequest, ToolUpdate, ToolResponse, StandardAPIResponse
+from ..core.responses import (
+    create_success_response,
+    raise_http_error,
+)
 from ..database import get_db
+from ..models.schemas import (
+    StandardAPIResponse,
+    ToolCreate,
+    ToolExecutionRequest,
+    ToolUpdate,
+)
 from ..services.tool_service import ToolService
-from ..core.exceptions import handle_dmcp_exception
-from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -92,8 +98,7 @@ async def delete_tool(
     except HTTPException:
         raise
     except Exception as e:
-        raise_http_error(500, "Internal server error", [str(e)]) 
-
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.post("/{tool_id}/execute", response_model=StandardAPIResponse)

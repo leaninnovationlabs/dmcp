@@ -1,29 +1,29 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
-from sqlalchemy.orm import selectinload
-from typing import List, Optional, Dict, Any
 import time
-import asyncio
-from datetime import datetime
+from typing import Any, Dict, List, Optional
 
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from .database_connections import DatabaseConnectionManager
 from .models.database import Datasource, Tool
 from .models.schemas import (
     DatasourceCreate,
     DatasourceResponse,
-    ToolCreate,
-    ToolResponse,
     PaginationRequest,
     PaginationResponse,
-    ToolExecutionResponse,
+    ToolCreate,
+    ToolResponse,
 )
-from .database_connections import DatabaseConnectionManager
 
 
 class DatasourceService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_datasource(self, datasource: DatasourceCreate) -> DatasourceResponse:
+    async def create_datasource(
+        self, datasource: DatasourceCreate
+    ) -> DatasourceResponse:
         """Create a new datasource."""
         db_datasource = Datasource(
             name=datasource.name,
@@ -36,14 +36,14 @@ class DatasourceService:
             ssl_mode=datasource.ssl_mode,
             additional_params=datasource.additional_params or {},
         )
-        
+
         # Set password using the property to trigger encryption
         db_datasource.decrypted_password = datasource.password
-        
+
         self.db.add(db_datasource)
         await self.db.commit()
         await self.db.refresh(db_datasource)
-        
+
         return DatasourceResponse.model_validate(db_datasource)
 
     async def list_datasources(self) -> List[DatasourceResponse]:
@@ -54,7 +54,9 @@ class DatasourceService:
 
     async def get_datasource(self, datasource_id: int) -> Optional[DatasourceResponse]:
         """Get a specific datasource by ID."""
-        result = await self.db.execute(select(Datasource).where(Datasource.id == datasource_id))
+        result = await self.db.execute(
+            select(Datasource).where(Datasource.id == datasource_id)
+        )
         datasource = result.scalar_one_or_none()
         if datasource:
             return DatasourceResponse.model_validate(datasource)
@@ -62,7 +64,9 @@ class DatasourceService:
 
     async def delete_datasource(self, datasource_id: int) -> bool:
         """Delete a datasource by ID."""
-        result = await self.db.execute(delete(Datasource).where(Datasource.id == datasource_id))
+        result = await self.db.execute(
+            delete(Datasource).where(Datasource.id == datasource_id)
+        )
         await self.db.commit()
         return result.rowcount > 0
 
@@ -87,11 +91,11 @@ class ToolService:
             datasource_id=tool.datasource_id,
             parameters=tool.parameters or [],
         )
-        
+
         self.db.add(db_tool)
         await self.db.commit()
         await self.db.refresh(db_tool)
-        
+
         return ToolResponse.model_validate(db_tool)
 
     async def list_tools(self) -> List[ToolResponse]:
@@ -140,7 +144,7 @@ class QueryExecutionService:
             .options(selectinload(Query.datasource))
         )
         query = query_result.scalar_one_or_none()
-        
+
         if not query:
             raise ValueError(f"Query with ID {query_id} not found")
 
@@ -149,7 +153,7 @@ class QueryExecutionService:
             select(Datasource).where(Datasource.id == query.datasource_id)
         )
         datasource = datasource_result.scalar_one_or_none()
-        
+
         if not datasource:
             raise ValueError(f"Datasource with ID {query.datasource_id} not found")
 
@@ -170,13 +174,11 @@ class QueryExecutionService:
             select(Datasource).where(Datasource.id == datasource_id)
         )
         datasource = datasource_result.scalar_one_or_none()
-        
+
         if not datasource:
             raise ValueError(f"Datasource with ID {datasource_id} not found")
 
-        return await self._execute_query(
-            datasource, sql, parameters or {}, pagination
-        )
+        return await self._execute_query(datasource, sql, parameters or {}, pagination)
 
     async def _execute_query(
         self,
@@ -187,35 +189,37 @@ class QueryExecutionService:
     ) -> QueryExecutionResponse:
         """Execute a query against a datasource."""
         start_time = time.time()
-        
+
         try:
             # Get connection to the target database
             connection = await self.connection_manager.get_connection(datasource)
-            
+
             # Apply pagination if requested
             if pagination:
                 sql = self._apply_pagination(sql, pagination)
-            
+
             # Execute the query
             result = await connection.execute(sql, parameters)
-            
+
             # Process results
             data = []
             columns = []
-            
+
             if result.returns_rows:
                 # Get column names
-                if hasattr(result, 'keys'):
+                if hasattr(result, "keys"):
                     columns = list(result.keys())
-                elif hasattr(result, 'column_names'):
+                elif hasattr(result, "column_names"):
                     columns = result.column_names
-                
+
                 # Fetch all rows
                 rows = await result.fetchall()
                 data = [dict(zip(columns, row)) for row in rows]
-            
-            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            
+
+            execution_time = (
+                time.time() - start_time
+            ) * 1000  # Convert to milliseconds
+
             # Calculate pagination info
             pagination_response = None
             if pagination:
@@ -223,16 +227,17 @@ class QueryExecutionService:
                 count_sql = f"SELECT COUNT(*) as total FROM ({sql.split('LIMIT')[0]}) as count_query"
                 count_result = await connection.execute(count_sql, parameters)
                 total_items = (await count_result.fetchone())[0]
-                
+
                 pagination_response = PaginationResponse(
                     page=pagination.page,
                     page_size=pagination.page_size,
                     total_items=total_items,
-                    total_pages=(total_items + pagination.page_size - 1) // pagination.page_size,
+                    total_pages=(total_items + pagination.page_size - 1)
+                    // pagination.page_size,
                     has_next=pagination.page * pagination.page_size < total_items,
                     has_previous=pagination.page > 1,
                 )
-            
+
             return QueryExecutionResponse(
                 success=True,
                 data=data,
@@ -241,7 +246,7 @@ class QueryExecutionService:
                 execution_time_ms=execution_time,
                 pagination=pagination_response,
             )
-            
+
         except Exception as e:
             execution_time = (time.time() - start_time) * 1000
             return QueryExecutionResponse(
@@ -256,7 +261,7 @@ class QueryExecutionService:
     def _apply_pagination(self, sql: str, pagination: PaginationRequest) -> str:
         """Apply pagination to SQL query."""
         offset = (pagination.page - 1) * pagination.page_size
-        
+
         # Simple pagination - this might need to be database-specific
         if "LIMIT" not in sql.upper():
             sql += f" LIMIT {pagination.page_size} OFFSET {offset}"
@@ -264,5 +269,5 @@ class QueryExecutionService:
             # If LIMIT already exists, we need to be more careful
             # This is a simplified approach
             sql = sql.replace("LIMIT", f"LIMIT {pagination.page_size} OFFSET {offset}")
-        
-        return sql 
+
+        return sql
