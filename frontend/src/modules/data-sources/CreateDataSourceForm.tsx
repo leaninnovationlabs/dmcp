@@ -62,6 +62,7 @@ const CreateDataSourceForm = ({
   const [testingConnection, setTestingConnection] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldConfigs, setFieldConfigs] = useState<Record<
     string,
     DatasourceFieldConfig
@@ -590,6 +591,9 @@ const CreateDataSourceForm = ({
                                       {field.label}{" "}
                                       {field.required && !isEditMode && field.type !== "password" && (
                                         <span className="text-red-500">*</span>
+                                      )}
+                                      {field.type === "password" && isEditMode && (
+                                        <span className="text-gray-500 text-sm font-normal">(Optional - leave blank to keep current password)</span>
                                       )}
                                     </label>
                                     {field.type === "password" ? (
