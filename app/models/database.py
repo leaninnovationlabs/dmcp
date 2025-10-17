@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey
+from datetime import datetime, timezone
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
 
 from ..core.encryption import password_encryption
 
@@ -17,8 +18,14 @@ class User(Base):
     first_name = Column(String(255), nullable=False)
     last_name = Column(String(255), nullable=False)
     roles = Column(String(500), default="", nullable=False)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     @property
     def decrypted_password(self) -> str:
@@ -26,7 +33,7 @@ class User(Base):
         if not self.password:
             return ""
         return password_encryption.decrypt_password(self.password)
-    
+
     @decrypted_password.setter
     def decrypted_password(self, value: str):
         """Set the password (will be encrypted before storage)."""
@@ -41,14 +48,14 @@ class User(Base):
         print(f"Getting roles from list: {self.roles}")
         if not self.roles:
             return []
-        return [role.strip() for role in self.roles.split(',') if role.strip()]
-    
+        return [role.strip() for role in self.roles.split(",") if role.strip()]
+
     @roles_list.setter
     def roles_list(self, value: list):
         """Set roles from a list (will be stored as comma-separated string)."""
         print(f"Setting roles from list: {value}")
         if value:
-            self.roles = ','.join([role.strip() for role in value if role.strip()])
+            self.roles = ",".join([role.strip() for role in value if role.strip()])
         else:
             self.roles = ""
 
@@ -70,8 +77,14 @@ class Datasource(Base):
     connection_string = Column(Text)
     ssl_mode = Column(String(50))
     additional_params = Column(JSON, default={})
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     # Relationship
     tools = relationship("Tool", back_populates="datasource")
@@ -82,7 +95,7 @@ class Datasource(Base):
         if not self.password:
             return ""
         return password_encryption.decrypt_password(self.password)
-    
+
     @decrypted_password.setter
     def decrypted_password(self, value: str):
         """Set the password (will be encrypted before storage)."""
@@ -101,15 +114,21 @@ class Tool(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, unique=True)
     description = Column(Text)
-    type = Column(String(50), nullable=False, default='query')
+    type = Column(String(50), nullable=False, default="query")
     sql = Column(Text, nullable=False)
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     # Relationship
     datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>" 
+        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>"

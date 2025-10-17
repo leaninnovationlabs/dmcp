@@ -1,35 +1,35 @@
-import traceback
-from typing import Optional, Dict, Any
-import time
 import re
+import time
+import traceback
+from typing import Any, Dict, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..repositories.tool_repository import ToolRepository
-from ..repositories.datasource_repository import DatasourceRepository
+from ..core.exceptions import (
+    DatasourceNotFoundError,
+    ToolExecutionError,
+    ToolNotFoundError,
+)
+from ..database_connections import DatabaseConnectionManager
 from ..models.schemas import (
     PaginationRequest,
     PaginationResponse,
     ToolExecutionResponse,
 )
-from ..core.exceptions import (
-    ToolNotFoundError,
-    DatasourceNotFoundError,
-    ToolExecutionError,
-    DatabaseConnectionError,
-)
-from ..database_connections import DatabaseConnectionManager
+from ..repositories.datasource_repository import DatasourceRepository
+from ..repositories.tool_repository import ToolRepository
 from .jinja_template_service import JinjaTemplateService
 
 
 class ToolExecutionService:
     """Service for tool execution operations."""
-    
+
     def __init__(self, db: AsyncSession):
         self.tool_repository = ToolRepository(db)
         self.datasource_repository = DatasourceRepository(db)
         self.connection_manager = DatabaseConnectionManager()
         self.template_service = JinjaTemplateService()
-    
+
     async def execute_named_tool(
         self,
         tool_id: int,
@@ -42,12 +42,12 @@ class ToolExecutionService:
             tool = await self.tool_repository.get_with_datasource(tool_id)
             if not tool:
                 raise ToolNotFoundError(tool_id)
-            
+
             # Get the datasource
             datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
             if not datasource:
                 raise DatasourceNotFoundError(tool.datasource_id)
-            
+
             return await self._execute_query(
                 datasource, tool.sql, parameters or {}, pagination
             )
@@ -56,7 +56,7 @@ class ToolExecutionService:
         except Exception as e:
             print(e)
             raise ToolExecutionError(tool_id, str(e))
-    
+
     async def execute_raw_query(
         self,
         datasource_id: int,
@@ -70,7 +70,7 @@ class ToolExecutionService:
             datasource = await self.datasource_repository.get_by_id(datasource_id)
             if not datasource:
                 raise DatasourceNotFoundError(datasource_id)
-            
+
             return await self._execute_query(
                 datasource, sql, parameters or {}, pagination
             )
@@ -78,7 +78,7 @@ class ToolExecutionService:
             raise
         except Exception as e:
             raise ToolExecutionError(None, str(e))
-    
+
     async def _execute_query(
         self,
         datasource,
@@ -88,42 +88,46 @@ class ToolExecutionService:
     ) -> ToolExecutionResponse:
         """Execute a query with parameters and pagination."""
         start_time = time.time()
-        
+
         try:
             # Process SQL with Jinja templates if needed
             processed_sql = self.template_service.process_sql_template(sql, parameters)
 
             # Get database connection
             connection = await self.connection_manager.get_connection(datasource)
-            
+
             # Execute query with pagination
             if pagination:
                 # Add pagination to the query
                 offset = (pagination.page - 1) * pagination.page_size
                 limit = pagination.page_size
-                
+
                 processed_sql_with_pagination = processed_sql
 
                 # For PostgreSQL and MySQL, we can use LIMIT/OFFSET
-                if datasource.database_type in ['postgresql', 'mysql']:
+                if datasource.database_type in ["postgresql", "mysql"]:
                     processed_sql_with_pagination += f" LIMIT {limit} OFFSET {offset}"
-                
-                print('processed_sql_with_pagination', processed_sql_with_pagination)
+
+                print("processed_sql_with_pagination", processed_sql_with_pagination)
 
                 # Execute the paginated query
                 result_wrapper = await connection.execute(processed_sql_with_pagination)
                 result_data = await result_wrapper.fetchall()
-                
+
                 # Get total count for pagination info
-                count_sql = f"SELECT COUNT(*) as total FROM ({processed_sql}) as count_query"
+                count_sql = (
+                    f"SELECT COUNT(*) as total FROM ({processed_sql}) as count_query"
+                )
                 print(count_sql)
 
                 count_result_wrapper = await connection.execute(count_sql)
                 count_result_data = await count_result_wrapper.fetchall()
-                total_items = count_result_data[0]['total'] if count_result_data else 0
-                
+                total_items = count_result_data[0]["total"] if count_result_data else 0
+
                 # Calculate pagination info
-                total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
+                total_pages = (
+                    total_items + pagination.page_size - 1
+                ) // pagination.page_size
                 pagination_response = PaginationResponse(
                     page=pagination.page,
                     page_size=pagination.page_size,
@@ -137,12 +141,14 @@ class ToolExecutionService:
                 result_wrapper = await connection.execute(processed_sql)
                 result_data = await result_wrapper.fetchall()
                 pagination_response = None
-            
-            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-            
+
+            execution_time = (
+                time.time() - start_time
+            ) * 1000  # Convert to milliseconds
+
             # result_data is now a list of dictionaries from all database connections
             data = result_data or []
-            
+
             return ToolExecutionResponse(
                 success=True,
                 data=data,
@@ -151,7 +157,7 @@ class ToolExecutionService:
                 execution_time_ms=execution_time,
                 pagination=pagination_response,
             )
-            
+
         except Exception as e:
             print(e)
             print(traceback.format_exc())
@@ -165,11 +171,11 @@ class ToolExecutionService:
                 pagination=None,
                 error=str(e),
             )
-    
+
     def _apply_pagination(self, sql: str, pagination: PaginationRequest) -> str:
         """Apply pagination to SQL query."""
         offset = (pagination.page - 1) * pagination.page_size
-        
+
         # Remove any existing LIMIT clause
         sql_upper = sql.upper()
         limit_index = sql_upper.find("LIMIT")
@@ -179,20 +185,20 @@ class ToolExecutionService:
             if end_index == -1:
                 end_index = len(sql)
             sql = sql[:limit_index].strip()
-        
+
         # Add new LIMIT clause
         sql += f" LIMIT {pagination.page_size} OFFSET {offset}"
-        
+
         return sql
-    
+
     def _preprocess_sql_template(self, sql: str, parameters: Dict[str, Any]) -> str:
         """
         Pre-process SQL with Jinja templates if template syntax is detected.
-        
+
         Args:
             sql: The SQL query string
             parameters: Parameters for template substitution
-            
+
         Returns:
             Processed SQL string
         """
@@ -200,35 +206,37 @@ class ToolExecutionService:
         if self._contains_jinja_syntax(sql):
             try:
                 # Validate template variables
-                missing_vars = self.template_service.validate_template_variables(sql, parameters)
+                missing_vars = self.template_service.validate_template_variables(
+                    sql, parameters
+                )
                 if missing_vars:
                     missing_var_names = list(missing_vars.keys())
                     raise ToolExecutionError(
-                        None, 
-                        f"Missing required template variables: {', '.join(missing_var_names)}"
+                        None,
+                        f"Missing required template variables: {', '.join(missing_var_names)}",
                     )
-                
+
                 # Render the template
                 return self.template_service.render_template(sql, parameters)
-                
+
             except Exception as e:
                 if isinstance(e, ToolExecutionError):
                     raise
                 raise ToolExecutionError(None, f"Template processing failed: {str(e)}")
-        
+
         # If no template syntax, return the original SQL
         return sql
-    
+
     def _contains_jinja_syntax(self, sql: str) -> bool:
         """Check if SQL contains Jinja template syntax."""
         jinja_patterns = [
-            r'{{\s*[^}]+}}',  # {{ variable }}
-            r'{%\s*[^%]+%}',  # {% control structures %}
-            r'{#\s*[^#]+#}',  # {# comments #}
+            r"{{\s*[^}]+}}",  # {{ variable }}
+            r"{%\s*[^%]+%}",  # {% control structures %}
+            r"{#\s*[^#]+#}",  # {# comments #}
         ]
-        
+
         for pattern in jinja_patterns:
             if re.search(pattern, sql):
                 return True
-        
-        return False 
+
+        return False

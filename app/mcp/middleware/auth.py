@@ -1,19 +1,19 @@
 """Authentication middleware for MCP operations."""
 
 import logging
+
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 
-from app.core.jwt_validator import jwt_validator
 from app.core.exceptions import AuthenticationError
-from app.core.config import settings
+from app.core.jwt_validator import jwt_validator
 
 logger = logging.getLogger(__name__)
 
 
 class AuthMiddleware(Middleware):
     """Middleware that checks for authentication."""
-    
+
     async def on_message(self, context: MiddlewareContext, call_next):
         """Called for all MCP messages."""
 
@@ -30,8 +30,8 @@ class AuthMiddleware(Middleware):
         except AuthenticationError as e:
             logger.warning(f"Authentication failed: {e.message}")
             return {"error": True}
-            
+
         result = await call_next(context)
-        
+
         logger.info(f"Completed {context.method}")
         return result

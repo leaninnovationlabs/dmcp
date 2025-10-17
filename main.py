@@ -1,19 +1,18 @@
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastmcp import FastMCP
-from fastapi import FastAPI, Request
-from starlette.middleware.cors import CORSMiddleware
 from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.routing import Mount
-from fastapi.staticfiles import StaticFiles
 
+from app.core.auth_middleware import BearerTokenMiddleware
 from app.core.config import settings
+from app.mcp.middleware.auth import AuthMiddleware
+from app.mcp.middleware.logging import LoggingMiddleware
 from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
 from app.routes import auth, datasources, health, tools, users
-from app.core.auth_middleware import BearerTokenMiddleware
-from app.mcp.middleware.auth import AuthMiddleware
-from app.mcp.middleware.logging import LoggingMiddleware
 
 mcp = FastMCP("DMCP")
 server = MCPServer(mcp)
@@ -27,7 +26,9 @@ mcp.add_middleware(CustomizeToolsList())
 # Build MCP ASGI app and mount it under FastAPI (stateless for compatibility with tidd)
 mcp_app = mcp.http_app(path="/mcp/", stateless_http=True)
 
-starlette = Starlette(routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan)
+starlette = Starlette(
+    routes=[Mount(settings.mcp_path, app=mcp_app)], lifespan=mcp_app.lifespan
+)
 # mcp_app.mount("/ui", StaticFiles(directory="public", html=True), name="static")
 
 app = FastAPI(
@@ -37,7 +38,8 @@ app = FastAPI(
     docs_url=f"{settings.mcp_path}/docs",
     redoc_url=f"{settings.mcp_path}/redoc",
     openapi_url=f"{settings.mcp_path}/openapi.json",
-    lifespan=mcp_app.lifespan)
+    lifespan=mcp_app.lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,10 +49,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/dmcp/tools/refresh")
 async def test(request: Request):
     server._register_database_tools()
     return JSONResponse({"status": "healthy", "message": "DMCP server is running"})
+
 
 app.include_router(health.router, prefix=f"{settings.mcp_path}")
 app.include_router(auth.router, prefix=f"{settings.mcp_path}")
@@ -59,24 +63,27 @@ app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 app.include_router(users.router, prefix=f"{settings.mcp_path}")
 
 
-
 # Serve static assets for React app
 @app.get("/dmcp/ui/assets/{file_path:path}")
 async def serve_react_assets(file_path: str):
     return FileResponse(f"public/assets/{file_path}")
+
 
 # Serve logo assets
 @app.get("/dmcp/ui/logo.webp")
 async def serve_logo_webp():
     return FileResponse("public/logo.webp")
 
+
 @app.get("/dmcp/ui/logo.png")
 async def serve_logo_png():
     return FileResponse("public/logo.png")
 
+
 @app.get("/dmcp/ui/logo.svg")
 async def serve_vite_svg():
     return FileResponse("public/logo.svg")
+
 
 # Catch-all route for React app - serves index.html for any /ui/ path
 @app.get("/dmcp/ui/{path:path}")
@@ -87,23 +94,30 @@ async def serve_react_app(path: str):
 # Add a redirect to the root path to /dmcp/ui
 @app.get("/")
 async def redirect_to_ui():
-    return RedirectResponse(f"dmcp/ui/")
+    return RedirectResponse("dmcp/ui/")
+
 
 @app.get("/dmcp")
 async def redirect_to_dmcp_ui():
-    return RedirectResponse(f"dmcp/ui/")
+    return RedirectResponse("dmcp/ui/")
 
 
 # Add Bearer token authentication middleware
-app.add_middleware(BearerTokenMiddleware, [f"{settings.mcp_path}/health", 
-    f"{settings.mcp_path}/auth", 
-    f"{settings.mcp_path}/docs", 
-    f"{settings.mcp_path}/redoc", 
-    f"{settings.mcp_path}/openapi.json", 
-    f"{settings.mcp_path}/ui"])
+app.add_middleware(
+    BearerTokenMiddleware,
+    [
+        f"{settings.mcp_path}/health",
+        f"{settings.mcp_path}/auth",
+        f"{settings.mcp_path}/docs",
+        f"{settings.mcp_path}/redoc",
+        f"{settings.mcp_path}/openapi.json",
+        f"{settings.mcp_path}/ui",
+    ],
+)
 
 app.mount("/", starlette)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host=settings.mcp_host, port=settings.mcp_port)

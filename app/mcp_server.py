@@ -11,24 +11,49 @@ import inspect
 import sys
 import traceback
 from typing import Any, Callable, Dict, List, Optional
-from fastmcp import Context, FastMCP
+
+from fastmcp import Context
 from fastmcp.server.dependencies import get_http_headers
-from sqlalchemy import true
 
 from app.database import get_db
-from app.services.tool_service import ToolService
 from app.services.tool_execution_service import ToolExecutionService
-from app.core.config import settings
-from app.mcp.middleware.logging import LoggingMiddleware
-from app.core.jwt_validator import jwt_validator
-from app.core.exceptions import AuthenticationError
+from app.services.tool_service import ToolService
 
 # Constants
 PYTHON_RESERVED_KEYWORDS = {
-    'class', 'def', 'import', 'from', 'as', 'in', 'is', 'if', 'else', 'elif',
-    'try', 'except', 'finally', 'with', 'for', 'while', 'return', 'yield',
-    'break', 'continue', 'pass', 'raise', 'assert', 'del', 'global', 'nonlocal',
-    'lambda', 'and', 'or', 'not', 'True', 'False', 'None'
+    "class",
+    "def",
+    "import",
+    "from",
+    "as",
+    "in",
+    "is",
+    "if",
+    "else",
+    "elif",
+    "try",
+    "except",
+    "finally",
+    "with",
+    "for",
+    "while",
+    "return",
+    "yield",
+    "break",
+    "continue",
+    "pass",
+    "raise",
+    "assert",
+    "del",
+    "global",
+    "nonlocal",
+    "lambda",
+    "and",
+    "or",
+    "not",
+    "True",
+    "False",
+    "None",
 }
 
 DEFAULT_ERROR_RESPONSE = {
@@ -38,13 +63,13 @@ DEFAULT_ERROR_RESPONSE = {
     "row_count": 0,
     "execution_time_ms": 0,
     "pagination": None,
-    "error": ""
+    "error": "",
 }
 
 
 class MCPServer:
     """MCP Server class that provides various tools and functionality."""
-    
+
     def __init__(self, mcp_instance, name: str = "DB MCP"):
         """Initialize the MCP server with the given name."""
         self.mcp = mcp_instance
@@ -54,41 +79,45 @@ class MCPServer:
 
         # Example to add prompts, seem to be working only based on the annoation
         # self.mcp.add_prompt(self.example_prompt)
-    
+
     def _register_database_tools(self) -> None:
         """Register tools from the database as MCP tools."""
         try:
             self._log_debug("Starting to register database tools...")
             tools = self._list_tools()
             self._log_debug(f"Found {len(tools)} tools in database")
-            
+
             for tool in tools:
                 self._register_single_tool(tool)
-            
+
             self._log_debug("Finished registering database tools")
-                
+
         except Exception as e:
             self._log_error(f"Error registering database tools: {e}")
             traceback.print_exc(file=sys.stderr)
-    
+
     def _register_single_tool(self, tool: Dict[str, Any]) -> None:
         """Register a single tool from the database."""
         try:
             tool_func = self._create_tool_function(tool)
             self.mcp.tool(tool_func)
             self._log_debug(f"Registered tool: {tool['name']}")
-            
+
         except Exception as tool_error:
-            self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
-    
-    def ping(self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]) -> Dict[str, Any]:
+            self._log_error(
+                f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}"
+            )
+
+    def ping(
+        self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]
+    ) -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""
-        
+
         headers = get_http_headers()
         # # Get authorization header, which holds the key
         auth_header = headers.get("authorization", "")
         is_bearer = auth_header.startswith("Bearer ")
-        
+
         data = {
             "name": name,
             "message": "Pong!",
@@ -100,106 +129,110 @@ class MCPServer:
             "request_id": ctx.request_id,
             "client_id": ctx.client_id or "Unknown client",
         }
-        
+
         # Return the string equqivalent of data object
         return data
-    
+
     def list_database_tools(self, ctx: Context) -> Dict[str, Any]:
         """List all available database tools"""
         headers = get_http_headers()
         authorization = headers.get("authorization", "")
-     
+
         try:
             tools = self._list_tools()
             return {
                 "success": True,
-                "tools": [{"id": t["id"], "name": t["name"], "description": t.get("description", "")} for t in tools]
+                "tools": [
+                    {
+                        "id": t["id"],
+                        "name": t["name"],
+                        "description": t.get("description", ""),
+                    }
+                    for t in tools
+                ],
             }
         except Exception as e:
             return {"success": False, "errors": [{"msg": str(e)}]}
-    
-    
+
     def example_prompt(self) -> str:
         """Example prompt for the MCP server"""
         return """
         Hello! I'm a database tool assistant. I can help you execute database queries and tools.
         You can start by saying hello or asking me to execute any of the available database tools.
         """
-        
+
     def _create_tool_function(self, tool_data: Dict[str, Any]) -> Callable:
         """Create a dynamic tool function for the given tool data."""
-        tool_id = tool_data['id']
-        tool_name = tool_data['name']
-        description = tool_data.get('description', f'Execute {tool_name}')
-        
-        if tool_data.get('parameters'):
+        tool_id = tool_data["id"]
+        tool_name = tool_data["name"]
+        description = tool_data.get("description", f"Execute {tool_name}")
+
+        if tool_data.get("parameters"):
             return self._create_parameterized_tool_function(
-                tool_id, tool_name, description, tool_data['parameters']
+                tool_id, tool_name, description, tool_data["parameters"]
             )
         else:
             return self._create_simple_tool_function(tool_id, tool_name, description)
-    
+
     def _create_parameterized_tool_function(
-        self, 
-        tool_id: int, 
-        tool_name: str, 
-        description: str, 
-        parameters: List[Dict[str, Any]]
+        self,
+        tool_id: int,
+        tool_name: str,
+        description: str,
+        parameters: List[Dict[str, Any]],
     ) -> Callable:
         """Create a tool function that accepts parameters."""
-        param_names = [param['name'] for param in parameters]
+        param_names = [param["name"] for param in parameters]
         valid_param_names, param_mapping = self._sanitize_parameter_names(param_names)
-        
-        
+
         def tool_function(**kwargs):
             """Dynamic tool function with parameters."""
 
             parameters = self._map_parameters(kwargs, param_mapping)
             return self.execute_tool_by_id(tool_id, parameters)
-        
-        self._set_function_metadata(tool_function, tool_name, description, valid_param_names)
+
+        self._set_function_metadata(
+            tool_function, tool_name, description, valid_param_names
+        )
         return tool_function
-    
+
     def _create_simple_tool_function(
-        self, 
-        tool_id: int, 
-        tool_name: str, 
-        description: str
+        self, tool_id: int, tool_name: str, description: str
     ) -> Callable:
         """Create a tool function without parameters."""
+
         def tool_function():
-            """Dynamic tool function without parameters."""              
-            
+            """Dynamic tool function without parameters."""
+
             # Passed the token validation, now execute the tool
             return self.execute_tool_by_id(tool_id, {})
-        
+
         self._set_function_metadata(tool_function, tool_name, description, [])
         return tool_function
-    
+
     def _sanitize_parameter_names(
-        self, 
-        param_names: List[str]
+        self, param_names: List[str]
     ) -> tuple[List[str], Dict[str, str]]:
         """Sanitize parameter names to avoid Python reserved keywords."""
         valid_param_names = []
         param_mapping = {}
-        
+
         for param_name in param_names:
             if param_name in PYTHON_RESERVED_KEYWORDS:
                 sanitized_name = f"param_{param_name}"
                 valid_param_names.append(sanitized_name)
                 param_mapping[sanitized_name] = param_name
-                self._log_debug(f"Sanitized parameter name '{param_name}' to '{sanitized_name}'")
+                self._log_debug(
+                    f"Sanitized parameter name '{param_name}' to '{sanitized_name}'"
+                )
             else:
                 valid_param_names.append(param_name)
                 param_mapping[param_name] = param_name
-        
+
         return valid_param_names, param_mapping
-    
+
     def _map_parameters(
-        self, 
-        kwargs: Dict[str, Any], 
-        param_mapping: Dict[str, str]
+        self, kwargs: Dict[str, Any], param_mapping: Dict[str, str]
     ) -> Dict[str, Any]:
         """Map sanitized parameter names back to original names."""
         parameters = {}
@@ -208,58 +241,61 @@ class MCPServer:
                 original_name = param_mapping[sanitized_name]
                 parameters[original_name] = value
         return parameters
-    
+
     def _set_function_metadata(
-        self, 
-        func: Callable, 
-        name: str, 
-        description: str, 
-        param_names: Optional[List[str]] = None
+        self,
+        func: Callable,
+        name: str,
+        description: str,
+        param_names: Optional[List[str]] = None,
     ) -> None:
         """Set metadata for the tool function."""
         func.__name__ = name
         func.__doc__ = description
-        
+
         if param_names:
             self._set_function_signature(func, param_names)
-    
+
     def _set_function_signature(self, func: Callable, param_names: List[str]) -> None:
         """Set the function signature with the given parameter names."""
         sig = inspect.signature(func)
         new_params = [
             inspect.Parameter(
-                param_name, 
-                inspect.Parameter.POSITIONAL_OR_KEYWORD, 
-                default=None
+                param_name, inspect.Parameter.POSITIONAL_OR_KEYWORD, default=None
             )
             for param_name in param_names
         ]
-        
+
         func.__signature__ = sig.replace(parameters=new_params)
         self._log_debug(f"Tool function signature: {func.__signature__}")
-    
-    def execute_tool_by_id(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
+
+    def execute_tool_by_id(
+        self, tool_id: int, parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute a tool by its ID with parameters."""
         try:
-            self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")            
+            self._log_debug(f"Executing tool {tool_id} with parameters: {parameters}")
             result = self._execute_tool_async(tool_id, parameters)
             self._log_debug(f"Tool execution result: {result}")
             return result
-            
+
         except Exception as e:
             self._log_error(f"Failed to execute tool {tool_id}: {e}")
             traceback.print_exc(file=sys.stderr)
             # Preserve the response envelope expected by MCP clients
             return {**DEFAULT_ERROR_RESPONSE, "error": str(e)}
-    
-    def _execute_tool_async(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _execute_tool_async(
+        self, tool_id: int, parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute tool asynchronously in a separate thread."""
+
         async def _execute_tool_async():
             async for db in get_db():
                 service = ToolExecutionService(db)
                 result = await service.execute_named_tool(tool_id, parameters)
                 return result.model_dump()
-        
+
         # Run in a new event loop to avoid conflicts with the main event loop
         def run_in_new_loop():
             new_loop = asyncio.new_event_loop()
@@ -268,13 +304,14 @@ class MCPServer:
                 return new_loop.run_until_complete(_execute_tool_async())
             finally:
                 new_loop.close()
-        
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(run_in_new_loop)
             return future.result()
-    
+
     def _list_tools(self) -> List[Dict[str, Any]]:
         """Get list of tools from database using sync wrapper."""
+
         # Run in a new event loop to avoid conflicts with the main event loop
         def run_in_new_loop():
             new_loop = asyncio.new_event_loop()
@@ -283,22 +320,22 @@ class MCPServer:
                 return new_loop.run_until_complete(self._list_tools_async())
             finally:
                 new_loop.close()
-        
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(run_in_new_loop)
             return future.result()
-    
+
     async def _list_tools_async(self) -> List[Dict[str, Any]]:
         """Get list of tools from database asynchronously."""
         async for db in get_db():
             tool_service = ToolService(db)
             tools = await tool_service.list_tools()
             return [tool.model_dump() for tool in tools]
-        
+
     def _log_debug(self, message: str) -> None:
         """Log debug message to stderr."""
         print(f"[DMCP DEBUG] {message}", file=sys.stderr)
-    
+
     def _log_error(self, message: str) -> None:
         """Log error message to stderr."""
         print(f"[DMCP ERROR] {message}", file=sys.stderr)
