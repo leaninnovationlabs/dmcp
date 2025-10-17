@@ -276,3 +276,27 @@ class TokenResponse(BaseModel):
     expires_at: datetime = Field(..., description="Token expiration time")
     user_id: int = Field(..., description="User ID associated with the token")
     username: str = Field(..., description="Username associated with the token")
+
+
+# Tag-related schemas
+class TagCreate(BaseModel):
+    name: str = Field(..., description="Tag name (max 50 characters)")
+    description: Optional[str] = Field(None, description="Optional tag description")
+    color: Optional[str] = Field(None, description="Optional hex color code (e.g., #FF5733)")
+
+
+class TagUpdate(BaseModel):
+    name: Optional[str] = Field(None, description="Tag name (max 50 characters)")
+    description: Optional[str] = Field(None, description="Optional tag description")
+    color: Optional[str] = Field(None, description="Optional hex color code (e.g., #FF5733)")
+
+
+class TagResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    color: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
