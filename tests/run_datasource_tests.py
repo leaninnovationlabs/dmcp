@@ -33,9 +33,7 @@ def main():
     test_env_path = os.path.join(tests_dir, ".test.env")
     if not os.path.exists(test_env_path):
         print("❌ Error: .test.env file not found in tests directory")
-        print(
-            "Please ensure the test environment file exists with PostgreSQL configuration"
-        )
+        print("Please ensure the test environment file exists with PostgreSQL configuration")
         return 1
 
     print("✅ Found .test.env file")

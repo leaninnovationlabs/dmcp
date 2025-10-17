@@ -27,14 +27,9 @@ class PostgreSQLConnection(DatabaseConnection):
 
     def _convert_record_to_dict(self, record):
         """Convert an asyncpg Record to a dictionary with type conversion."""
-        return {
-            key: self._convert_postgresql_types(value)
-            for key, value in dict(record).items()
-        }
+        return {key: self._convert_postgresql_types(value) for key, value in dict(record).items()}
 
-    def _convert_parameters(
-        self, sql: str, parameters: Dict[str, Any]
-    ) -> Tuple[str, List[Any]]:
+    def _convert_parameters(self, sql: str, parameters: Dict[str, Any]) -> Tuple[str, List[Any]]:
         """Convert named parameters to PostgreSQL positional parameters."""
         if not parameters:
             return sql, []
@@ -46,9 +41,7 @@ class PostgreSQLConnection(DatabaseConnection):
 
         return sql, list(parameters.values())
 
-    async def _execute_query(
-        self, sql: str, param_values: List[Any]
-    ) -> Tuple[List[Dict[str, Any]], List[str]]:
+    async def _execute_query(self, sql: str, param_values: List[Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
         """Execute PostgreSQL query and return results with column names."""
         result = await self.connection.fetch(sql, *param_values)
 
@@ -62,9 +55,7 @@ class PostgreSQLConnection(DatabaseConnection):
 
         return data, keys
 
-    def _process_results(
-        self, raw_result: List[Dict[str, Any]], columns: List[str]
-    ) -> List[Dict[str, Any]]:
+    def _process_results(self, raw_result: List[Dict[str, Any]], columns: List[str]) -> List[Dict[str, Any]]:
         """PostgreSQL results are already processed by _execute_query."""
         return raw_result
 

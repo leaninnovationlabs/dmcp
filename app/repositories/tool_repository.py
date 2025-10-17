@@ -21,18 +21,12 @@ class ToolRepository(BaseRepository[Tool]):
 
     async def get_with_datasource(self, tool_id: int) -> Optional[Tool]:
         """Get tool with its associated datasource."""
-        result = await self.db.execute(
-            select(Tool)
-            .where(Tool.id == tool_id)
-            .options(selectinload(Tool.datasource))
-        )
+        result = await self.db.execute(select(Tool).where(Tool.id == tool_id).options(selectinload(Tool.datasource)))
         return result.scalar_one_or_none()
 
     async def get_all_with_datasource(self) -> List[Tool]:
         """Get all tools with their associated datasources."""
-        result = await self.db.execute(
-            select(Tool).options(selectinload(Tool.datasource))
-        )
+        result = await self.db.execute(select(Tool).options(selectinload(Tool.datasource)))
         return result.scalars().all()
 
     async def get_by_datasource(self, datasource_id: int) -> List[Tool]:

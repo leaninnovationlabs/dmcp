@@ -12,6 +12,7 @@ from .models.schemas import (
     DatasourceResponse,
     PaginationRequest,
     PaginationResponse,
+    QueryExecutionResponse,
     ToolCreate,
     ToolResponse,
 )
@@ -21,9 +22,7 @@ class DatasourceService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_datasource(
-        self, datasource: DatasourceCreate
-    ) -> DatasourceResponse:
+    async def create_datasource(self, datasource: DatasourceCreate) -> DatasourceResponse:
         """Create a new datasource."""
         db_datasource = Datasource(
             name=datasource.name,
@@ -54,9 +53,7 @@ class DatasourceService:
 
     async def get_datasource(self, datasource_id: int) -> Optional[DatasourceResponse]:
         """Get a specific datasource by ID."""
-        result = await self.db.execute(
-            select(Datasource).where(Datasource.id == datasource_id)
-        )
+        result = await self.db.execute(select(Datasource).where(Datasource.id == datasource_id))
         datasource = result.scalar_one_or_none()
         if datasource:
             return DatasourceResponse.model_validate(datasource)
@@ -64,9 +61,7 @@ class DatasourceService:
 
     async def delete_datasource(self, datasource_id: int) -> bool:
         """Delete a datasource by ID."""
-        result = await self.db.execute(
-            delete(Datasource).where(Datasource.id == datasource_id)
-        )
+        result = await self.db.execute(delete(Datasource).where(Datasource.id == datasource_id))
         await self.db.commit()
         return result.rowcount > 0
 
@@ -78,9 +73,7 @@ class ToolService:
     async def create_tool(self, tool: ToolCreate) -> ToolResponse:
         """Create a new named tool."""
         # Verify datasource exists
-        datasource_result = await self.db.execute(
-            select(Datasource).where(Datasource.id == tool.datasource_id)
-        )
+        datasource_result = await self.db.execute(select(Datasource).where(Datasource.id == tool.datasource_id))
         if not datasource_result.scalar_one_or_none():
             raise ValueError(f"Datasource with ID {tool.datasource_id} not found")
 
@@ -100,19 +93,13 @@ class ToolService:
 
     async def list_tools(self) -> List[ToolResponse]:
         """List all named tools."""
-        result = await self.db.execute(
-            select(Tool).options(selectinload(Tool.datasource))
-        )
+        result = await self.db.execute(select(Tool).options(selectinload(Tool.datasource)))
         tools = result.scalars().all()
         return [ToolResponse.model_validate(t) for t in tools]
 
     async def get_tool(self, tool_id: int) -> Optional[ToolResponse]:
         """Get a specific named tool by ID."""
-        result = await self.db.execute(
-            select(Tool)
-            .where(Tool.id == tool_id)
-            .options(selectinload(Tool.datasource))
-        )
+        result = await self.db.execute(select(Tool).where(Tool.id == tool_id).options(selectinload(Tool.datasource)))
         tool = result.scalar_one_or_none()
         if tool:
             return ToolResponse.model_validate(tool)
@@ -130,36 +117,30 @@ class QueryExecutionService:
         self.db = db
         self.connection_manager = DatabaseConnectionManager()
 
-    async def execute_named_query(
+    async def execute_named_tool(
         self,
-        query_id: int,
+        tool_id: int,
         parameters: Optional[Dict[str, Any]] = None,
         pagination: Optional[PaginationRequest] = None,
     ) -> QueryExecutionResponse:
         """Execute a named query with parameters and pagination."""
-        # Get the query
+        # Get the tool
         query_result = await self.db.execute(
-            select(Query)
-            .where(Query.id == query_id)
-            .options(selectinload(Query.datasource))
+            select(Tool).where(Tool.id == tool_id).options(selectinload(Tool.datasource))
         )
         query = query_result.scalar_one_or_none()
 
         if not query:
-            raise ValueError(f"Query with ID {query_id} not found")
+            raise ValueError(f"Tool with ID {tool_id} not found")
 
         # Get the datasource
-        datasource_result = await self.db.execute(
-            select(Datasource).where(Datasource.id == query.datasource_id)
-        )
+        datasource_result = await self.db.execute(select(Datasource).where(Datasource.id == query.datasource_id))
         datasource = datasource_result.scalar_one_or_none()
 
         if not datasource:
             raise ValueError(f"Datasource with ID {query.datasource_id} not found")
 
-        return await self._execute_query(
-            datasource, query.sql, parameters or {}, pagination
-        )
+        return await self._execute_query(datasource, query.sql, parameters or {}, pagination)
 
     async def execute_raw_query(
         self,
@@ -170,9 +151,7 @@ class QueryExecutionService:
     ) -> QueryExecutionResponse:
         """Execute a raw SQL query with parameters and pagination."""
         # Get the datasource
-        datasource_result = await self.db.execute(
-            select(Datasource).where(Datasource.id == datasource_id)
-        )
+        datasource_result = await self.db.execute(select(Datasource).where(Datasource.id == datasource_id))
         datasource = datasource_result.scalar_one_or_none()
 
         if not datasource:
@@ -216,9 +195,7 @@ class QueryExecutionService:
                 rows = await result.fetchall()
                 data = [dict(zip(columns, row)) for row in rows]
 
-            execution_time = (
-                time.time() - start_time
-            ) * 1000  # Convert to milliseconds
+            execution_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
             # Calculate pagination info
             pagination_response = None
@@ -232,8 +209,7 @@ class QueryExecutionService:
                     page=pagination.page,
                     page_size=pagination.page_size,
                     total_items=total_items,
-                    total_pages=(total_items + pagination.page_size - 1)
-                    // pagination.page_size,
+                    total_pages=(total_items + pagination.page_size - 1) // pagination.page_size,
                     has_next=pagination.page * pagination.page_size < total_items,
                     has_previous=pagination.page > 1,
                 )

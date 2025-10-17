@@ -44,11 +44,7 @@ def run_migrations_offline() -> None:
 
     """
     # Use settings database URL for offline mode
-    url = (
-        settings.database_url.replace("+aiosqlite", "")
-        .replace("+asyncpg", "")
-        .replace("+aiomysql", "")
-    )
+    url = settings.database_url.replace("+aiosqlite", "").replace("+asyncpg", "").replace("+aiomysql", "")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -68,11 +64,7 @@ def run_migrations_online() -> None:
 
     """
     # Use settings database URL for online mode
-    sync_url = (
-        settings.database_url.replace("+aiosqlite", "")
-        .replace("+asyncpg", "")
-        .replace("+aiomysql", "")
-    )
+    sync_url = settings.database_url.replace("+aiosqlite", "").replace("+asyncpg", "").replace("+aiomysql", "")
 
     # Override the URL in the config
     config.set_main_option("sqlalchemy.url", sync_url)

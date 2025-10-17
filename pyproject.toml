@@ -53,8 +53,13 @@ warn_unused_configs = true
 disallow_untyped_defs = true 
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py310"
+
+[tool.ruff.format]
+line-ending = "auto"
+quote-style = "double"
+indent-style = "space"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N"]

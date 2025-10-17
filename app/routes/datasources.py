@@ -87,11 +87,7 @@ async def get_datasource_field_config():
                         placeholder="myuser",
                     ),
                     FieldDefinition(
-                        name="password",
-                        type="password",
-                        label="Password",
-                        required=False,
-                        placeholder="mypassword"
+                        name="password", type="password", label="Password", required=False, placeholder="mypassword"
                     ),
                     FieldDefinition(
                         name="ssl_mode",
@@ -146,11 +142,7 @@ async def get_datasource_field_config():
                         placeholder="myuser",
                     ),
                     FieldDefinition(
-                        name="password",
-                        type="password",
-                        label="Password",
-                        required=False,
-                        placeholder="mypassword"
+                        name="password", type="password", label="Password", required=False, placeholder="mypassword"
                     ),
                     FieldDefinition(
                         name="ssl_mode",
@@ -308,9 +300,7 @@ async def delete_datasource(
         success = await service.delete_datasource(datasource_id)
         if not success:
             raise_http_error(404, "Datasource not found")
-        return create_success_response(
-            data={"message": "Datasource deleted successfully"}
-        )
+        return create_success_response(data={"message": "Datasource deleted successfully"})
     except HTTPException:
         raise
     except ValueError as e:

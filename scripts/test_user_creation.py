@@ -77,9 +77,7 @@ async def test_user_creation():
             print(f"✅ Found {len(all_users)} users in database")
 
             for u in all_users:
-                print(
-                    f"   - {u.username} ({u.first_name} {u.last_name}) - Roles: {u.roles}"
-                )
+                print(f"   - {u.username} ({u.first_name} {u.last_name}) - Roles: {u.roles}")
 
             break  # Exit the async generator
 

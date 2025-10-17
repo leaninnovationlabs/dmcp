@@ -3,14 +3,8 @@ from typing import List, Optional
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..core.exceptions import DMCPException
-from ..models.schemas import (
-    UserCreate,
-    UserLogin,
-    UserPasswordChange,
-    UserResponse,
-    UserUpdate,
-)
+from ..core.exceptions import DMCPError
+from ..models.schemas import UserCreate, UserLogin, UserPasswordChange, UserResponse, UserUpdate
 from ..repositories.user_repository import UserRepository
 
 # Password hashing context for additional security
@@ -36,7 +30,7 @@ class UserService:
         """Create a new user."""
         # Check if username already exists
         if await self.user_repo.username_exists(user_data.username):
-            raise DMCPException("Username already exists")
+            raise DMCPError("Username already exists")
 
         # Create user with encrypted password
         user = await self.user_repo.create_user(
@@ -70,15 +64,13 @@ class UserService:
         print(f"Users: {users}")
         return [UserResponse.model_validate(user) for user in users]
 
-    async def update_user(
-        self, user_id: int, user_data: UserUpdate
-    ) -> Optional[UserResponse]:
+    async def update_user(self, user_id: int, user_data: UserUpdate) -> Optional[UserResponse]:
         """Update a user."""
         # Check if username is being changed and if it already exists
         if user_data.username:
             existing_user = await self.user_repo.get_by_username(user_data.username)
             if existing_user and existing_user.id != user_id:
-                raise DMCPException("Username already exists")
+                raise DMCPError("Username already exists")
 
         # Prepare update data
         update_data = {}
@@ -107,20 +99,14 @@ class UserService:
 
     async def authenticate_user(self, login_data: UserLogin) -> Optional[UserResponse]:
         """Authenticate a user."""
-        user = await self.user_repo.authenticate_user(
-            login_data.username, login_data.password
-        )
+        user = await self.user_repo.authenticate_user(login_data.username, login_data.password)
         if user:
             return UserResponse.model_validate(user)
         return None
 
-    async def change_password(
-        self, user_id: int, password_data: UserPasswordChange
-    ) -> bool:
+    async def change_password(self, user_id: int, password_data: UserPasswordChange) -> bool:
         """Change a user's password."""
-        return await self.user_repo.change_password(
-            user_id, password_data.current_password, password_data.new_password
-        )
+        return await self.user_repo.change_password(user_id, password_data.current_password, password_data.new_password)
 
     async def get_users_by_role(self, role: str) -> List[UserResponse]:
         """Get all users with a specific role."""
@@ -136,17 +122,13 @@ class UserService:
         current_roles = user.roles_list
         if role not in current_roles:
             current_roles.append(role)
-            updated_user = await self.user_repo.update_user(
-                user_id, roles=current_roles
-            )
+            updated_user = await self.user_repo.update_user(user_id, roles=current_roles)
             if updated_user:
                 return UserResponse.model_validate(updated_user)
 
         return UserResponse.model_validate(user)
 
-    async def remove_role_from_user(
-        self, user_id: int, role: str
-    ) -> Optional[UserResponse]:
+    async def remove_role_from_user(self, user_id: int, role: str) -> Optional[UserResponse]:
         """Remove a role from a user."""
         user = await self.user_repo.get_by_id(user_id)
         if not user:
@@ -155,9 +137,7 @@ class UserService:
         current_roles = user.roles_list
         if role in current_roles:
             current_roles.remove(role)
-            updated_user = await self.user_repo.update_user(
-                user_id, roles=current_roles
-            )
+            updated_user = await self.user_repo.update_user(user_id, roles=current_roles)
             if updated_user:
                 return UserResponse.model_validate(updated_user)
 
