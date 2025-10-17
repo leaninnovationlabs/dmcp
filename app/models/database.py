@@ -99,6 +99,22 @@ class Datasource(Base):
         return f"<Datasource(id={self.id}, name='{self.name}', type='{self.database_type}')>"
 
 
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False, unique=True, index=True)
+    description = Column(Text, nullable=True)
+    color = Column(String(7), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    def __repr__(self):
+        return f"<Tag(id={self.id}, name='{self.name}')>"
+
+
 class Tool(Base):
     __tablename__ = "tools"
 
@@ -119,4 +135,4 @@ class Tool(Base):
     datasource = relationship("Datasource", back_populates="tools")
 
     def __repr__(self):
-        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>"   
+        return f"<Tool(id={self.id}, name='{self.name}', type='{self.type}', datasource_id={self.datasource_id})>"         
