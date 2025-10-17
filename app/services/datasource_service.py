@@ -38,12 +38,12 @@ class DatasourceService:
             # Set password using the property to trigger encryption (only if password is provided)
             if datasource.password:
                 db_datasource.decrypted_password = datasource.password
-
+            
             # Save to database
             self.db.add(db_datasource)
             await self.db.commit()
             await self.db.refresh(db_datasource)
-
+            
             return DatasourceResponse(
                 id=db_datasource.id,
                 name=db_datasource.name,
@@ -57,7 +57,7 @@ class DatasourceService:
                 ssl_mode=db_datasource.ssl_mode,
                 additional_params=db_datasource.additional_params,
                 created_at=db_datasource.created_at,
-                updated_at=db_datasource.updated_at,
+                updated_at=db_datasource.updated_at
             )
         except ValueError as e:
             raise ValueError(str(e))
@@ -90,7 +90,7 @@ class DatasourceService:
                     ssl_mode=datasource.ssl_mode,
                     additional_params=datasource.additional_params,
                     created_at=datasource.created_at,
-                    updated_at=datasource.updated_at,
+                    updated_at=datasource.updated_at
                 )
             return None
         except Exception as e:
@@ -102,17 +102,17 @@ class DatasourceService:
         """Update a datasource."""
         try:
             # Handle password encryption if password is being updated
-            if "password" in kwargs:
-                password_value = kwargs.pop("password")
+            if 'password' in kwargs:
+                password_value = kwargs.pop('password')
                 # Get the existing datasource
                 datasource = await self.repository.get_by_id(datasource_id)
                 if not datasource:
                     raise DatasourceNotFoundError(datasource_id)
-
+                
                 # Only update password if it's not empty or None
                 if password_value and password_value.strip():
                     datasource.decrypted_password = password_value
-
+                
                 # Update other fields
                 for key, value in kwargs.items():
                     setattr(datasource, key, value)
@@ -131,7 +131,7 @@ class DatasourceService:
                     ssl_mode=datasource.ssl_mode,
                     additional_params=datasource.additional_params,
                     created_at=datasource.created_at,
-                    updated_at=datasource.updated_at,
+                    updated_at=datasource.updated_at
                 )
             else:
                 # No password update, use normal repository method

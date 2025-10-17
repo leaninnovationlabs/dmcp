@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..core.exceptions import DatasourceNotFoundError, ToolNotFoundError
 from ..models.schemas import ToolCreate, ToolResponse, ToolUpdate
 from ..repositories.datasource_repository import DatasourceRepository
-from ..repositories.tool_repository import ToolRepository
+from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
+from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
 class ToolService:
@@ -27,13 +28,13 @@ class ToolService:
             valid_types = ["query", "http", "code"]
             valid_types_upper = [t.upper() for t in valid_types]
             normalized_type = tool.type.lower() if tool.type else ""
-
+            
             if normalized_type not in valid_types:
                 raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
-
+            
             # Use normalized lowercase type
             tool.type = normalized_type
-
+            
             # Convert ParameterDefinition objects to dictionaries for JSON storage
             parameters_dict = []
             if tool.parameters:
@@ -92,31 +93,23 @@ class ToolService:
             datasource = await self.datasource_repository.get_by_id(datasource_id)
             if not datasource:
                 raise DatasourceNotFoundError(datasource_id)
-
+            
             # Handle tool type validation and normalization if provided
             tool_type = current_tool.type
             if tool_update.type is not None:
                 valid_types = ["query", "http", "code"]
                 normalized_type = tool_update.type.lower()
                 if normalized_type not in valid_types:
-                    raise ValueError(
-                        f"Tool type must be one of: {', '.join(valid_types)}"
-                    )
+                    raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
                 tool_type = normalized_type
-
+            
             # Prepare update data, using current values if not provided
             update_data = {
-                "name": tool_update.name
-                if tool_update.name is not None
-                else current_tool.name,
-                "description": tool_update.description
-                if tool_update.description is not None
-                else current_tool.description,
-                "type": tool_type,
-                "sql": tool_update.sql
-                if tool_update.sql is not None
-                else current_tool.sql,
-                "datasource_id": datasource_id,
+                'name': tool_update.name if tool_update.name is not None else current_tool.name,
+                'description': tool_update.description if tool_update.description is not None else current_tool.description,
+                'type': tool_type,
+                'sql': tool_update.sql if tool_update.sql is not None else current_tool.sql,
+                'datasource_id': datasource_id,
             }
 
             # Convert ParameterDefinition objects to dictionaries for JSON storage

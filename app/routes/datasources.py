@@ -91,7 +91,7 @@ async def get_datasource_field_config():
                         type="password",
                         label="Password",
                         required=False,
-                        placeholder="mypassword",
+                        placeholder="mypassword"
                     ),
                     FieldDefinition(
                         name="ssl_mode",
@@ -150,7 +150,7 @@ async def get_datasource_field_config():
                         type="password",
                         label="Password",
                         required=False,
-                        placeholder="mypassword",
+                        placeholder="mypassword"
                     ),
                     FieldDefinition(
                         name="ssl_mode",

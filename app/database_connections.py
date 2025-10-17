@@ -13,11 +13,17 @@ class DatabaseConnectionManager:
 
     def __init__(self):
         self._connections: Dict[int, DatabaseConnection] = {}
-        self._lock = asyncio.Lock()
-
+        self._lock = None
+    
+    def _get_lock(self) -> asyncio.Lock:
+        """Get or create a lock for the current event loop."""
+        if self._lock is None:
+            self._lock = asyncio.Lock()
+        return self._lock
+    
     async def get_connection(self, datasource: Datasource) -> DatabaseConnection:
         """Get or create a database connection for the given datasource."""
-        async with self._lock:
+        async with self._get_lock():
             if datasource.id in self._connections:
                 return self._connections[datasource.id]
 
@@ -48,14 +54,14 @@ class DatabaseConnectionManager:
 
     async def close_connection(self, datasource_id: int):
         """Close a specific database connection."""
-        async with self._lock:
+        async with self._get_lock():
             if datasource_id in self._connections:
                 await self._connections[datasource_id].close()
                 del self._connections[datasource_id]
 
     async def close_all_connections(self):
         """Close all database connections."""
-        async with self._lock:
+        async with self._get_lock():
             for connection in self._connections.values():
                 await connection.close()
             self._connections.clear()
