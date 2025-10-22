@@ -171,21 +171,48 @@ Brief description of changes
 
 - Follow [PEP 8](https://pep8.org/) style guidelines
 - Use type hints where appropriate
-- Maximum line length: 88 characters (Black default)
-- Use Black for code formatting
-- Use isort for import sorting
+- Maximum line length: 88 characters
+- Use Ruff for code formatting and linting
+- Use mypy for type checking
 
-### Formatting
+### Formatting and Linting
+
+Use the provided Makefile targets for code quality checks:
 
 ```bash
 # Format code
-uv run black .
+make format
 
-# Sort imports
-uv run isort .
+# Check for linting issues
+make lint
 
-# Check code style
-uv run flake8 .
+# Auto-fix linting issues
+make lint-fix
+
+# Check formatting without changing files
+make format-check
+
+# Type checking
+make typecheck
+
+# Run all checks (lint, format-check, typecheck)
+make check
+
+# Auto-fix and format
+make fix
+```
+
+Alternatively, you can use the underlying commands directly:
+
+```bash
+# Format code
+uv run ruff format .
+
+# Check for issues
+uv run ruff check .
+
+# Auto-fix issues
+uv run ruff check --fix .
 
 # Type checking
 uv run mypy .
@@ -193,15 +220,17 @@ uv run mypy .
 
 ### Pre-commit Hooks
 
-Consider setting up pre-commit hooks:
+The project includes pre-commit hooks to automatically check code quality before commits. To enable them:
 
 ```bash
-# Install pre-commit
-uv add --dev pre-commit
-
-# Install hooks
+# Install hooks (pre-commit is already in dev dependencies)
 uv run pre-commit install
+
+# Run manually on all files
+uv run pre-commit run --all-files
 ```
+
+The pre-commit hooks will automatically run Ruff linting, formatting, and mypy type checking on staged files before each commit.
 
 ## Documentation
 

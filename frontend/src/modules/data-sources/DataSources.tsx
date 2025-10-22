@@ -73,7 +73,7 @@ const DataSources = ({}: DataSourcesProps) => {
   };
 
   const handleEditDataSource = (dataSource: DataSource) => {
-    navigate(`/data-sources/edit/${dataSource.id}`);
+    navigate(`/data-sources/${dataSource.id}`);
   };
 
   const handleDeleteClick = (dataSource: DataSource) => {
@@ -295,7 +295,7 @@ const DataSources = ({}: DataSourcesProps) => {
           </DialogHeader>
           <DialogFooter className="flex space-x-2">
             <Button variant="secondary" onClick={handleDeleteCancel}>
-              Cancel
+              Back
             </Button>
             <Button
               onClick={handleDeleteConfirm}

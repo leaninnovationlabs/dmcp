@@ -9,6 +9,13 @@ help:
 	@echo "Available targets:"
 	@echo "  help         - Show this help message"
 	@echo "  install      - Install dependencies with uv"
+	@echo "  lint         - Check code for issues"
+	@echo "  lint-fix     - Auto-fix linting issues"
+	@echo "  format       - Format code"
+	@echo "  format-check - Check code formatting"
+	@echo "  typecheck    - Run type checking"
+	@echo "  check        - Run all checks (lint, format-check, typecheck)"
+	@echo "  fix          - Auto-fix and format code"
 	@echo "  migrate      - Run database migrations"
 	@echo "  up        - Start the application (runs migrate first)"
 	@echo "  down         - Stop the running application"
@@ -19,8 +26,28 @@ help:
 	@echo "Environment variables:"
 	@echo "  PORT         - Port to use (default: 8000)"
 
+
 install:
 	uv sync
+
+lint:
+	uv run ruff check .
+
+lint-fix:
+	uv run ruff check --fix .
+
+format:
+	uv run ruff format .
+
+format-check:
+	uv run ruff format --check .
+
+typecheck:
+	uv run mypy .
+
+check: lint format-check typecheck
+
+fix: lint-fix format
 
 db-migrate:
 	uv run alembic upgrade head

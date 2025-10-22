@@ -1,14 +1,20 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.tool_execution_service import ToolExecutionService
 
-from ..models.schemas import ToolCreate, ToolExecutionRequest, ToolUpdate, ToolResponse, StandardAPIResponse
+from ..core.responses import (
+    create_success_response,
+    raise_http_error,
+)
 from ..database import get_db
+from ..models.schemas import (
+    StandardAPIResponse,
+    ToolCreate,
+    ToolExecutionRequest,
+    ToolUpdate,
+)
 from ..services.tool_service import ToolService
-from ..core.exceptions import handle_dmcp_exception
-from ..core.responses import create_success_response, create_error_response, raise_http_error
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -92,8 +98,7 @@ async def delete_tool(
     except HTTPException:
         raise
     except Exception as e:
-        raise_http_error(500, "Internal server error", [str(e)]) 
-
+        raise_http_error(500, "Internal server error", [str(e)])
 
 
 @router.post("/{tool_id}/execute", response_model=StandardAPIResponse)
@@ -105,9 +110,7 @@ async def execute_named_tool(
     """Execute a named tool with parameters and pagination."""
     try:
         service = ToolExecutionService(db)
-        result = await service.execute_named_tool(
-            tool_id, execution_request.parameters, execution_request.pagination
-        )
+        result = await service.execute_named_tool(tool_id, execution_request.parameters, execution_request.pagination)
         if result.error:
             raise_http_error(400, "Tool execution failed", [result.error])
         return create_success_response(data=result)

@@ -169,10 +169,10 @@ from app.models.schemas import UserCreate, UserResponse
 
 ### Code Style
 - Follow PEP 8 guidelines
-- Use Black for code formatting
-- Use isort for import sorting
-- Use flake8 for linting
+- Use Ruff for code formatting and linting
 - Use mypy for type checking
+- Run `make check` before committing changes
+- Run `make fix` to auto-fix issues
 
 ## Performance Guidelines
 

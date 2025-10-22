@@ -1,1 +1,1 @@
-"""MCP middleware and utilities package.""" 
+"""MCP middleware and utilities package."""

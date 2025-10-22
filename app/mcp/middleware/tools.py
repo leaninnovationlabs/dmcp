@@ -1,21 +1,23 @@
 from fastmcp import FastMCP
-from fastmcp.server.middleware import Middleware, MiddlewareContext
-from fastmcp.tools import Tool
 from fastmcp.exceptions import ToolError
+from fastmcp.server.middleware import Middleware, MiddlewareContext
 
 mcp = FastMCP(
     name="MyServer",
     include_fastmcp_meta=True,  # include tags & FastMCP metadata under _meta._fastmcp
 )
 
+
 # Tag your tools so you can filter them later
 @mcp.tool(tags={"public"})
 def greet(name: str) -> str:
     return f"Hello, {name}!"
 
+
 @mcp.tool(tags={"admin"})
 def purge_cache() -> str:
     return "Cache purged."
+
 
 # Yet to implement role based access control
 class CustomizeToolsList(Middleware):
@@ -48,5 +50,6 @@ class CustomizeToolsList(Middleware):
         if context.message.name in blocked:
             raise ToolError("Access denied")
         return await call_next(context)
+
 
 mcp.add_middleware(CustomizeToolsList())

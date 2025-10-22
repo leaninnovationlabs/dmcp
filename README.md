@@ -106,6 +106,37 @@ npx @modelcontextprotocol/inspector
 
 ⚠️ **Remember**: Change the default password for security!
 
+## Development
+
+### Code Quality Commands
+
+The project uses Ruff for fast, modern Python linting and formatting, along with mypy for type checking. Use the following Makefile targets:
+
+```bash
+# Check code for linting issues
+make lint
+
+# Auto-fix linting issues
+make lint-fix
+
+# Format code
+make format
+
+# Check formatting without making changes
+make format-check
+
+# Run type checking
+make typecheck
+
+# Run all checks (lint, format-check, typecheck)
+make check
+
+# Auto-fix and format code
+make fix
+```
+
+These commands help ensure code quality and consistency across the project.
+
 ## Database Management
 
 This project uses **Alembic** for database schema management. All database changes are handled through migrations to ensure version control and safe schema evolution.

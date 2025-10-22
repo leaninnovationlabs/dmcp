@@ -58,6 +58,7 @@ export interface DataSource {
   port: number;
   database: string;
   username: string;
+  password?: string;
   connection_string?: string;
   ssl_mode?: string;
   additional_params?: Record<string, any>;
@@ -113,6 +114,33 @@ export interface DatasourceFieldConfig {
 export interface FieldConfigResponse {
   success: boolean;
   data?: Record<string, DatasourceFieldConfig>;
+  errors?: Array<{ msg: string }>;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  description?: string;
+  color?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TagCreateRequest {
+  name: string;
+  description?: string;
+  color?: string;
+}
+
+export interface TagResponse {
+  success: boolean;
+  data?: Tag;
+  errors?: Array<{ msg: string }>;
+}
+
+export interface TagsListResponse {
+  success: boolean;
+  data?: Tag[];
   errors?: Array<{ msg: string }>;
 }
 
@@ -428,6 +456,25 @@ class ApiService {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
+    });
+  }
+
+  async getTags(token: string): Promise<TagsListResponse> {
+    return this.request<TagsListResponse>('/dmcp/tags', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  async createTag(token: string, tag: TagCreateRequest): Promise<TagResponse> {
+    return this.request<TagResponse>('/dmcp/tags', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(tag),
     });
   }
 

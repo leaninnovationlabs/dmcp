@@ -19,6 +19,7 @@ import ChangePasswordPage from "@/pages/ChangePasswordPage";
 import ProfilePage from "@/pages/ProfilePage";
 import CreateDataSourcePage from "@/pages/CreateDataSourcePage";
 import EditDataSourcePage from "@/pages/EditDataSourcePage";
+import ToolEditPage from "@/pages/ToolEditPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -122,6 +123,26 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/tools/create"
+        element={
+          <ProtectedRoute>
+            <CloudStorageLayout>
+              <ToolEditPage />
+            </CloudStorageLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tools/:toolId"
+        element={
+          <ProtectedRoute>
+            <CloudStorageLayout>
+              <ToolEditPage />
+            </CloudStorageLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/generate-token"
         element={
           <ProtectedRoute>
@@ -162,7 +183,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/data-sources/edit/:id"
+        path="/data-sources/:id"
         element={
           <ProtectedRoute>
             <CloudStorageLayout>
