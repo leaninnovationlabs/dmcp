@@ -26,6 +26,7 @@ help:
 	@echo "Environment variables:"
 	@echo "  PORT         - Port to use (default: 8000)"
 
+
 install:
 	uv sync
 
