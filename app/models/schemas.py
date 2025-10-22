@@ -129,6 +129,7 @@ class ToolCreate(BaseModel):
     sql: str = Field(..., description="SQL query with parameter placeholders")
     datasource_id: int = Field(..., description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(default_factory=list, description="Parameter definitions")
+    tags: Optional[List[str]] = Field(default_factory=list, description="List of tags for categorizing the tool")
 
 
 class ToolUpdate(BaseModel):
@@ -138,6 +139,7 @@ class ToolUpdate(BaseModel):
     sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
     datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(None, description="Parameter definitions")
+    tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the tool")
 
 
 class ToolResponse(BaseModel):
@@ -148,6 +150,7 @@ class ToolResponse(BaseModel):
     sql: str
     datasource_id: int
     parameters: List[ParameterDefinition]
+    tags: List[str]
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -273,3 +276,27 @@ class TokenResponse(BaseModel):
     expires_at: datetime = Field(..., description="Token expiration time")
     user_id: int = Field(..., description="User ID associated with the token")
     username: str = Field(..., description="Username associated with the token")
+
+
+# Tag-related schemas
+class TagCreate(BaseModel):
+    name: str = Field(..., description="Tag name (max 50 characters)")
+    description: Optional[str] = Field(None, description="Optional tag description")
+    color: Optional[str] = Field(None, description="Optional hex color code (e.g., #FF5733)")
+
+
+class TagUpdate(BaseModel):
+    name: Optional[str] = Field(None, description="Tag name (max 50 characters)")
+    description: Optional[str] = Field(None, description="Optional tag description")
+    color: Optional[str] = Field(None, description="Optional hex color code (e.g., #FF5733)")
+
+
+class TagResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    color: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

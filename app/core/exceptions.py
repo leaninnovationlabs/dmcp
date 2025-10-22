@@ -40,6 +40,17 @@ class ToolNotFoundError(DMCPError):
         )
 
 
+class TagNotFoundError(DMCPError):
+    """Raised when a tag is not found."""
+
+    def __init__(self, tag_id: int):
+        super().__init__(
+            message=f"Tag with ID {tag_id} not found",
+            status_code=404,
+            details={"tag_id": tag_id},
+        )
+
+
 class DatabaseConnectionError(DMCPError):
     """Raised when database connection fails."""
 

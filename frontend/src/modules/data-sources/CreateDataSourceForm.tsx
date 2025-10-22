@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeftIcon, Plug, SkipBackIcon, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeftIcon, Plug, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -68,7 +68,6 @@ const CreateDataSourceForm = ({
     DatasourceFieldConfig
   > | null>(null);
   const [loadingFieldConfigs, setLoadingFieldConfigs] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const isEditMode = !!dataSource;
 
   // Load field configurations on component mount

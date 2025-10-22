@@ -12,7 +12,7 @@ from app.mcp.middleware.auth import AuthMiddleware
 from app.mcp.middleware.logging import LoggingMiddleware
 from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
-from app.routes import auth, datasources, health, tools, users
+from app.routes import auth, datasources, health, tags, tools, users
 
 mcp = FastMCP("DMCP")
 server = MCPServer(mcp)
@@ -57,6 +57,7 @@ async def test(request: Request):
 app.include_router(health.router, prefix=f"{settings.mcp_path}")
 app.include_router(auth.router, prefix=f"{settings.mcp_path}")
 app.include_router(datasources.router, prefix=f"{settings.mcp_path}")
+app.include_router(tags.router, prefix=f"{settings.mcp_path}")
 app.include_router(tools.router, prefix=f"{settings.mcp_path}")
 app.include_router(users.router, prefix=f"{settings.mcp_path}")
 

@@ -30,7 +30,7 @@ class AuthMiddleware(Middleware):
         except AuthenticationError as e:
             logger.warning(f"Authentication failed: {e.message}")
             return {"error": True}
-
+            
         result = await call_next(context)
 
         logger.info(f"Completed {context.method}")

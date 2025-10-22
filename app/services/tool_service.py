@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,8 @@ from ..core.exceptions import DatasourceNotFoundError, ToolNotFoundError
 from ..models.schemas import ToolCreate, ToolResponse, ToolUpdate
 from ..repositories.datasource_repository import DatasourceRepository
 from ..repositories.tool_repository import ToolRepository
+from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
+from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
 class ToolService:
@@ -14,6 +17,37 @@ class ToolService:
     def __init__(self, db: AsyncSession):
         self.repository = ToolRepository(db)
         self.datasource_repository = DatasourceRepository(db)
+
+    def _validate_and_normalize_tags(self, tags: Optional[List[str]]) -> List[str]:
+        """Validate and normalize tags.
+        
+        Args:
+            tags: List of tag strings to validate
+            
+        Returns:
+            List of normalized, deduplicated tags
+            
+        Raises:
+            ValueError: If tags don't meet validation requirements
+        """
+        if not tags:
+            return []
+            
+        # Validate individual tags
+        for tag in tags:
+            if not tag or not tag.strip():
+                raise ValueError("Tags cannot be empty")
+            if len(tag) > 50:
+                raise ValueError("Tag must be 50 characters or less")
+            if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
+                raise ValueError("Tag contains invalid characters. Only alphanumeric, hyphens, and underscores are allowed")
+        
+        normalized_tags = list(set(tag.lower().strip() for tag in tags))
+        
+        if len(normalized_tags) > 10:
+            raise ValueError("Maximum 10 tags allowed per tool")
+            
+        return normalized_tags
 
     async def create_tool(self, tool: ToolCreate) -> ToolResponse:
         """Create a new named tool."""
@@ -26,19 +60,22 @@ class ToolService:
             # Validate tool type (optional validation) - accept both uppercase and lowercase
             valid_types = ["query", "http", "code"]
             normalized_type = tool.type.lower() if tool.type else ""
-
+            
             if normalized_type not in valid_types:
                 raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
-
+            
             # Use normalized lowercase type
             tool.type = normalized_type
-
+            
             # Convert ParameterDefinition objects to dictionaries for JSON storage
             parameters_dict = []
             if tool.parameters:
                 for param in tool.parameters:
                     param_dict = param.model_dump()
                     parameters_dict.append(param_dict)
+
+            # Validate and normalize tags
+            tags = self._validate_and_normalize_tags(tool.tags)
 
             db_tool = await self.repository.create_tool(
                 name=tool.name,
@@ -47,6 +84,7 @@ class ToolService:
                 sql=tool.sql,
                 datasource_id=tool.datasource_id,
                 parameters=parameters_dict,
+                tags=tags,
             )
             return ToolResponse.model_validate(db_tool)
         except (DatasourceNotFoundError, ValueError):
@@ -89,7 +127,7 @@ class ToolService:
             datasource = await self.datasource_repository.get_by_id(datasource_id)
             if not datasource:
                 raise DatasourceNotFoundError(datasource_id)
-
+            
             # Handle tool type validation and normalization if provided
             tool_type = current_tool.type
             if tool_update.type is not None:
@@ -98,7 +136,7 @@ class ToolService:
                 if normalized_type not in valid_types:
                     raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
                 tool_type = normalized_type
-
+            
             # Prepare update data, using current values if not provided
             update_data = {
                 "name": tool_update.name if tool_update.name is not None else current_tool.name,
@@ -119,6 +157,12 @@ class ToolService:
                 update_data["parameters"] = parameters_dict
             else:
                 update_data["parameters"] = current_tool.parameters
+
+            # Handle tags
+            if tool_update.tags is not None:
+                update_data['tags'] = self._validate_and_normalize_tags(tool_update.tags)
+            else:
+                update_data['tags'] = current_tool.tags
 
             updated_tool = await self.repository.update_tool(tool_id, **update_data)
             if updated_tool:

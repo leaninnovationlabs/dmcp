@@ -22,6 +22,7 @@ interface ToolItem {
   datasource_id: string;
   sql: string;
   parameters?: ToolParameter[];
+  tags?: string[];
 }
 
 interface ToolParameter {

@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base, relationship
 
 from ..core.encryption import password_encryption
 
@@ -100,6 +99,22 @@ class Datasource(Base):
         return f"<Datasource(id={self.id}, name='{self.name}', type='{self.database_type}')>"
 
 
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False, unique=True, index=True)
+    description = Column(Text, nullable=True)
+    color = Column(String(7), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    def __repr__(self):
+        return f"<Tag(id={self.id}, name='{self.name}')>"
+
+
 class Tool(Base):
     __tablename__ = "tools"
 
@@ -110,6 +125,7 @@ class Tool(Base):
     sql = Column(Text, nullable=False)
     datasource_id = Column(Integer, ForeignKey("datasources.id"), nullable=False)
     parameters = Column(JSON, default=[])
+    tags = Column(JSON, default=lambda: [])
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
