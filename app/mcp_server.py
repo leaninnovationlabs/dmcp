@@ -15,7 +15,7 @@ from typing import Any, Callable, Dict, List, Optional
 from fastmcp import Context
 from fastmcp.server.dependencies import get_http_headers
 
-from app.database import get_db
+from app.database import MCPSessionLocal
 from app.services.tool_execution_service import ToolExecutionService
 from app.services.tool_service import ToolService
 
@@ -264,49 +264,59 @@ class MCPServer:
             return {**DEFAULT_ERROR_RESPONSE, "error": str(e)}
 
     def _execute_tool_async(self, tool_id: int, parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute tool asynchronously in a separate thread."""
+        """Execute tool using a dedicated thread with its own event loop."""
 
-        async def _execute_tool_async():
-            async for db in get_db():
-                service = ToolExecutionService(db)
-                result = await service.execute_named_tool(tool_id, parameters)
-                return result.model_dump()
+        def _run_in_thread():
+            """Run async code in a dedicated thread with its own event loop."""
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
-        # Run in a new event loop to avoid conflicts with the main event loop
-        def run_in_new_loop():
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
             try:
-                return new_loop.run_until_complete(_execute_tool_async())
-            finally:
-                new_loop.close()
 
+                async def _execute():
+                    """Execute in the new event loop."""
+                    # Use MCPSessionLocal which has NullPool for cross-loop compatibility
+
+                    # Create a fresh session in this loop
+                    async with MCPSessionLocal() as db:
+                        service = ToolExecutionService(db)
+                        result = await service.execute_named_tool(tool_id, parameters)
+                        return result.model_dump()
+
+                return loop.run_until_complete(_execute())
+            finally:
+                loop.close()
+
+        # Run in a thread pool to isolate from any existing event loop
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(run_in_new_loop)
-            return future.result()
+            future = executor.submit(_run_in_thread)
+            return future.result(timeout=300)  # 5 minute timeout
 
     def _list_tools(self) -> List[Dict[str, Any]]:
         """Get list of tools from database using sync wrapper."""
 
-        # Run in a new event loop to avoid conflicts with the main event loop
-        def run_in_new_loop():
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
+        def _run_in_thread():
+            """Run async code in a dedicated thread with its own event loop."""
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
             try:
-                return new_loop.run_until_complete(self._list_tools_async())
+
+                async def _execute():
+                    """Execute in the new event loop."""
+                    async with MCPSessionLocal() as db:
+                        tool_service = ToolService(db)
+                        tools = await tool_service.list_tools()
+                        return [tool.model_dump() for tool in tools]
+
+                return loop.run_until_complete(_execute())
             finally:
-                new_loop.close()
+                loop.close()
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(run_in_new_loop)
-            return future.result()
-
-    async def _list_tools_async(self) -> List[Dict[str, Any]]:
-        """Get list of tools from database asynchronously."""
-        async for db in get_db():
-            tool_service = ToolService(db)
-            tools = await tool_service.list_tools()
-            return [tool.model_dump() for tool in tools]
+            future = executor.submit(_run_in_thread)
+            return future.result(timeout=30)  # 30 second timeout for listing
 
     def _log_debug(self, message: str) -> None:
         """Log debug message to stderr."""
