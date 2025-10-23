@@ -62,3 +62,13 @@ class ToolRepository(BaseRepository[Tool]):
         if not tool:
             raise ToolNotFoundError(tool_id)
         return await self.delete(tool_id)
+
+    async def search_tools(self, query: str) -> List[Tool]:
+        """Search tools by name or description (case-insensitive)."""
+        search_pattern = f"%{query}%"
+        stmt = select(Tool).where(
+            (Tool.name.ilike(search_pattern)) | 
+            (Tool.description.ilike(search_pattern))
+        ).options(selectinload(Tool.datasource))
+        result = await self.db.execute(stmt)
+        return result.scalars().all()

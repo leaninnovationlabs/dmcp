@@ -46,6 +46,22 @@ async def list_tools(db: AsyncSession = Depends(get_db)):
         raise_http_error(500, "Internal server error", [str(e)])
 
 
+@router.get("/search", response_model=StandardAPIResponse)
+async def search_tools(
+    q: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Search tools by name or description (case-insensitive)."""
+    try:
+        service = ToolService(db)
+        results = await service.search_tools(q)
+        return create_success_response(data=results)
+    except ValueError as e:
+        raise_http_error(400, "Invalid search query", [str(e)])
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
+
+
 @router.get("/{tool_id}", response_model=StandardAPIResponse)
 async def get_tool(
     tool_id: int,

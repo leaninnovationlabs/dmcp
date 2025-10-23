@@ -7,8 +7,6 @@ from ..core.exceptions import DatasourceNotFoundError, ToolNotFoundError
 from ..models.schemas import ToolCreate, ToolResponse, ToolUpdate
 from ..repositories.datasource_repository import DatasourceRepository
 from ..repositories.tool_repository import ToolRepository
-from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
-from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
 class ToolService:
@@ -40,7 +38,9 @@ class ToolService:
             if len(tag) > 50:
                 raise ValueError("Tag must be 50 characters or less")
             if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
-                raise ValueError("Tag contains invalid characters. Only alphanumeric, hyphens, and underscores are allowed")
+                raise ValueError(
+                    "Tag contains invalid characters. Only alphanumeric, hyphens, and underscores are allowed"
+                )
         
         normalized_tags = list(set(tag.lower().strip() for tag in tags))
         
@@ -196,3 +196,22 @@ class ToolService:
             raise
         except Exception as e:
             raise Exception(f"Failed to get tools by datasource: {str(e)}")
+
+    async def search_tools(self, query: str) -> List[ToolResponse]:
+        """Search tools by name or description with input validation."""
+        try:
+            if not query or not query.strip():
+                raise ValueError("Search query cannot be empty")
+            
+            query = query.strip()
+            
+            # Validate query length
+            if len(query) > 255:
+                raise ValueError("Search query must be 255 characters or less")
+            
+            tools = await self.repository.search_tools(query)
+            return [ToolResponse.model_validate(tool) for tool in tools]
+        except ValueError:
+            raise
+        except Exception as e:
+            raise Exception(f"Failed to search tools: {str(e)}")

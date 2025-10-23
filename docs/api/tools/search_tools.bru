@@ -1,0 +1,47 @@
+meta {
+  name: search_tools
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{server}}/tools/search?q=user
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+}
+
+docs {
+  # Search Tools
+  
+  Search for tools by name or description using case-insensitive pattern matching.
+  
+  ## Query Parameters
+  - `q` (required): Search query string (1-255 characters)
+  
+  ## Examples
+  
+  Search by name:
+  ```
+  GET {{server}}/tools/search?q=user
+  ```
+  
+  Search by description:
+  ```
+  GET {{server}}/tools/search?q=cost
+  ```
+  
+  Case-insensitive search:
+  ```
+  GET {{server}}/tools/search?q=AWS
+  GET {{server}}/tools/search?q=aws
+  ```
+  
+  Partial matching:
+  ```
+  GET {{server}}/tools/search?q=cust
+  ```
+}
