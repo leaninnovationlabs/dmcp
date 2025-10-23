@@ -113,17 +113,17 @@ class TestDatasourceEndpoints:
             # Assert datasource data matches input
             datasource = data["data"]
             assert datasource["name"] == config["name"], f"Expected name {config['name']}, got {datasource['name']}"
-            assert (
-                datasource["database_type"] == config["database_type"]
-            ), f"Expected database_type {config['database_type']}, got {datasource['database_type']}"
+            assert datasource["database_type"] == config["database_type"], (
+                f"Expected database_type {config['database_type']}, got {datasource['database_type']}"
+            )
             assert datasource["host"] == config["host"], f"Expected host {config['host']}, got {datasource['host']}"
             assert datasource["port"] == config["port"], f"Expected port {config['port']}, got {datasource['port']}"
-            assert (
-                datasource["database"] == config["database"]
-            ), f"Expected database {config['database']}, got {datasource['database']}"
-            assert (
-                datasource["username"] == config["username"]
-            ), f"Expected username {config['username']}, got {datasource['username']}"
+            assert datasource["database"] == config["database"], (
+                f"Expected database {config['database']}, got {datasource['database']}"
+            )
+            assert datasource["username"] == config["username"], (
+                f"Expected username {config['username']}, got {datasource['username']}"
+            )
 
             # Store datasource ID for the next test
             self.datasource_id = datasource["id"]

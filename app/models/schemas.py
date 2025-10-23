@@ -300,3 +300,24 @@ class TagResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SearchField(str, Enum):
+    NAME = "name"
+    DESCRIPTION = "description"
+    BOTH = "both"
+
+
+class ToolSearchRequest(BaseModel):
+    q: str = Field(..., min_length=1, max_length=255, description="Search query")
+    fields: SearchField = Field(SearchField.BOTH, description="Fields to search")
+    limit: int = Field(50, le=100, description="Results per page")
+    offset: int = Field(0, ge=0, description="Pagination offset")
+
+
+class ToolSearchResponse(BaseModel):
+    tools: List[ToolResponse]
+    total_count: int
+    limit: int
+    offset: int
+    has_more: bool

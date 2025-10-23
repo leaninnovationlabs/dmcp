@@ -1,11 +1,12 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..core.exceptions import ToolNotFoundError
 from ..models.database import Tool
+from ..models.schemas import SearchField
 from .base import BaseRepository
 
 
@@ -62,3 +63,40 @@ class ToolRepository(BaseRepository[Tool]):
         if not tool:
             raise ToolNotFoundError(tool_id)
         return await self.delete(tool_id)
+
+    def _escape_wildcards(self, text: str) -> str:
+        """Escape SQL wildcard characters to prevent unintended pattern matching."""
+        return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+    def _build_search_pattern(self, query: str) -> str:
+        """Build search pattern with user wildcards preserved."""
+        escaped = self._escape_wildcards(query)
+        return f"%{escaped}%"
+
+    async def search_tools(self, query: str, fields: SearchField, limit: int, offset: int) -> Tuple[List[Tool], int]:
+        """Search tools with case-insensitive wildcard matching."""
+        search_pattern = self._build_search_pattern(query)
+
+        stmt = select(Tool)
+
+        if fields == SearchField.NAME:
+            stmt = stmt.where(func.lower(Tool.name).like(func.lower(search_pattern)))
+        elif fields == SearchField.DESCRIPTION:
+            stmt = stmt.where(func.lower(Tool.description).like(func.lower(search_pattern)))
+        else:
+            stmt = stmt.where(
+                or_(
+                    func.lower(Tool.name).like(func.lower(search_pattern)),
+                    func.lower(Tool.description).like(func.lower(search_pattern)),
+                )
+            )
+
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        count_result = await self.db.execute(count_stmt)
+        total_count = count_result.scalar()
+
+        stmt = stmt.limit(limit).offset(offset)
+        result = await self.db.execute(stmt)
+        tools = result.scalars().all()
+
+        return tools, total_count

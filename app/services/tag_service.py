@@ -16,55 +16,55 @@ class TagService:
 
     def _validate_tag_name(self, name: str) -> str:
         """Validate and normalize tag name.
-        
+
         Args:
             name: Tag name to validate
-            
+
         Returns:
             Normalized tag name (lowercase)
-            
+
         Raises:
             ValueError: If tag name doesn't meet validation requirements
         """
         if not name or not name.strip():
             raise ValueError("Tag name cannot be empty")
-        
+
         if len(name) > 50:
             raise ValueError("Tag name must be 50 characters or less")
-        
+
         normalized_name = name.strip().lower()
-        
+
         return normalized_name
 
     def _validate_color(self, color: Optional[str]) -> Optional[str]:
         """Validate hex color code format.
-        
+
         Args:
             color: Hex color code to validate (e.g., #FF5733)
-            
+
         Returns:
             Validated color code or None
-            
+
         Raises:
             ValueError: If color format is invalid
         """
         if not color:
             return None
-        
+
         color = color.strip()
-        
-        if not re.match(r'^#[0-9A-Fa-f]{6}$', color):
+
+        if not re.match(r"^#[0-9A-Fa-f]{6}$", color):
             raise ValueError("Color must be a valid hex code (e.g., #FF5733)")
-        
+
         return color.upper()
 
     async def create_tag(self, tag: TagCreate) -> TagResponse:
         """Create a new tag."""
         try:
             normalized_name = self._validate_tag_name(tag.name)
-            
+
             validated_color = self._validate_color(tag.color)
-            
+
             db_tag = await self.repository.create_tag(
                 name=normalized_name,
                 description=tag.description,
@@ -104,13 +104,13 @@ class TagService:
                 raise TagNotFoundError(tag_id)
 
             update_data = {}
-            
+
             if tag_update.name is not None:
                 update_data["name"] = self._validate_tag_name(tag_update.name)
-            
+
             if tag_update.description is not None:
                 update_data["description"] = tag_update.description
-            
+
             if tag_update.color is not None:
                 update_data["color"] = self._validate_color(tag_update.color)
 

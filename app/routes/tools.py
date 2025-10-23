@@ -9,9 +9,11 @@ from ..core.responses import (
 )
 from ..database import get_db
 from ..models.schemas import (
+    SearchField,
     StandardAPIResponse,
     ToolCreate,
     ToolExecutionRequest,
+    ToolSearchRequest,
     ToolUpdate,
 )
 from ..services.tool_service import ToolService
@@ -97,6 +99,45 @@ async def delete_tool(
         return create_success_response(data={"message": "Tool deleted successfully"})
     except HTTPException:
         raise
+    except Exception as e:
+        raise_http_error(500, "Internal server error", [str(e)])
+
+
+@router.get("/search", response_model=StandardAPIResponse)
+async def search_tools(
+    q: str,
+    fields: SearchField = SearchField.BOTH,
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """Search tools by name and/or description with case-insensitive wildcard support.
+
+    Supports SQL wildcards:
+    - % matches any sequence of characters
+    - _ matches any single character
+
+    Args:
+        q: Search query (1-255 characters)
+        fields: Fields to search (name, description, or both)
+        limit: Maximum results per page (1-100, default: 50)
+        offset: Number of results to skip (default: 0)
+    """
+    try:
+        search_request = ToolSearchRequest(
+            q=q,
+            fields=fields,
+            limit=limit,
+            offset=offset,
+        )
+
+        service = ToolService(db)
+        result = await service.search_tools(search_request)
+
+        return create_success_response(data=result)
+
+    except ValueError as e:
+        raise_http_error(400, "Invalid search parameters", [str(e)])
     except Exception as e:
         raise_http_error(500, "Internal server error", [str(e)])
 
