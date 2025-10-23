@@ -408,6 +408,8 @@ const CreateToolForm = ({
         );
         if (response.success) {
           toast.dismiss("save-tool");
+          // Trigger tools refresh after successful update
+          await apiService.refreshTools(token);
           onSave(response.data);
         } else {
           toast.dismiss("save-tool");
@@ -417,6 +419,8 @@ const CreateToolForm = ({
         const response = await apiService.createTool(token, toolData);
         if (response.success) {
           toast.dismiss("save-tool");
+          // Trigger tools refresh after successful creation
+          await apiService.refreshTools(token);
           onSave(response.data);
         } else {
           toast.dismiss("save-tool");

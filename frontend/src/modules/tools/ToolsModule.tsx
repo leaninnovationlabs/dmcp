@@ -203,6 +203,8 @@ const ToolsModule = ({
         setShowDeleteDialog(false);
         setToolToDelete(null);
         toast.success("Tool deleted successfully");
+        // Trigger tools refresh after successful deletion
+        await apiService.refreshTools(token);
       } else {
         toast.error("Failed to delete tool");
       }
