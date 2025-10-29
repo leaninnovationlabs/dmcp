@@ -57,7 +57,12 @@ class PasswordEncryption:
             return decrypted.decode()
         except Exception as e:
             logger.error(f"Failed to decrypt password: {e}")
-            raise
+            raise ValueError(
+                "Failed to decrypt datasource password. This usually happens when:\n"
+                "1. The ENCRYPTION_KEY environment variable has changed since the datasource was created\n"
+                "2. The datasource was created with a different encryption key\n"
+                "Please update the datasource with the correct credentials."
+            ) from e
 
     def is_encrypted(self, password: str) -> bool:
         """Check if a password is already encrypted."""

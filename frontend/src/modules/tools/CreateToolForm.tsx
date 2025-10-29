@@ -9,6 +9,8 @@ import { TagSelector } from "@/components/TagSelector";
 import { apiService, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import CodeMirror from "@uiw/react-codemirror";
+import { python } from "@codemirror/lang-python";
 import {
   Plus,
   Trash2,
@@ -24,6 +26,7 @@ interface ToolItem {
   type: string;
   datasource_id: string;
   sql: string;
+  tool_code?: string;
   parameters?: ToolParameter[];
   tags?: string[];
 }
@@ -83,6 +86,7 @@ const CreateToolForm = ({
     type: "",
     datasource_id: "",
     sql: "",
+    tool_code: "",
     parameters: [] as ToolParameter[],
     tags: [] as string[],
     endpoint: "",
@@ -181,6 +185,7 @@ const CreateToolForm = ({
             type: (response.data.type || "").toLowerCase(),
             datasource_id: response.data.datasource_id || "",
             sql: response.data.type?.toLowerCase() === "http" ? "" : (response.data.sql || ""),
+            tool_code: response.data.tool_code || "",
             parameters: response.data.parameters || [],
             tags: response.data.tags || [],
             endpoint: httpConfig.endpoint,
@@ -316,7 +321,7 @@ const CreateToolForm = ({
     try {
       const response = await apiService.createTag(token, { name });
       if (response.success && response.data) {
-        setAvailableTags((prev) => [...prev, response.data]);
+        setAvailableTags((prev) => [...prev, response.data!]);
       } else {
         throw new Error("Failed to create tag");
       }
@@ -357,9 +362,15 @@ const CreateToolForm = ({
         toast.error("Endpoint URL is required");
         return;
       }
+    } else if (formData.type === "code") {
+      if (!formData.tool_code.trim()) {
+        toast.error("Python code is required");
+        return;
+      }
     }
 
-    if (!formData.datasource_id) {
+    // Datasource is required for query and http tools, optional for code tools
+    if (formData.type !== "code" && !formData.datasource_id) {
       toast.error("Please select a datasource");
       return;
     }
@@ -373,7 +384,7 @@ const CreateToolForm = ({
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         type: formData.type || "query",
-        datasource_id: parseInt(formData.datasource_id),
+        datasource_id: formData.datasource_id ? parseInt(formData.datasource_id) : null,
         parameters: formData.parameters.map((param) => ({
           name: param.name,
           type: param.type,
@@ -393,6 +404,9 @@ const CreateToolForm = ({
           headers: formData.headers.trim() || "{}",
           payload: formData.payload.trim() || "",
         });
+      } else if (formData.type === "code") {
+        // For code tools, use the tool_code field
+        toolData.tool_code = formData.tool_code.trim();
       } else {
         // For query tools, use the sql field directly
         toolData.sql = formData.sql.trim();
@@ -724,9 +738,7 @@ const CreateToolForm = ({
                       <option value="">Select tool type</option>
                       <option value="query">Query</option>
                       <option value="http">HTTP</option>
-                      <option value="code" disabled>
-                        Code (Coming Soon)
-                      </option>
+                      <option value="code">Code</option>
                     </select>
                   </div>
                   <div className="md:col-span-2">
@@ -743,26 +755,28 @@ const CreateToolForm = ({
                       placeholder="Brief description of what this tool does"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Datasource <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={formData.datasource_id}
-                      onChange={(e) =>
-                        handleInputChange("datasource_id", e.target.value)
-                      }
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
-                    >
-                      <option value="">Select datasource</option>
-                      {datasources.map((ds) => (
-                        <option key={ds.id} value={ds.id}>
-                          {ds.name} ({ds.database_type})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {formData.type !== "code" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Datasource <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.datasource_id}
+                        onChange={(e) =>
+                          handleInputChange("datasource_id", e.target.value)
+                        }
+                        required={formData.type !== "code"}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
+                      >
+                        <option value="">Select datasource</option>
+                        {datasources.map((ds) => (
+                          <option key={ds.id} value={ds.id}>
+                            {ds.name} ({ds.database_type})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -893,6 +907,35 @@ const CreateToolForm = ({
                       Use{" "}
                       <code className="bg-gray-100 px-1 rounded">{`{{ parameter_name }}`}</code>{" "}
                       for parameter placeholders in the payload.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Code Editor - Only for Code tools */}
+              {formData.type === "code" && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-primary-foreground mb-4 border-b border-gray-200 pb-2">
+                    Python Code
+                  </h2>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Python Code <span className="text-red-500">*</span>
+                    </label>
+                    <div className="border border-gray-300 rounded-md overflow-hidden">
+                      <CodeMirror
+                        value={formData.tool_code}
+                        height="400px"
+                        extensions={[python()]}
+                        onChange={(value) => handleInputChange("tool_code", value)}
+                        className="text-sm"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Write Python code that will be executed when this tool is called. 
+                      Use <code className="bg-gray-100 px-1 rounded">params</code> dictionary to access parameters.
+                      Use <code className="bg-gray-100 px-1 rounded">await execute_sql(datasource_name, sql, params)</code> to query databases.
+                      Set the <code className="bg-gray-100 px-1 rounded">result</code> variable with a list of dictionaries as output.
                     </p>
                   </div>
                 </div>
