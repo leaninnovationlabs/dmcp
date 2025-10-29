@@ -10,12 +10,18 @@ post {
   auth: none
 }
 
+headers {
+  Authorization: Bearer {{token}}
+}
+
 body:json {
   {
-      "name": "aws_cost_by_service",
-      "description": "Gives you the cost by region",
-      "sql": "SELECT line_item_product_code, SUM(line_item_unblended_cost) as total_cost FROM aws_cost_usage_report  GROUP BY line_item_product_code  ORDER BY total_cost DESC;",
-      "datasource_id": 1,
-      "parameters": []
-    }
+    "name": "process_user_data",
+    "description": "Fetch user data and transform it",
+    "type": "code",
+    "tool_code": "# Query the database\holidays = await execute_sql(\"lildata\", \"select * from lildata.holidays\", {})\n\nnresult=holidays",
+    "datasource_id": 1,
+    "parameters": []
+  }
+  
 }

@@ -52,10 +52,11 @@ class ToolService:
     async def create_tool(self, tool: ToolCreate) -> ToolResponse:
         """Create a new named tool."""
         try:
-            # Verify datasource exists
-            datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
-            if not datasource:
-                raise DatasourceNotFoundError(tool.datasource_id)
+            # Verify datasource exists (if provided)
+            if tool.datasource_id is not None:
+                datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
+                if not datasource:
+                    raise DatasourceNotFoundError(tool.datasource_id)
 
             # Validate tool type (optional validation) - accept both uppercase and lowercase
             valid_types = ["query", "http", "code"]
@@ -82,6 +83,7 @@ class ToolService:
                 description=tool.description,
                 type=tool.type,
                 sql=tool.sql,
+                tool_code=tool.tool_code,
                 datasource_id=tool.datasource_id,
                 parameters=parameters_dict,
                 tags=tags,
@@ -120,13 +122,14 @@ class ToolService:
             if not current_tool:
                 raise ToolNotFoundError(tool_id)
 
-            # Verify datasource exists if it's being changed
+            # Verify datasource exists if it's being changed or if it's provided
             datasource_id = (
                 tool_update.datasource_id if tool_update.datasource_id is not None else current_tool.datasource_id
             )
-            datasource = await self.datasource_repository.get_by_id(datasource_id)
-            if not datasource:
-                raise DatasourceNotFoundError(datasource_id)
+            if datasource_id is not None:
+                datasource = await self.datasource_repository.get_by_id(datasource_id)
+                if not datasource:
+                    raise DatasourceNotFoundError(datasource_id)
 
             # Handle tool type validation and normalization if provided
             tool_type = current_tool.type
@@ -145,6 +148,7 @@ class ToolService:
                 else current_tool.description,
                 "type": tool_type,
                 "sql": tool_update.sql if tool_update.sql is not None else current_tool.sql,
+                "tool_code": tool_update.tool_code if tool_update.tool_code is not None else current_tool.tool_code,
                 "datasource_id": datasource_id,
             }
 

@@ -125,18 +125,27 @@ class DatasourceResponse(BaseModel):
 class ToolCreate(BaseModel):
     name: str = Field(..., description="Name of the tool")
     description: Optional[str] = Field(None, description="Tool description")
-    type: str = Field(default="query", description="Type of the tool (query, http, code)")
-    sql: str = Field(..., description="SQL query with parameter placeholders")
-    datasource_id: int = Field(..., description="ID of the datasource to use")
+    type: str = Field(default="query", description="Type of the tool (query, code, python)")
+    sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
+    tool_code: Optional[str] = Field(None, description="Python code to execute")
+    datasource_id: Optional[int] = Field(None, description="ID of the datasource to use (optional for code tools)")
     parameters: Optional[List[ParameterDefinition]] = Field(default_factory=list, description="Parameter definitions")
     tags: Optional[List[str]] = Field(default_factory=list, description="List of tags for categorizing the tool")
+
+    def model_post_init(self, __context):
+        """Validate that either sql or tool_code is provided, but not both."""
+        if self.sql is None and self.tool_code is None:
+            raise ValueError("Either 'sql' or 'tool_code' must be provided")
+        if self.sql is not None and self.tool_code is not None:
+            raise ValueError("Only one of 'sql' or 'tool_code' should be provided, not both")
 
 
 class ToolUpdate(BaseModel):
     name: Optional[str] = Field(None, description="Name of the tool")
     description: Optional[str] = Field(None, description="Tool description")
-    type: Optional[str] = Field(None, description="Type of the tool (query, http, code)")
+    type: Optional[str] = Field(None, description="Type of the tool (query, code, python)")
     sql: Optional[str] = Field(None, description="SQL query with parameter placeholders")
+    tool_code: Optional[str] = Field(None, description="Python code to execute")
     datasource_id: Optional[int] = Field(None, description="ID of the datasource to use")
     parameters: Optional[List[ParameterDefinition]] = Field(None, description="Parameter definitions")
     tags: Optional[List[str]] = Field(None, description="List of tags for categorizing the tool")
@@ -147,8 +156,9 @@ class ToolResponse(BaseModel):
     name: str
     description: Optional[str]
     type: str
-    sql: str
-    datasource_id: int
+    sql: Optional[str]
+    tool_code: Optional[str]
+    datasource_id: Optional[int]
     parameters: List[ParameterDefinition]
     tags: List[str]
     updated_at: datetime
