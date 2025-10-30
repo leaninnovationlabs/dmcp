@@ -1,0 +1,217 @@
+name: 'Rollback ECS Deployment'
+description: 'Rollback DMCP ECS deployment to a previous version'
+inputs:
+  environment:
+    description: 'Target environment (dev/prod)'
+    required: true
+  deployment-id:
+    description: 'Specific deployment ID to rollback to (optional)'
+    required: false
+  aws-access-key-id:
+    description: 'AWS Access Key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key'
+    required: true
+  aws-region:
+    description: 'AWS Region'
+    required: true
+    default: 'us-east-1'
+  ecs-service:
+    description: 'ECS Service name'
+    required: true
+  ecs-cluster:
+    description: 'ECS Cluster name'
+    required: true
+  ecs-task-definition:
+    description: 'ECS Task Definition name'
+    required: true
+  deployment-bucket:
+    description: 'S3 bucket for deployment records'
+    required: true
+  deployment-s3-prefix:
+    description: 'Optional S3 prefix/directory for deployment records (e.g., dmcp/)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Get previous deployment
+      shell: bash
+      run: |
+        ENVIRONMENT="${{ inputs.environment }}"
+        DEPLOYMENT_ID="${{ inputs.deployment-id }}"
+        
+        # Normalize environment name for S3 path (must match deploy action logic exactly)
+        ENV_PATH=$([ "$ENVIRONMENT" = "development" ] && echo "dev" || ([ "$ENVIRONMENT" = "production" ] && echo "prod" || echo "$ENVIRONMENT"))
+        
+        # Handle S3 prefix
+        S3_PREFIX="${{ inputs.deployment-s3-prefix }}"
+        if [ -n "$S3_PREFIX" ] && [ "${S3_PREFIX: -1}" != "/" ]; then
+          S3_PREFIX="${S3_PREFIX}/"
+        fi
+        
+        if [ -z "$DEPLOYMENT_ID" ]; then
+          echo "Getting latest deployment..."
+          # Get the latest deployment record from S3
+          LATEST_DEPLOYMENT=$(aws s3 ls s3://${{ inputs.deployment-bucket }}/${S3_PREFIX}deployments/$ENV_PATH/ --recursive 2>/dev/null | \
+            sort -k1,2 | tail -1 | awk '{print $4}')
+          
+          if [ -z "$LATEST_DEPLOYMENT" ]; then
+            echo "❌ No deployment records found in s3://${{ inputs.deployment-bucket }}/${S3_PREFIX}deployments/$ENV_PATH/"
+            echo "Cannot rollback - no previous deployments available."
+            exit 1
+          fi
+          
+          aws s3 cp s3://${{ inputs.deployment-bucket }}/$LATEST_DEPLOYMENT previous-deployment.json
+        else
+          echo "Getting specific deployment: $DEPLOYMENT_ID"
+          if ! aws s3 cp s3://${{ inputs.deployment-bucket }}/${S3_PREFIX}deployments/$ENV_PATH/$DEPLOYMENT_ID.json previous-deployment.json 2>/dev/null; then
+            echo "❌ Deployment record not found: $DEPLOYMENT_ID"
+            exit 1
+          fi
+        fi
+        
+        # Validate deployment record exists and is valid JSON
+        if [ ! -f previous-deployment.json ] || [ ! -s previous-deployment.json ]; then
+          echo "❌ Failed to retrieve deployment record or file is empty"
+          exit 1
+        fi
+        
+        # Validate JSON structure and extract the image tag
+        PREVIOUS_IMAGE=$(jq -r '.image_tag // empty' previous-deployment.json)
+        if [ -z "$PREVIOUS_IMAGE" ] || [ "$PREVIOUS_IMAGE" = "null" ]; then
+          echo "❌ Invalid deployment record: missing image_tag"
+          exit 1
+        fi
+        
+        echo "✅ Previous image: $PREVIOUS_IMAGE"
+        echo "PREVIOUS_IMAGE=$PREVIOUS_IMAGE" >> $GITHUB_ENV
+
+    - name: Rollback deployment
+      shell: bash
+      run: |
+        echo "📋 Rolling back to previous image: $PREVIOUS_IMAGE"
+        
+        # Download current task definition
+        TASK_DEF=$(aws ecs describe-task-definition \
+          --task-definition ${{ inputs.ecs-task-definition }} \
+          --query taskDefinition)
+        
+        # Extract ECR repository name from previous image to find correct container
+        # Image format: <account>.dkr.ecr.<region>.amazonaws.com/<repo-name>:<tag>
+        ECR_REPO_NAME=$(echo "$PREVIOUS_IMAGE" | sed -n 's|.*/\([^:]*\):.*|\1|p')
+        
+        # Find container index by matching ECR repository name in image
+        # If not found, default to first container (index 0) for backward compatibility
+        CONTAINER_INDEX=$(echo "$TASK_DEF" | jq -r --arg repo "$ECR_REPO_NAME" \
+          '.containerDefinitions | to_entries | map(select(.value.image | contains($repo))) | .[0].key // 0' 2>/dev/null || echo "0")
+        
+        # Validate container index
+        if [ "$CONTAINER_INDEX" = "null" ] || [ -z "$CONTAINER_INDEX" ]; then
+          CONTAINER_INDEX=0
+          echo "⚠️  Container with ECR repo '$ECR_REPO_NAME' not found, defaulting to first container (index 0)"
+        fi
+        
+        echo "📦 Updating container at index $CONTAINER_INDEX"
+
+        # Remove read-only metadata fields and update container image
+        echo "$TASK_DEF" | jq --arg IMAGE "$PREVIOUS_IMAGE" --argjson INDEX "$CONTAINER_INDEX" \
+          'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
+           .containerDefinitions[$INDEX].image = $IMAGE' \
+          > rollback-task-definition.json
+
+        # Register rollback task definition
+        aws ecs register-task-definition \
+          --cli-input-json file://rollback-task-definition.json || {
+          echo "❌ Failed to register rollback task definition"
+          exit 1
+        }
+
+        # Get the rollback task definition revision
+        ROLLBACK_TASK_DEF_REVISION=$(aws ecs describe-task-definition \
+          --task-definition ${{ inputs.ecs-task-definition }} \
+          --query 'taskDefinition.revision' \
+          --output text)
+
+        # Update the service
+        aws ecs update-service \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --service ${{ inputs.ecs-service }} \
+          --task-definition ${{ inputs.ecs-task-definition }}:$ROLLBACK_TASK_DEF_REVISION \
+          --force-new-deployment
+
+    - name: Wait for rollback to complete
+      shell: bash
+      run: |
+        echo "⏳ Waiting for rollback to complete (timeout: 20 minutes)..."
+        timeout 1200 aws ecs wait services-stable \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --services ${{ inputs.ecs-service }}
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -eq 124 ]; then
+          echo "❌ Timeout: Rollback did not complete within 20 minutes"
+          exit 1
+        elif [ $EXIT_CODE -ne 0 ]; then
+          echo "❌ Error waiting for rollback to complete (exit code: $EXIT_CODE)"
+          exit $EXIT_CODE
+        fi
+
+    - name: Verify rollback
+      shell: bash
+      run: |
+        # Get service status
+        SERVICE_STATUS=$(aws ecs describe-services \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --services ${{ inputs.ecs-service }} \
+          --query 'services[0].status' \
+          --output text)
+        
+        echo "Service status after rollback: $SERVICE_STATUS"
+        
+        if [ "$SERVICE_STATUS" != "ACTIVE" ]; then
+          echo "Rollback failed - service is not active"
+          exit 1
+        fi
+
+    - name: Create rollback record
+      shell: bash
+      run: |
+        # Create a rollback record
+        ROLLBACK_ID=$(date +%Y%m%d-%H%M%S)
+        ENVIRONMENT="${{ inputs.environment }}"
+        
+        # Normalize environment name for S3 path (must match deploy action logic exactly)
+        ENV_PATH=$([ "$ENVIRONMENT" = "development" ] && echo "dev" || ([ "$ENVIRONMENT" = "production" ] && echo "prod" || echo "$ENVIRONMENT"))
+        
+        # Handle S3 prefix
+        S3_PREFIX="${{ inputs.deployment-s3-prefix }}"
+        if [ -n "$S3_PREFIX" ] && [ "${S3_PREFIX: -1}" != "/" ]; then
+          S3_PREFIX="${S3_PREFIX}/"
+        fi
+        
+        echo "{
+          \"rollback_id\": \"$ROLLBACK_ID\",
+          \"previous_image\": \"$PREVIOUS_IMAGE\",
+          \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+          \"environment\": \"$ENVIRONMENT\",
+          \"status\": \"success\"
+        }" > rollback-record.json
+        
+        # Upload to S3
+        aws s3 cp rollback-record.json s3://${{ inputs.deployment-bucket }}/${S3_PREFIX}rollbacks/$ENV_PATH/$ROLLBACK_ID.json
+
+    - name: Notify rollback success
+      shell: bash
+      run: |
+        echo "✅ Rollback completed successfully!"
+        echo "Rolled back to image: $PREVIOUS_IMAGE"
+        echo "Rollback ID: $(cat rollback-record.json | jq -r '.rollback_id')"

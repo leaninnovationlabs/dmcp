@@ -1,0 +1,239 @@
+name: 'Deploy to ECS'
+description: 'Deploy DMCP application to AWS ECS with Docker image build and push'
+inputs:
+  environment:
+    description: 'Target environment (dev/prod)'
+    required: true
+  aws-access-key-id:
+    description: 'AWS Access Key ID (optional if using OIDC)'
+    required: false
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key (optional if using OIDC)'
+    required: false
+  iam-role-arn:
+    description: 'AWS IAM Role ARN for OIDC authentication (optional if using access keys)'
+    required: false
+  aws-region:
+    description: 'AWS Region'
+    required: true
+    default: 'us-east-1'
+  ecr-repository:
+    description: 'ECR Repository name'
+    required: true
+  ecs-service:
+    description: 'ECS Service name'
+    required: true
+  ecs-cluster:
+    description: 'ECS Cluster name'
+    required: true
+  ecs-task-definition:
+    description: 'ECS Task Definition name'
+    required: true
+  deployment-bucket:
+    description: 'S3 bucket for deployment records'
+    required: true
+  deployment-s3-prefix:
+    description: 'Optional S3 prefix/directory for deployment records (e.g., dmcp/)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set branch and environment
+      id: vars
+      shell: bash
+      run: |
+        if [ "${{ inputs.environment }}" = "development" ]; then
+          echo "BRANCH=dev" >> $GITHUB_ENV
+          echo "ENV_TAG=dev" >> $GITHUB_ENV
+        else
+          echo "BRANCH=main" >> $GITHUB_ENV
+          echo "ENV_TAG=prd" >> $GITHUB_ENV
+        fi
+        DATETIME_TAG=$(date +%Y%m%d-%H%M%S)
+        echo "DATETIME_TAG=$DATETIME_TAG" >> $GITHUB_ENV
+
+    - name: Authenticate with AWS
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        role-to-assume: ${{ inputs.iam-role-arn }}
+        role-session-name: GitHubActions-${{ inputs.environment }}-${{ github.run_id }}
+        aws-region: ${{ inputs.aws-region }}
+    
+    - name: Pre-deployment validation
+      shell: bash
+      run: |
+        echo "🔍 Pre-deployment checks..."
+        
+        # Check service exists
+        SERVICE_INFO=$(aws ecs describe-services \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --services ${{ inputs.ecs-service }} \
+          --query 'services[0]' \
+          --output json)
+        
+        # Check if service exists (jq returns "null" as a string when service doesn't exist)
+        SERVICE_STATUS=$(echo "$SERVICE_INFO" | jq -r '.status // empty')
+        if [ -z "$SERVICE_STATUS" ] || [ "$SERVICE_STATUS" = "null" ]; then
+          echo "❌ Service '${{ inputs.ecs-service }}' not found in cluster '${{ inputs.ecs-cluster }}'!"
+          exit 1
+        fi
+        
+        echo "✅ Service found with status: $SERVICE_STATUS"
+        
+        # Check for stuck PROVISIONING tasks
+        STUCK_TASKS=$(aws ecs list-tasks \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --service-name ${{ inputs.ecs-service }} \
+          --desired-status RUNNING \
+          --query 'taskArns[]' \
+          --output text)
+        
+        if [ -n "$STUCK_TASKS" ]; then
+          for TASK_ARN in $STUCK_TASKS; do
+            STATUS=$(aws ecs describe-tasks \
+              --cluster ${{ inputs.ecs-cluster }} \
+              --tasks $TASK_ARN \
+              --query 'tasks[0].lastStatus' \
+              --output text)
+            if [ "$STATUS" = "PROVISIONING" ]; then
+              echo "⚠️  Stopping stuck task: $(basename $TASK_ARN)"
+              aws ecs stop-task \
+                --cluster ${{ inputs.ecs-cluster }} \
+                --task $TASK_ARN \
+                --reason "Stuck in PROVISIONING" || true
+            fi
+          done
+          sleep 5
+        fi
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Set image tags
+      id: image-tags
+      shell: bash
+      run: |
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        ECR_URI="${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr-repository }}"
+        IMAGE_TAG_ENV="${ECR_URI}:dmcp-${{ env.DATETIME_TAG }}-${COMMIT_HASH}-${{ env.ENV_TAG }}"
+        IMAGE_TAG_LATEST="${ECR_URI}:latest"
+        
+        echo "tags=${IMAGE_TAG_ENV},${IMAGE_TAG_LATEST}" >> $GITHUB_OUTPUT
+        echo "main-tag=${IMAGE_TAG_ENV}" >> $GITHUB_OUTPUT
+        echo "full-uri=${ECR_URI}" >> $GITHUB_OUTPUT
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.image-tags.outputs.tags }}
+        cache-from: type=registry,ref=${{ steps.image-tags.outputs.full-uri }}:buildcache
+        cache-to: type=inline
+
+    - name: Update task definition and service
+      shell: bash
+      run: |
+        echo "📋 Updating task definition with new image..."
+        
+        # Download and update task definition in one step
+        TASK_DEF=$(aws ecs describe-task-definition \
+          --task-definition ${{ inputs.ecs-task-definition }} \
+          --query taskDefinition)
+        
+        # Extract ECR repository name from image tag to find correct container
+        # Image format: <account>.dkr.ecr.<region>.amazonaws.com/<repo-name>:<tag>
+        ECR_REPO_NAME="${{ inputs.ecr-repository }}"
+        
+        # Find container index by matching ECR repository name in image
+        # If not found, default to first container (index 0) for backward compatibility
+        CONTAINER_INDEX=$(echo "$TASK_DEF" | jq -r --arg repo "$ECR_REPO_NAME" \
+          '.containerDefinitions | to_entries | map(select(.value.image | contains($repo))) | .[0].key // 0' 2>/dev/null || echo "0")
+        
+        if [ "$CONTAINER_INDEX" = "null" ] || [ -z "$CONTAINER_INDEX" ]; then
+          CONTAINER_INDEX=0
+          echo "⚠️  Container with ECR repo '$ECR_REPO_NAME' not found, defaulting to first container (index 0)"
+        fi
+        
+        echo "📦 Updating container at index $CONTAINER_INDEX"
+
+        # Remove read-only metadata fields and update container image
+        echo "$TASK_DEF" | jq --arg IMAGE "${{ steps.image-tags.outputs.main-tag }}" --argjson INDEX "$CONTAINER_INDEX" \
+          'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy) |
+           .containerDefinitions[$INDEX].image = $IMAGE' \
+          > task-definition.json
+        
+        # Register new task definition
+        aws ecs register-task-definition --cli-input-json file://task-definition.json > /dev/null
+        
+        # Get revision and update service
+        REVISION=$(aws ecs describe-task-definition \
+          --task-definition ${{ inputs.ecs-task-definition }} \
+          --query 'taskDefinition.revision' \
+          --output text)
+        
+        echo "🔧 Updating service to task definition revision $REVISION"
+        aws ecs update-service \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --service ${{ inputs.ecs-service }} \
+          --task-definition ${{ inputs.ecs-task-definition }}:$REVISION \
+          --force-new-deployment > /dev/null
+
+    - name: Wait for deployment to stabilize
+      shell: bash
+      run: |
+        echo "⏳ Waiting for service to stabilize (timeout: 20 minutes)..."
+        timeout 1200 aws ecs wait services-stable \
+          --cluster ${{ inputs.ecs-cluster }} \
+          --services ${{ inputs.ecs-service }}
+        EXIT_CODE=$?
+        if [ $EXIT_CODE -eq 124 ]; then
+          echo "❌ Timeout: Service did not stabilize within 20 minutes"
+          exit 1
+        elif [ $EXIT_CODE -ne 0 ]; then
+          echo "❌ Error waiting for service to stabilize (exit code: $EXIT_CODE)"
+          exit $EXIT_CODE
+        fi
+
+    - name: Save deployment record
+      shell: bash
+      run: |
+        DEPLOYMENT_ID="${{ env.DATETIME_TAG }}"
+        # Normalize environment name for S3 path (must match rollback action logic)
+        ENV_PATH=$([ "${{ inputs.environment }}" = "development" ] && echo "dev" || ([ "${{ inputs.environment }}" = "production" ] && echo "prod" || echo "${{ inputs.environment }}"))
+        S3_PREFIX="${{ inputs.deployment-s3-prefix }}"
+        [ -n "$S3_PREFIX" ] && [ "${S3_PREFIX: -1}" != "/" ] && S3_PREFIX="${S3_PREFIX}/"
+        
+        TASK_DEF_REV=$(aws ecs describe-task-definition \
+          --task-definition "${{ inputs.ecs-task-definition }}" \
+          --query 'taskDefinition.revision' \
+          --output text)
+        
+        jq -n \
+          --arg id "$DEPLOYMENT_ID" \
+          --arg image "${{ steps.image-tags.outputs.main-tag }}" \
+          --arg latest "${{ steps.image-tags.outputs.full-uri }}:latest" \
+          --arg taskdef "${{ inputs.ecs-task-definition }}:$TASK_DEF_REV" \
+          --arg env "${{ inputs.environment }}" \
+          --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          '{
+            deployment_id: $id,
+            image_tag: $image,
+            image_tag_latest: $latest,
+            task_definition: $taskdef,
+            timestamp: $ts,
+            environment: $env,
+            status: "success"
+          }' > deployment-record.json
+        
+        aws s3 cp deployment-record.json \
+          s3://${{ inputs.deployment-bucket }}/${S3_PREFIX}deployments/${ENV_PATH}/${DEPLOYMENT_ID}.json || true
+        
+        echo "✅ Deployment completed: $DEPLOYMENT_ID"
+        echo "   Image: ${{ steps.image-tags.outputs.main-tag }}"
+        echo "   Task Definition: ${{ inputs.ecs-task-definition }}:$TASK_DEF_REV"

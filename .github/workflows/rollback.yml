@@ -1,0 +1,47 @@
+name: Rollback - Manual Deployment Rollback
+
+# Trigger manual rollback via workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - prod
+      deployment_id:
+        description: 'Specific deployment ID to rollback to (optional)'
+        required: false
+        type: string
+
+jobs:
+  # Rollback Job (Manual trigger)
+  rollback:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment == 'dev' && 'development' || 'production' }}
+    permissions:
+      id-token: write  # Required for OIDC
+      contents: read
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Rollback ECS Deployment
+        uses: ./.github/actions/rollback
+        with:
+          environment: ${{ github.event.inputs.environment == 'dev' && 'development' || 'production' }}
+          deployment-id: ${{ github.event.inputs.deployment_id }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+          ecs-service: ${{ vars.ECS_SERVICE }}
+          ecs-cluster: ${{ vars.ECS_CLUSTER }}
+          ecs-task-definition: ${{ vars.ECS_TASK_DEFINITION }}
+          deployment-bucket: ${{ vars.DEPLOYMENT_BUCKET }}
+          deployment-s3-prefix: ${{ vars.DEPLOYMENT_S3_PREFIX }}

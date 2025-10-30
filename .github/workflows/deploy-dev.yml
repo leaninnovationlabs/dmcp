@@ -1,0 +1,50 @@
+name: Deploy to Development
+
+# Trigger automatic deployment on PR opened/synchronize/merge to dev branch
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+    branches: [dev]
+
+jobs:
+  # Deploy to Development Environment
+  deploy-dev:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'dev' && (github.event.action == 'opened' || github.event.action == 'synchronize' || (github.event.action == 'closed' && github.event.pull_request.merged == true))
+    environment: development
+    permissions:
+      id-token: write  # Required for OIDC
+      contents: read
+    
+    steps:
+      - name: Set checkout ref
+        id: checkout-ref
+        run: |
+          if [ "${{ github.event.action }}" = "opened" ] || [ "${{ github.event.action }}" = "synchronize" ]; then
+            echo "ref=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${{ github.event.pull_request.base.ref }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.checkout-ref.outputs.ref }}
+          fetch-depth: 0
+      
+      - name: Deploy to ECS
+        uses: ./.github/actions/deploy
+        with:
+          environment: development
+          # Legacy Access Key Method
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # Leave IAM role empty when using access keys
+          iam-role-arn: ""
+          aws-region: ${{ vars.AWS_REGION }}
+          ecr-repository: ${{ vars.ECR_REPOSITORY }}
+          ecs-service: ${{ vars.ECS_SERVICE }}
+          ecs-cluster: ${{ vars.ECS_CLUSTER }}
+          ecs-task-definition: ${{ vars.ECS_TASK_DEFINITION }}
+          deployment-bucket: ${{ vars.DEPLOYMENT_BUCKET }}
+          deployment-s3-prefix: ${{ vars.DEPLOYMENT_S3_PREFIX }}
