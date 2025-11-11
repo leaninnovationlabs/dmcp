@@ -52,8 +52,4 @@ COPY --from=builder --chown=appuser:appuser /app/public /app/public
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Set default values for host and port
-ENV HOST=0.0.0.0
-ENV PORT=8000
-
 USER appuser
