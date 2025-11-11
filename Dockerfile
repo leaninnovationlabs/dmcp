@@ -50,9 +50,6 @@ COPY --from=builder --chown=appuser:appuser /app/app ./app
 COPY --from=builder --chown=appuser:appuser /app/alembic ./alembic
 COPY --from=builder --chown=appuser:appuser /app/public /app/public
 
-# Create data directory for SQLite database in case of SQLite database
-RUN mkdir -p /app/data && chown appuser:appuser /app/data
-
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Set default values for host and port
@@ -60,9 +57,3 @@ ENV HOST=0.0.0.0
 ENV PORT=8000
 
 USER appuser
-
-# Use environment variable for EXPOSE
-EXPOSE ${PORT}
-
-# Use environment variables for host and port in CMD
-CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host ${HOST} --port ${PORT}"]
