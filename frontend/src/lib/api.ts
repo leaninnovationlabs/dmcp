@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const isDev = import.meta.env.VITE_ENV === 'dev';
+// For production, we do not pick the base url from env
+const API_BASE_URL = isDev ? (import.meta.env.VITE_API_BASE_URL || ''): '';
 
 export interface LoginRequest {
   username: string;
