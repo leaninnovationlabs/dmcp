@@ -13,6 +13,7 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 
 from fastmcp import Context
+from fastmcp.exceptions import NotFoundError
 from fastmcp.server.dependencies import get_http_headers
 
 from app.database import MCPSessionLocal
@@ -105,6 +106,16 @@ class MCPServer:
 
         except Exception as tool_error:
             self._log_error(f"Failed to register tool {tool.get('name', 'unknown')}: {tool_error}")
+
+    def _unregister_tool(self, tool_name: str) -> None:
+        """Unregister a tool from FastMCP registry."""
+        try:
+            self.mcp.remove_tool(tool_name)
+            self._log_debug(f"Unregistered tool: {tool_name}")
+        except NotFoundError:
+            self._log_debug(f"Tool {tool_name} not found in registry (may have been already removed)")
+        except Exception as e:
+            self._log_error(f"Failed to unregister tool {tool_name}: {e}")
 
     def ping(self, ctx: Context, name: str = "World", tags: List[str] = ["ping"]) -> Dict[str, Any]:
         """Ping tool to get the info about the current request."""

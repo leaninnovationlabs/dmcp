@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastmcp import FastMCP
+from fastmcp.exceptions import NotFoundError
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
@@ -13,9 +14,11 @@ from app.mcp.middleware.logging import LoggingMiddleware
 from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
 from app.routes import auth, datasources, health, tags, tools, users
+from app.services.server_provider import set_server
 
 mcp = FastMCP("DMCP")
 server = MCPServer(mcp)
+set_server(server)
 
 
 # Add middlewares
@@ -49,9 +52,40 @@ app.add_middleware(
 
 
 @app.get("/dmcp/tools/refresh")
-async def test(request: Request):
-    server._register_database_tools()
-    return JSONResponse({"status": "healthy", "message": "DMCP server is running"})
+async def refresh_tools(request: Request):
+    """Refresh tool registry by syncing with database."""
+    try:
+        # Get currently registered tools
+        registered_tools = await mcp.get_tools()
+        
+        # Unregister all database tools
+        removed_count = 0
+        for tool_name in registered_tools.keys():
+            try:
+                mcp.remove_tool(tool_name)
+                removed_count += 1
+            except NotFoundError:
+                # Tool was not found in the registry; safe to ignore as it may have already been removed.
+                pass
+        
+        # Re-register all tools from database
+        server._register_database_tools()
+        
+        # Get count of registered tools after refresh
+        db_tools = server._list_tools()
+        registered_count = len(db_tools)
+        
+        return JSONResponse({
+            "status": "success",
+            "message": "Tools refreshed successfully",
+            "removed": removed_count,
+            "registered": registered_count
+        })
+    except Exception as e:
+        return JSONResponse({
+            "status": "error",
+            "message": str(e)
+        }, status_code=500)
 
 
 app.include_router(health.router, prefix=f"{settings.mcp_path}")

@@ -6,6 +6,7 @@ from app.services.tool_execution_service import ToolExecutionService
 from ..core.responses import create_success_response, raise_http_error
 from ..database import get_db
 from ..models.schemas import StandardAPIResponse, ToolCreate, ToolExecutionRequest, ToolUpdate
+from ..services.server_provider import get_server
 from ..services.tool_service import ToolService
 
 router = APIRouter(prefix="/tools", tags=["tools"])
@@ -65,7 +66,19 @@ async def update_tool(
     """Update an existing named tool by ID."""
     try:
         service = ToolService(db)
+        current_tool = await service.get_tool(tool_id)
+        if not current_tool:
+            raise_http_error(404, "Tool not found")
+        old_name = current_tool.name
+        
+        # Update tool
         result = await service.update_tool(tool_id, tool_update)
+        
+        # Unregister and re-register
+        get_server()._unregister_tool(old_name)
+        tool_dict = result.model_dump()
+        get_server()._register_single_tool(tool_dict)
+        
         return create_success_response(data=result)
     except HTTPException:
         raise
@@ -83,9 +96,21 @@ async def delete_tool(
     """Delete a named tool by ID."""
     try:
         service = ToolService(db)
+        # Get tool name before deletion for unregistering
+        tool = await service.get_tool(tool_id)
+        if not tool:
+            raise_http_error(404, "Tool not found")
+        
+        tool_name = tool.name
+        
+        # Delete from database
         success = await service.delete_tool(tool_id)
         if not success:
             raise_http_error(404, "Tool not found")
+        
+        # Unregister from FastMCP
+        get_server()._unregister_tool(tool_name)
+        
         return create_success_response(data={"message": "Tool deleted successfully"})
     except HTTPException:
         raise
