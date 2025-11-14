@@ -16,6 +16,12 @@ from ..models.schemas import (
 )
 from ..services.tool_service import ToolService
 
+
+def get_mcp_server():
+    """Lazy import to avoid circular dependency."""
+    import main
+    return main.server
+
 router = APIRouter(prefix="/tools", tags=["tools"])
 
 
@@ -73,7 +79,18 @@ async def update_tool(
     """Update an existing named tool by ID."""
     try:
         service = ToolService(db)
+        current_tool = await service.get_tool(tool_id)
+        if not current_tool:
+            raise_http_error(404, "Tool not found")
+        old_name = current_tool.name
+        
+        # Update tool
         result = await service.update_tool(tool_id, tool_update)
+        
+        # If name changed, unregister old name and register new name
+        if tool_update.name and tool_update.name != old_name:
+            get_mcp_server()._unregister_tool(old_name)
+        
         return create_success_response(data=result)
     except HTTPException:
         raise
@@ -91,9 +108,19 @@ async def delete_tool(
     """Delete a named tool by ID."""
     try:
         service = ToolService(db)
+        # Get tool name before deletion
+        tool = await service.get_tool(tool_id)
+        if not tool:
+            raise_http_error(404, "Tool not found")
+        
+        # Delete from database
         success = await service.delete_tool(tool_id)
         if not success:
             raise_http_error(404, "Tool not found")
+        
+        # Unregister from FastMCP
+        get_mcp_server()._unregister_tool(tool.name)
+        
         return create_success_response(data={"message": "Tool deleted successfully"})
     except HTTPException:
         raise

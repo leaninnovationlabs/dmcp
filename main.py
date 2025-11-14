@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastmcp import FastMCP
+from fastmcp.exceptions import NotFoundError
 from starlette.applications import Starlette
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse, RedirectResponse
@@ -49,9 +50,43 @@ app.add_middleware(
 
 
 @app.get("/dmcp/tools/refresh")
-async def test(request: Request):
-    server._register_database_tools()
-    return JSONResponse({"status": "healthy", "message": "DMCP server is running"})
+async def refresh_tools(request: Request):
+    """Refresh tool registry by syncing with database."""
+    try:
+        # Get currently registered tools
+        registered_tools = await mcp.get_tools()
+        registered_names = set(registered_tools.keys())
+        
+        # Get tools from database
+        db_tools = server._list_tools()
+        db_tool_names = {tool['name'] for tool in db_tools}
+        
+        # Remove tools that are no longer in database
+        to_remove = registered_names - db_tool_names
+        removed_count = 0
+        for tool_name in to_remove:
+            if tool_name == 'ping':
+                continue
+            try:
+                mcp.remove_tool(tool_name)
+                removed_count += 1
+            except NotFoundError:
+                pass
+        
+        # Register new tools from database
+        server._register_database_tools()
+        
+        return JSONResponse({
+            "status": "success",
+            "message": "Tools refreshed successfully",
+            "removed": removed_count,
+            "registered": len(db_tool_names)
+        })
+    except Exception as e:
+        return JSONResponse({
+            "status": "error",
+            "message": str(e)
+        }, status_code=500)
 
 
 app.include_router(health.router, prefix=f"{settings.mcp_path}")
