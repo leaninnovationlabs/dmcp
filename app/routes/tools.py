@@ -8,19 +8,9 @@ from ..core.responses import (
     raise_http_error,
 )
 from ..database import get_db
-from ..models.schemas import (
-    StandardAPIResponse,
-    ToolCreate,
-    ToolExecutionRequest,
-    ToolUpdate,
-)
+from ..models.schemas import StandardAPIResponse, ToolCreate, ToolExecutionRequest, ToolUpdate
+from ..services.server_provider import get_server
 from ..services.tool_service import ToolService
-
-
-def get_mcp_server():
-    """Lazy import to avoid circular dependency."""
-    import main
-    return main.server
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -89,7 +79,7 @@ async def update_tool(
         
         # If name changed, unregister old name and register new name
         if tool_update.name and tool_update.name != old_name:
-            get_mcp_server()._unregister_tool(old_name)
+            get_server()._unregister_tool(old_name)
         
         return create_success_response(data=result)
     except HTTPException:
@@ -119,7 +109,7 @@ async def delete_tool(
             raise_http_error(404, "Tool not found")
         
         # Unregister from FastMCP
-        get_mcp_server()._unregister_tool(tool.name)
+        get_server()._unregister_tool(tool.name)
         
         return create_success_response(data={"message": "Tool deleted successfully"})
     except HTTPException:

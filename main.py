@@ -14,9 +14,11 @@ from app.mcp.middleware.logging import LoggingMiddleware
 from app.mcp.middleware.tools import CustomizeToolsList
 from app.mcp_server import MCPServer
 from app.routes import auth, datasources, health, tags, tools, users
+from app.services.server_provider import set_server
 
 mcp = FastMCP("DMCP")
 server = MCPServer(mcp)
+set_server(server)
 
 
 # Add middlewares
