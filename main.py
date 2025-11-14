@@ -57,32 +57,29 @@ async def refresh_tools(request: Request):
     try:
         # Get currently registered tools
         registered_tools = await mcp.get_tools()
-        registered_names = set(registered_tools.keys())
         
-        # Get tools from database
-        db_tools = server._list_tools()
-        db_tool_names = {tool['name'] for tool in db_tools}
-        
-        # Remove tools that are no longer in database
-        to_remove = registered_names - db_tool_names
+        # Unregister all database tools
         removed_count = 0
-        for tool_name in to_remove:
-            if tool_name == 'ping':
-                continue
+        for tool_name in registered_tools.keys():
             try:
                 mcp.remove_tool(tool_name)
                 removed_count += 1
             except NotFoundError:
+                # Tool was not found in the registry; safe to ignore as it may have already been removed.
                 pass
         
-        # Register new tools from database
+        # Re-register all tools from database
         server._register_database_tools()
+        
+        # Get count of registered tools after refresh
+        db_tools = server._list_tools()
+        registered_count = len(db_tools)
         
         return JSONResponse({
             "status": "success",
             "message": "Tools refreshed successfully",
             "removed": removed_count,
-            "registered": len(db_tool_names)
+            "registered": registered_count
         })
     except Exception as e:
         return JSONResponse({
