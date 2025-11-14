@@ -80,6 +80,9 @@ async def update_tool(
         # If name changed, unregister old name and register new name
         if tool_update.name and tool_update.name != old_name:
             get_server()._unregister_tool(old_name)
+            # Register the updated tool with its new name
+            tool_dict = result.model_dump()
+            get_server()._register_single_tool(tool_dict)
         
         return create_success_response(data=result)
     except HTTPException:
@@ -98,10 +101,12 @@ async def delete_tool(
     """Delete a named tool by ID."""
     try:
         service = ToolService(db)
-        # Get tool name before deletion
+        # Get tool name before deletion for unregistering
         tool = await service.get_tool(tool_id)
         if not tool:
             raise_http_error(404, "Tool not found")
+        
+        tool_name = tool.name
         
         # Delete from database
         success = await service.delete_tool(tool_id)
@@ -109,7 +114,7 @@ async def delete_tool(
             raise_http_error(404, "Tool not found")
         
         # Unregister from FastMCP
-        get_server()._unregister_tool(tool.name)
+        get_server()._unregister_tool(tool_name)
         
         return create_success_response(data={"message": "Tool deleted successfully"})
     except HTTPException:
