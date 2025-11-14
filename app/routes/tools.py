@@ -77,12 +77,10 @@ async def update_tool(
         # Update tool
         result = await service.update_tool(tool_id, tool_update)
         
-        # If name changed, unregister old name and register new name
-        if tool_update.name and tool_update.name != old_name:
-            get_server()._unregister_tool(old_name)
-            # Register the updated tool with its new name
-            tool_dict = result.model_dump()
-            get_server()._register_single_tool(tool_dict)
+        # Unregister and re-register
+        get_server()._unregister_tool(old_name)
+        tool_dict = result.model_dump()
+        get_server()._register_single_tool(tool_dict)
         
         return create_success_response(data=result)
     except HTTPException:
