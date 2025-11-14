@@ -7,8 +7,6 @@ from ..core.exceptions import DatasourceNotFoundError, ToolNotFoundError
 from ..models.schemas import ToolCreate, ToolResponse, ToolUpdate
 from ..repositories.datasource_repository import DatasourceRepository
 from ..repositories.tool_repository import ToolRepository
-from ..models.schemas import ToolCreate, ToolUpdate, ToolResponse
-from ..core.exceptions import ToolNotFoundError, DatasourceNotFoundError
 
 
 class ToolService:
@@ -20,53 +18,56 @@ class ToolService:
 
     def _validate_and_normalize_tags(self, tags: Optional[List[str]]) -> List[str]:
         """Validate and normalize tags.
-        
+
         Args:
             tags: List of tag strings to validate
-            
+
         Returns:
             List of normalized, deduplicated tags
-            
+
         Raises:
             ValueError: If tags don't meet validation requirements
         """
         if not tags:
             return []
-            
+
         # Validate individual tags
         for tag in tags:
             if not tag or not tag.strip():
                 raise ValueError("Tags cannot be empty")
             if len(tag) > 50:
                 raise ValueError("Tag must be 50 characters or less")
-            if not re.match(r'^[a-zA-Z0-9_-]+$', tag):
-                raise ValueError("Tag contains invalid characters. Only alphanumeric, hyphens, and underscores are allowed")
-        
+            if not re.match(r"^[a-zA-Z0-9_-]+$", tag):
+                raise ValueError(
+                    "Tag contains invalid characters. Only alphanumeric, hyphens, and underscores are allowed"
+                )
+
         normalized_tags = list(set(tag.lower().strip() for tag in tags))
-        
+
         if len(normalized_tags) > 10:
             raise ValueError("Maximum 10 tags allowed per tool")
-            
+
         return normalized_tags
 
     async def create_tool(self, tool: ToolCreate) -> ToolResponse:
         """Create a new named tool."""
         try:
-            # Verify datasource exists
-            datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
-            if not datasource:
-                raise DatasourceNotFoundError(tool.datasource_id)
+            # Verify datasource exists (if provided)
+            if tool.datasource_id is not None:
+                datasource = await self.datasource_repository.get_by_id(tool.datasource_id)
+                if not datasource:
+                    raise DatasourceNotFoundError(tool.datasource_id)
 
             # Validate tool type (optional validation) - accept both uppercase and lowercase
             valid_types = ["query", "http", "code"]
             normalized_type = tool.type.lower() if tool.type else ""
-            
+
             if normalized_type not in valid_types:
                 raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
-            
+
             # Use normalized lowercase type
             tool.type = normalized_type
-            
+
             # Convert ParameterDefinition objects to dictionaries for JSON storage
             parameters_dict = []
             if tool.parameters:
@@ -82,6 +83,7 @@ class ToolService:
                 description=tool.description,
                 type=tool.type,
                 sql=tool.sql,
+                tool_code=tool.tool_code,
                 datasource_id=tool.datasource_id,
                 parameters=parameters_dict,
                 tags=tags,
@@ -120,14 +122,15 @@ class ToolService:
             if not current_tool:
                 raise ToolNotFoundError(tool_id)
 
-            # Verify datasource exists if it's being changed
+            # Verify datasource exists if it's being changed or if it's provided
             datasource_id = (
                 tool_update.datasource_id if tool_update.datasource_id is not None else current_tool.datasource_id
             )
-            datasource = await self.datasource_repository.get_by_id(datasource_id)
-            if not datasource:
-                raise DatasourceNotFoundError(datasource_id)
-            
+            if datasource_id is not None:
+                datasource = await self.datasource_repository.get_by_id(datasource_id)
+                if not datasource:
+                    raise DatasourceNotFoundError(datasource_id)
+
             # Handle tool type validation and normalization if provided
             tool_type = current_tool.type
             if tool_update.type is not None:
@@ -136,7 +139,7 @@ class ToolService:
                 if normalized_type not in valid_types:
                     raise ValueError(f"Tool type must be one of: {', '.join(valid_types)}")
                 tool_type = normalized_type
-            
+
             # Prepare update data, using current values if not provided
             update_data = {
                 "name": tool_update.name if tool_update.name is not None else current_tool.name,
@@ -145,6 +148,7 @@ class ToolService:
                 else current_tool.description,
                 "type": tool_type,
                 "sql": tool_update.sql if tool_update.sql is not None else current_tool.sql,
+                "tool_code": tool_update.tool_code if tool_update.tool_code is not None else current_tool.tool_code,
                 "datasource_id": datasource_id,
             }
 
@@ -160,9 +164,9 @@ class ToolService:
 
             # Handle tags
             if tool_update.tags is not None:
-                update_data['tags'] = self._validate_and_normalize_tags(tool_update.tags)
+                update_data["tags"] = self._validate_and_normalize_tags(tool_update.tags)
             else:
-                update_data['tags'] = current_tool.tags
+                update_data["tags"] = current_tool.tags
 
             updated_tool = await self.repository.update_tool(tool_id, **update_data)
             if updated_tool:
