@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16-trixie
+    container_name: leaninno-dmcp-postgres
+    env_file:
+      - .env.db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-dmcp}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker-init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    networks:
+      - leaninno-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dmcp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.dmcp.service=postgres"
+      - "com.dmcp.environment=prod"
+
+  dmcp:
+    image: leaninno:dmcp
+    container_name: leaninno-dmcp
+    env_file:
+      - .env.dmcp
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "${DMCP_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dmcpuser:12345@postgres:5432/dmcp
+      HOST: 0.0.0.0
+      PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - leaninno-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.dmcp.environment=prod"
+      - "com.dmcp.service=dmcp"
+
+  wurf:
+    image: leaninno:wurf
+    container_name: leaninno-wurf
+    command: uv run uvicorn server:app --host 0.0.0.0 --port 8080
+    ports:
+      - "${WURF_PORT:-8080}:8080"
+    env_file:
+      - .env.wurf
+    environment:
+      POSTGRES_CONNECTION_STRING: postgresql+psycopg://wurfuser:12345@postgres:5432/ragdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - leaninno-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.dmcp.environment=prod"
+      - "com.dmcp.service=wurf"
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  leaninno-network:
+    driver: bridge
+
