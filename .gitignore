@@ -13,4 +13,5 @@ data/
 public/*
 !public/.gitkeep
 dist
-docs/api/environments
+docs/api/
+docker-deploy/.env.*

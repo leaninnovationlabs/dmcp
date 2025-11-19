@@ -53,3 +53,5 @@ COPY --from=builder --chown=appuser:appuser /app/public /app/public
 ENV PATH="/app/.venv/bin:$PATH"
 
 USER appuser
+
+CMD ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]

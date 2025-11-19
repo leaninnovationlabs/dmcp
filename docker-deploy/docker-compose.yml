@@ -31,13 +31,8 @@ services:
     container_name: leaninno-dmcp
     env_file:
       - .env.dmcp
-    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
     ports:
       - "${DMCP_PORT:-8000}:8000"
-    environment:
-      DATABASE_URL: postgresql+asyncpg://dmcpuser:12345@postgres:5432/dmcp
-      HOST: 0.0.0.0
-      PORT: 8000
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,14 +50,11 @@ services:
 
   wurf:
     image: leaninno:wurf
-    container_name: leaninno-wurf
-    command: uv run uvicorn server:app --host 0.0.0.0 --port 8080
+    container_name: leaninno-wurf    
     ports:
       - "${WURF_PORT:-8080}:8080"
     env_file:
-      - .env.wurf
-    environment:
-      POSTGRES_CONNECTION_STRING: postgresql+psycopg://wurfuser:12345@postgres:5432/ragdb
+      - .env.wurf    
     depends_on:
       postgres:
         condition: service_healthy
