@@ -3,7 +3,7 @@ services:
     image: pgvector/pgvector:pg16-trixie
     container_name: leaninno-dmcp-postgres
     env_file:
-      - .env.db    
+      - .env
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
