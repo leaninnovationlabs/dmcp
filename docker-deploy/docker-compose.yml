@@ -3,14 +3,9 @@ services:
     image: pgvector/pgvector:pg16-trixie
     container_name: leaninno-dmcp-postgres
     env_file:
-      - .env.db
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-dmcp}
-      PGDATA: /var/lib/postgresql/data/pgdata
+      - .env.db    
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker-init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
