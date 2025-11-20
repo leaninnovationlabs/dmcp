@@ -1,16 +1,16 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16-trixie
-    container_name: leaninno-dmcp-postgres
+    container_name: wurf-postgres
     env_file:
-      - .env
+      - .env.db
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_data:/var/lib/postgresql/data
       - ./docker-init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     networks:
-      - leaninno-network
+      - wurf-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d dmcp"]
@@ -18,51 +18,48 @@ services:
       timeout: 5s
       retries: 5
     labels:
-      - "com.dmcp.service=postgres"
-      - "com.dmcp.environment=prod"
+      - "com.dmcp.service=postgres"      
 
   dmcp:
-    image: leaninno:dmcp
-    container_name: leaninno-dmcp
+    image: dmcp:latest
+    container_name: dmcp
     env_file:
       - .env.dmcp
     ports:
-      - "${DMCP_PORT:-8000}:8000"
+      - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - leaninno-network
+      - wurf-network
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    labels:
-      - "com.dmcp.environment=prod"
+    labels:      
       - "com.dmcp.service=dmcp"
 
   wurf:
-    image: leaninno:wurf
-    container_name: leaninno-wurf    
+    image: wurf:latest
+    container_name: wurf    
     ports:
-      - "${WURF_PORT:-8080}:8080"
+      - "8080:8080"
     env_file:
       - .env.wurf    
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - leaninno-network
+      - wurf-network
     restart: unless-stopped
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    labels:
-      - "com.dmcp.environment=prod"
+    labels:      
       - "com.dmcp.service=wurf"
 
 volumes:
@@ -70,6 +67,6 @@ volumes:
     driver: local
 
 networks:
-  leaninno-network:
+  wurf-network:
     driver: bridge
 
