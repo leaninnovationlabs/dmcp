@@ -13,4 +13,6 @@ data/
 public/*
 !public/.gitkeep
 dist
-docs/api/environments
+docs/api/
+docker-compose/.env.*
+docker-compose/postgres_data
